@@ -1,0 +1,77 @@
+import React from 'react';
+import { Layout, Button, Space, Typography, Dropdown } from 'antd';
+import { MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { useSelector, useDispatch } from 'react-redux';
+import { toggleSidebar } from '../store/slices/uiSlice';
+import { logout } from '../store/slices/authSlice';
+import logo from '../assets/infinite.png';
+
+const { Header } = Layout;
+const { Text } = Typography;
+
+const AppHeader = () => {
+  const dispatch = useDispatch();
+  const { sidebarCollapsed } = useSelector(state => state.ui);
+  const { user, selectedCompany, selectedYear } = useSelector(state => state.auth);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    localStorage.removeItem('token');
+  };
+
+  const userMenuItems = [
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: 'Logout',
+      onClick: handleLogout
+    }
+  ];
+
+  return (
+    <Header style={{ 
+      padding: '0 16px', 
+      background: '#fff', 
+      display: 'flex', 
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderBottom: '1px solid #f0f0f0'
+    }}>
+      <Space>
+        <Button
+          type="text"
+          icon={sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          onClick={() => dispatch(toggleSidebar())}
+        />
+        <img src={logo} alt="Infinite ERP" style={{ height: '36px', marginTop: '25px' }} />
+      </Space>
+      
+      <Space>
+        {selectedCompany && selectedYear && (
+          <div style={{
+            background: '#f5f5f5',
+            border: '1px solid #d9d9d9',
+            borderRadius: '6px',
+            padding: '8px 12px',
+            marginRight: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <UserOutlined style={{ color: '#1890ff', fontSize: '14px' }} />
+            <Text style={{ color: '#262626', fontSize: '13px', fontWeight: '500' }}>
+              Company : {selectedCompany} | FY : {selectedYear}
+            </Text>
+          </div>
+        )}
+        <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+          <Button type="text" icon={<UserOutlined />}>
+            {user?.userName || 'User'}
+          </Button>
+        </Dropdown>
+      </Space>
+    </Header>
+  );
+};
+
+export default AppHeader;

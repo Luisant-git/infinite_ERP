@@ -1,0 +1,97 @@
+/* Custom Design System */
+:root {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --success-color: #10b981;
+  --background-color: #f8fafc;
+  --surface-color: #ffffff;
+  --border-color: #e2e8f0;
+  --text-primary: #1e293b;
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+.custom-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-md);
+  border: none;
+  height: 70px;
+}
+
+.custom-header .menu-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: var(--radius-md);
+  transition: all 0.3s ease;
+}
+
+.custom-header .menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.custom-badge {
+  border-radius: var(--radius-lg);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.custom-badge.company {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.custom-badge.fy {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+}
+
+.custom-user-menu {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: var(--radius-md);
+  transition: all 0.3s ease;
+}
+
+.custom-card {
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+.custom-btn-primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  transition: all 0.3s ease;
+}
+
+.custom-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.custom-login-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-login-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
