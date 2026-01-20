@@ -2,10 +2,25 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
-const getHeaders = () => ({
-  'tenant-id': '1', // This should come from user context/store
-  'user-id': '1'   // This should come from user context/store
-});
+const getHeaders = () => {
+  // Get tenant and user info from localStorage or Redux store
+  const authState = JSON.parse(localStorage.getItem('persist:auth') || '{}');
+  const selectedTenant = authState.selectedTenant ? JSON.parse(authState.selectedTenant) : null;
+  const user = authState.user ? JSON.parse(authState.user) : null;
+  
+  if (!selectedTenant?.id) {
+    throw new Error('No tenant selected. Please select a tenant first.');
+  }
+  
+  if (!user?.id) {
+    throw new Error('User not found. Please login again.');
+  }
+  
+  return {
+    'tenant-id': selectedTenant.id.toString(),
+    'user-id': user.id.toString()
+  };
+};
 
 export const getPartyTypes = async (search = '', page = 1, limit = 10) => {
   const response = await axios.get(`${API_BASE_URL}/party-types`, {
