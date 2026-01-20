@@ -13,6 +13,8 @@ const AppHeader = () => {
   const dispatch = useDispatch();
   const { sidebarCollapsed } = useSelector(state => state.ui);
   const { user, selectedCompany, selectedYear } = useSelector(state => state.auth);
+  console.log('AppHeader - selectedCompany:', selectedCompany, 'selectedYear:', selectedYear);
+  console.log('AppHeader - user:', user);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -66,7 +68,7 @@ const AppHeader = () => {
         )}
         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
           <Button type="text" icon={<UserOutlined />}>
-            {user?.userName || 'User'}
+            {user?.username || 'User'}
           </Button>
         </Dropdown>
       </Space>

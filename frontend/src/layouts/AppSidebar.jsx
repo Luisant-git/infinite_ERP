@@ -32,20 +32,25 @@ const AppSidebar = ({ collapsed }) => {
       icon: <TeamOutlined />,
       label: 'Masters',
       children: [
-        // {
-        //   key: ROUTES.USER_MASTER,
-        //   icon: <UserOutlined />,
-        //   label: 'Login Creation'
-        // },
-        // {
-        //   key: ROUTES.CONCERN_MASTER,
-        //   icon: <ShopOutlined />,
-        //   label: 'Concern Master'
-        // },
+        {
+          key: ROUTES.USER_MASTER,
+          icon: <UserOutlined />,
+          label: 'Login Creation'
+        },
+        {
+          key: ROUTES.CONCERN_MASTER,
+          icon: <ShopOutlined />,
+          label: 'Concern Master'
+        },
         {
           key: ROUTES.PARTY_MASTER,
           icon: <TeamOutlined />,
           label: 'Party Master'
+        },
+        {
+          key: ROUTES.PARTY_TYPE_MASTER,
+          icon: <TeamOutlined />,
+          label: 'Party Type Master'
         }
       ]
     },

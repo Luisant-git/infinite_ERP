@@ -4,7 +4,7 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { loginStart, loginSuccess, loginFailure, setCompanySelection, hideCompanySelection } from '../../store/slices/authSlice';
-import { authService } from '../../services/authService';
+import { login } from '../../api/auth';
 import { ROUTES } from '../../constants/permissions';
 import CompanySelectionModal from '../../components/common/CompanySelectionModal';
 import logo from '../../assets/infinite.png';
@@ -19,43 +19,32 @@ const Login = () => {
   const onFinish = async (values) => {
     dispatch(loginStart());
     try {
-      // Static credentials for testing
-      const validCredentials = [
-        { userName: 'admin', password: 'admin123', permissions: { adminUser: true, dcClose: true, active: true, add: true, edit: true, delete: true } },
-        { userName: 'user1', password: 'user123', permissions: { adminUser: false, dcClose: false, active: true, add: true, edit: false, delete: false } },
-        { userName: 'manager', password: 'manager123', permissions: { adminUser: false, dcClose: true, active: true, add: true, edit: true, delete: true } }
-      ];
-
-      const user = validCredentials.find(u => u.userName === values.userName && u.password === values.password);
+      console.log('Sending login request:', values);
+      const response = await login(values.username, values.password);
+      console.log('Login response:', response);
       
-      if (!user) {
-        dispatch(loginFailure('Invalid username or password'));
-        return;
-      }
-
-      if (!user.permissions.active) {
-        dispatch(loginFailure('User account is inactive'));
-        return;
-      }
-
-      // Simulate API response
-      const response = {
-        token: 'mock-jwt-token-' + Date.now(),
-        user: { userName: user.userName, ...user.permissions }
-      };
-
-      localStorage.setItem('token', response.token);
+      localStorage.setItem('token', response.access_token);
       dispatch(loginSuccess({
         user: response.user,
-        permissions: user.permissions
+        tenants: response.tenants
       }));
       
-      // Navigate only if not admin (admin will see company selection modal)
-      if (!user.permissions.adminUser) {
-        navigate(ROUTES.DASHBOARD);
-      }
+      // Always show company selection after login
+      console.log('Setting company selection modal to show');
+      dispatch(setCompanySelection({ showModal: true }));
     } catch (error) {
-      dispatch(loginFailure('Login failed'));
+      console.error('Login error:', error);
+      let errorMessage = 'Login failed';
+      
+      if (error.response?.status === 401) {
+        errorMessage = error.response.data.message || 'Invalid credentials';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      dispatch(loginFailure(errorMessage));
     }
   };
 
@@ -69,6 +58,8 @@ const Login = () => {
     dispatch(logout());
   };
 
+  console.log('Modal visibility:', showCompanySelection);
+  
   return (
     <div style={{ 
       display: 'flex', 
@@ -96,7 +87,7 @@ const Login = () => {
           >
             <Form.Item
               label="User Name"
-              name="userName"
+              name="username"
               rules={[{ required: true, message: 'Please input your username!' }]}
             >
               <Input 

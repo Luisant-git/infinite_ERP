@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Card, Form, Input, Checkbox, Button, Row, Col, Typography, Select, Space, Table, Modal, InputNumber, Tabs, Divider } from 'antd';
-import { SaveOutlined, ClearOutlined, PlusOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined, EyeOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Card, Form, Input, Checkbox, Button, Row, Col, Typography, Select, Space, Table, Modal, InputNumber, Tabs } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined, EyeOutlined } from '@ant-design/icons';
+import { getParties, createParty, updateParty, deleteParty } from '../../api/party';
+import { getPartyTypes } from '../../api/partyType';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -13,44 +15,49 @@ const PartyMaster = () => {
   const [editingParty, setEditingParty] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [filteredParties, setFilteredParties] = useState([]);
+  const [partyTypes, setPartyTypes] = useState([]);
 
   // Sample data for the table
-  const [parties, setParties] = useState([
-    {
-      id: 1,
-      partyName: 'ABC Suppliers',
-      vendorCode: 'V001',
-      mobileNo: '9876543210',
-      email: 'abc@example.com',
-      district: 'Mumbai',
-      gstNo: '27ABCDE1234F1Z5',
-      active: 1
-    },
-    {
-      id: 2,
-      partyName: 'XYZ Customer',
-      vendorCode: 'V002',
-      mobileNo: '9876543211',
-      email: 'xyz@example.com',
-      district: 'Ahmedabad',
-      gstNo: '24XYZAB5678G1Z2',
-      active: 1
-    }
-  ]);
+  const [parties, setParties] = useState([]);
 
-  const handleSearch = (value) => {
-    setSearchText(value);
-    if (!value) {
-      setFilteredParties(parties);
-    } else {
-      const filtered = parties.filter(party => 
-        party.partyName?.toLowerCase().includes(value.toLowerCase()) ||
-        party.vendorCode?.toLowerCase().includes(value.toLowerCase()) ||
-        party.mobileNo?.includes(value) ||
-        party.gstNo?.toLowerCase().includes(value.toLowerCase())
-      );
-      setFilteredParties(filtered);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+
+  useEffect(() => {
+    loadParties();
+    loadPartyTypes();
+  }, []);
+
+  const loadParties = async (page = 1, pageSize = 10, search = searchText) => {
+    try {
+      const response = await getParties(search, page, pageSize);
+      const partiesData = response.data || response;
+      setParties(partiesData);
+      setFilteredParties(partiesData);
+      
+      if (response.pagination) {
+        setPagination({
+          current: response.pagination.page,
+          pageSize: response.pagination.limit,
+          total: response.pagination.total
+        });
+      }
+    } catch (error) {
+      console.error('Error loading parties:', error);
     }
+  };
+
+  const loadPartyTypes = async () => {
+    try {
+      const response = await getPartyTypes('', 1, 100);
+      setPartyTypes(response.data || response);
+    } catch (error) {
+      console.error('Error loading party types:', error);
+    }
+  };
+
+  const handleSearch = async (value) => {
+    setSearchText(value);
+    loadParties(1, pagination.pageSize, value);
   };
 
   React.useEffect(() => {
@@ -58,8 +65,8 @@ const PartyMaster = () => {
   }, [parties]);
 
   const handleSubmit = async (values) => {
+    setLoading(true);
     try {
-      // Process form data
       const formData = {
         ...values,
         active: values.active ? 1 : 0,
@@ -67,18 +74,19 @@ const PartyMaster = () => {
       };
       
       if (editingParty) {
-        // Update existing party
+        const updatedParty = await updateParty(editingParty.id, formData);
         setParties(parties.map(party => 
-          party.id === editingParty.id ? { ...formData, id: editingParty.id } : party
+          party.id === editingParty.id ? updatedParty : party
         ));
       } else {
-        // Add new party
-        const newParty = { ...formData, id: Date.now() };
+        const newParty = await createParty(formData);
         setParties([...parties, newParty]);
       }
       setIsModalVisible(false);
       form.resetFields();
       setEditingParty(null);
+    } catch (error) {
+      console.error('Error saving party:', error);
     } finally {
       setLoading(false);
     }
@@ -93,7 +101,8 @@ const PartyMaster = () => {
           <Row gutter={16}>
             <Col span={12}>
               <p><strong>Party Name:</strong> {record.partyName || 'N/A'}</p>
-              <p><strong>Vendor Code:</strong> {record.vendorCode || 'N/A'}</p>
+              <p><strong>Party Code:</strong> {record.partyCode || 'N/A'}</p>
+              <p><strong>Party Types:</strong> {record.partyTypes?.map(pt => pt.partyType.partyTypeName).join(', ') || 'N/A'}</p>
               <p><strong>Address 1:</strong> {record.address1 || 'N/A'}</p>
               <p><strong>Address 2:</strong> {record.address2 || 'N/A'}</p>
               <p><strong>Address 3:</strong> {record.address3 || 'N/A'}</p>
@@ -144,8 +153,13 @@ const PartyMaster = () => {
     setIsModalVisible(true);
   };
 
-  const handleDelete = (id) => {
-    setParties(parties.filter(party => party.id !== id));
+  const handleDelete = async (id) => {
+    try {
+      await deleteParty(id);
+      setParties(parties.filter(party => party.id !== id));
+    } catch (error) {
+      console.error('Error deleting party:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -162,14 +176,26 @@ const PartyMaster = () => {
 
   const columns = [
     {
+      title: 'S.No',
+      key: 'sno',
+      width: 60,
+      render: (_, record, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+    },
+    {
       title: 'Party Name',
       dataIndex: 'partyName',
       key: 'partyName',
     },
     {
-      title: 'Vendor Code',
-      dataIndex: 'vendorCode',
-      key: 'vendorCode',
+      title: 'Party Types',
+      dataIndex: 'partyTypes',
+      key: 'partyTypes',
+      render: (partyTypes) => partyTypes?.map(pt => pt.partyType.partyTypeName).join(', ') || 'N/A',
+    },
+    {
+      title: 'Party Code',
+      dataIndex: 'partyCode',
+      key: 'partyCode',
     },
     {
       title: 'Mobile No',
@@ -238,11 +264,13 @@ const PartyMaster = () => {
         columns={columns} 
         dataSource={filteredParties} 
         rowKey="id"
-        pagination={{ 
-          pageSize: 10,
+        pagination={{
+          ...pagination,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
+          showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+          onChange: (page, pageSize) => loadParties(page, pageSize),
+          onShowSizeChange: (current, size) => loadParties(1, size)
         }}
       />
 
@@ -288,10 +316,27 @@ const PartyMaster = () => {
                 </Col>
                 <Col span={12}>
                   <Form.Item
-                    label="Vendor Code"
-                    name="vendorCode"
+                    label="Party Code"
+                    name="partyCode"
+                    rules={[{ required: true, message: 'Please input party code!' }]}
                   >
-                    <Input placeholder="Enter vendor code" maxLength={50} />
+                    <Input placeholder="Enter party code" maxLength={50} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Party Types"
+                    name="partyTypeIds"
+                  >
+                    <Select 
+                      mode="multiple"
+                      placeholder="Select party types" 
+                      allowClear
+                    >
+                      {partyTypes.filter(pt => pt.isActive).map(type => (
+                        <Option key={type.id} value={type.id}>{type.partyTypeName}</Option>
+                      ))}
+                    </Select>
                   </Form.Item>
                 </Col>
                 <Col span={12}>

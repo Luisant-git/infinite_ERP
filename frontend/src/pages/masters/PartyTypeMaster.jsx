@@ -1,27 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Button, Space, Table, Modal, Checkbox, Typography } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getUsers, createUser, updateUser, deleteUser, getUserById } from '../../api/user';
+import { getPartyTypes, createPartyType, updatePartyType, deletePartyType } from '../../api/partyType';
 
 const { Title } = Typography;
 
-const UserMaster = () => {
+const PartyTypeMaster = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
+  const [editingPartyType, setEditingPartyType] = useState(null);
   const [searchText, setSearchText] = useState('');
-  const [users, setUsers] = useState([]);
+  const [partyTypes, setPartyTypes] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
 
   useEffect(() => {
-    loadUsers();
+    loadPartyTypes();
   }, []);
 
-  const loadUsers = async (page = 1, pageSize = 10, search = searchText) => {
+  const loadPartyTypes = async (page = 1, pageSize = 10, search = searchText) => {
     try {
-      const response = await getUsers(search, page, pageSize);
-      setUsers(response.data || response);
+      const response = await getPartyTypes(search, page, pageSize);
+      setPartyTypes(response.data || response);
       
       if (response.pagination) {
         setPagination({
@@ -31,64 +31,56 @@ const UserMaster = () => {
         });
       }
     } catch (error) {
-      console.error('Error loading users:', error);
+      console.error('Error loading party types:', error);
     }
   };
 
   const handleSearch = (value) => {
     setSearchText(value);
-    loadUsers(1, pagination.pageSize, value);
+    loadPartyTypes(1, pagination.pageSize, value);
   };
 
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      if (editingUser) {
-        await updateUser(editingUser.id, values);
+      const formData = { ...values, tenantId: 1 };
+      
+      if (editingPartyType) {
+        await updatePartyType(editingPartyType.id, formData);
       } else {
-        await createUser(values);
+        await createPartyType(formData);
       }
+      
       setIsModalVisible(false);
       form.resetFields();
-      setEditingUser(null);
-      loadUsers();
+      setEditingPartyType(null);
+      loadPartyTypes();
     } catch (error) {
-      console.error('Error saving user:', error);
+      console.error('Error saving party type:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = async (record) => {
-    try {
-      const userData = await getUserById(record.id);
-      setEditingUser(userData);
-      form.setFieldsValue({
-        username: userData.username,
-        password: '********',
-        adminUser: userData.adminUser,
-        dcClose: userData.dcClose,
-        isActive: userData.isActive
-      });
-      setIsModalVisible(true);
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    }
+  const handleEdit = (record) => {
+    setEditingPartyType(record);
+    form.setFieldsValue(record);
+    setIsModalVisible(true);
   };
 
   const handleDelete = async (id) => {
     try {
-      await deleteUser(id);
-      loadUsers();
+      await deletePartyType(id);
+      loadPartyTypes();
     } catch (error) {
-      console.error('Error deleting user:', error);
+      console.error('Error deleting party type:', error);
     }
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
-    setEditingUser(null);
+    setEditingPartyType(null);
   };
 
   const columns = [
@@ -99,21 +91,9 @@ const UserMaster = () => {
       render: (_, record, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
-      title: 'User Name',
-      dataIndex: 'username',
-      key: 'username',
-    },
-    {
-      title: 'Admin User',
-      dataIndex: 'adminUser',
-      key: 'adminUser',
-      render: (adminUser) => adminUser ? 'Yes' : 'No',
-    },
-    {
-      title: 'DC Close',
-      dataIndex: 'dcClose',
-      key: 'dcClose',
-      render: (dcClose) => dcClose ? 'Yes' : 'No',
+      title: 'Party Type Name',
+      dataIndex: 'partyTypeName',
+      key: 'partyTypeName',
     },
     {
       title: 'Status',
@@ -137,10 +117,10 @@ const UserMaster = () => {
   return (
     <Card>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={3} style={{ margin: 0 }}>User Master</Title>
+        <Title level={3} style={{ margin: 0 }}>Party Type Master</Title>
         <Space>
           <Input 
-            placeholder="Search users" 
+            placeholder="Search party types" 
             value={searchText}
             onChange={(e) => handleSearch(e.target.value)}
             style={{ width: 280, height: 32 }}
@@ -152,32 +132,35 @@ const UserMaster = () => {
             icon={<PlusOutlined />} 
             onClick={() => setIsModalVisible(true)}
           >
-            Add User
+            Add Party Type
           </Button>
         </Space>
       </div>
 
       <Table 
         columns={columns} 
-        dataSource={users} 
+        dataSource={partyTypes} 
         rowKey="id"
         pagination={{
           ...pagination,
           showSizeChanger: true,
           showQuickJumper: true,
           showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
-          onChange: (page, pageSize) => loadUsers(page, pageSize),
-          onShowSizeChange: (current, size) => loadUsers(1, size)
+          onChange: (page, pageSize) => loadPartyTypes(page, pageSize),
+          onShowSizeChange: (current, size) => loadPartyTypes(1, size)
         }}
       />
 
       <Modal
-        title={editingUser ? 'Edit User' : 'Add User'}
+        title={editingPartyType ? 'Edit Party Type' : 'Add Party Type'}
         open={isModalVisible}
         onCancel={handleCancel}
         footer={[
           <Button key="cancel" onClick={handleCancel}>
             Cancel
+          </Button>,
+          <Button key="clear" onClick={() => form.resetFields()}>
+            Clear
           </Button>,
           <Button 
             key="submit" 
@@ -185,10 +168,10 @@ const UserMaster = () => {
             loading={loading}
             onClick={() => form.submit()}
           >
-            OK
+            Save
           </Button>,
         ]}
-        width={500}
+        width={400}
       >
         <Form
           form={form}
@@ -197,38 +180,23 @@ const UserMaster = () => {
           initialValues={{ isActive: true }}
         >
           <Form.Item
-            label="User Name"
-            name="username"
-            rules={[{ required: true, message: 'Please input user name!' }]}
+            label="Party Type Name"
+            name="partyTypeName"
+            rules={[{ required: true, message: 'Please input party type name!' }]}
           >
-            <Input placeholder="Enter user name" disabled={editingUser} />
+            <Input placeholder="Enter party type name" maxLength={50} />
           </Form.Item>
           
           <Form.Item
-            label="Password"
-            name="password"
-            rules={[{ required: !editingUser, message: 'Please input password!' }]}
+            name="isActive"
+            valuePropName="checked"
           >
-            <Input.Password placeholder="Enter password" disabled={editingUser} />
+            <Checkbox>Active</Checkbox>
           </Form.Item>
-
-          <div style={{ display: 'flex', gap: 16 }}>
-            <Form.Item name="adminUser" valuePropName="checked">
-              <Checkbox>Admin User</Checkbox>
-            </Form.Item>
-            
-            <Form.Item name="dcClose" valuePropName="checked">
-              <Checkbox>DC Close</Checkbox>
-            </Form.Item>
-            
-            <Form.Item name="isActive" valuePropName="checked">
-              <Checkbox>Active</Checkbox>
-            </Form.Item>
-          </div>
         </Form>
       </Modal>
     </Card>
   );
 };
 
-export default UserMaster;
+export default PartyTypeMaster;

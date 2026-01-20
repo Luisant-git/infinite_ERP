@@ -1,31 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Select, Button } from 'antd';
+import { createTenant } from '../../api/auth';
+import { getCompanies, getTenants } from '../../api/company';
 
 const { Option } = Select;
 
 const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [companies, setCompanies] = useState([]);
+  const [tenants, setTenants] = useState([]);
+  const [selectedCompany, setSelectedCompany] = useState(null);
 
-  const companies = [
-    { id: 1, name: 'ABARNIKA KNITS' },
-    { id: 2, name: 'TEXTILE CORP' },
-    { id: 3, name: 'FASHION HOUSE' }
-  ];
+  useEffect(() => {
+    if (visible) {
+      loadData();
+    }
+  }, [visible]);
 
-  const years = [
-    '2024-2025',
-    '2025-2026',
-    '2026-2027'
-  ];
+  const loadData = async () => {
+    try {
+      const [companiesData, tenantsData] = await Promise.all([
+        getCompanies(),
+        getTenants()
+      ]);
+      setCompanies(companiesData);
+      setTenants(tenantsData);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    }
+  };
+
+  const handleCompanyChange = (companyName) => {
+    setSelectedCompany(companyName);
+    form.setFieldsValue({ year: undefined });
+  };
+
+  const getAvailableYears = () => {
+    if (!selectedCompany) return [];
+    return tenants
+      .filter(tenant => tenant.company.name === selectedCompany)
+      .map(tenant => tenant.financialYear);
+  };
 
   const handleSubmit = async () => {
     try {
       setLoading(true);
       const values = await form.validateFields();
-      onSelect(values);
+      
+      // Find existing tenant or create new one
+      let tenant = tenants.find(t => 
+        t.company.name === values.company && 
+        t.financialYear === values.year
+      );
+      
+      if (!tenant) {
+        tenant = await createTenant(values.company, values.year);
+      }
+      
+      onSelect({
+        company: values.company,
+        year: values.year,
+        tenantId: tenant.id
+      });
     } catch (error) {
-      console.error('Validation failed:', error);
+      console.error('Tenant selection failed:', error);
     } finally {
       setLoading(false);
     }
@@ -48,17 +87,20 @@ const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
       <Form
         form={form}
         layout="vertical"
-        initialValues={{
-          company: 'ABARNIKA KNITS',
-          year: '2025-2026'
-        }}
+        initialValues={{}}
       >
         <Form.Item
           label="Company"
           name="company"
           rules={[{ required: true, message: 'Please select a company!' }]}
         >
-          <Select placeholder="Select company" size="large">
+          <Select 
+            placeholder="Select company" 
+            size="large"
+            onChange={handleCompanyChange}
+            showSearch
+            allowClear
+          >
             {companies.map(company => (
               <Option key={company.id} value={company.name}>
                 {company.name}
@@ -68,12 +110,16 @@ const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
         </Form.Item>
 
         <Form.Item
-          label="Year"
+          label="Financial Year"
           name="year"
           rules={[{ required: true, message: 'Please select a year!' }]}
         >
-          <Select placeholder="Select year" size="large">
-            {years.map(year => (
+          <Select 
+            placeholder="Select year" 
+            size="large"
+            disabled={!selectedCompany}
+          >
+            {getAvailableYears().map(year => (
               <Option key={year} value={year}>
                 {year}
               </Option>

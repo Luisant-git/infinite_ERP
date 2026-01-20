@@ -6,3 +6,190 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  adminUser Boolean  @default(false)
+  dcClose   Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime?
+  deletedBy Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  userTenants UserTenant[]
+  
+  @@map("users")
+}
+
+model Company {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  tenants Tenant[]
+  
+  @@map("companies")
+}
+
+model Tenant {
+  id           Int     @id @default(autoincrement())
+  companyId    Int
+  financialYear String
+  isActive     Boolean @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  company     Company @relation(fields: [companyId], references: [id])
+  userTenants UserTenant[]
+  parties     Party[]
+  concerns    Concern[]
+  partyTypes  PartyType[]
+  
+  @@unique([companyId, financialYear])
+  @@map("tenants")
+}
+
+model UserTenant {
+  id       Int @id @default(autoincrement())
+  userId   Int
+  tenantId Int
+  
+  user   User   @relation(fields: [userId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  
+  @@unique([userId, tenantId])
+  @@map("user_tenants")
+}
+
+model Party {
+  id            Int      @id @default(autoincrement())
+  tenantId      Int
+  partyName     String   @db.VarChar(50)
+  partyCode     String   @db.VarChar(50)
+  address1      String?  @db.VarChar(50)
+  address2      String?  @db.VarChar(50)
+  address3      String?  @db.VarChar(50)
+  address4      String?  @db.VarChar(50)
+  pincode       String?  @db.VarChar(8)
+  district      String?  @db.VarChar(50)
+  mobileNo      String?  @db.VarChar(10)
+  phoneNo       String?  @db.VarChar(10)
+  email         String?  @db.VarChar(20)
+  panNo         String?  @db.VarChar(20)
+  tallyAccName  String?  @db.VarChar(50)
+  gstNo         String   @db.VarChar(50)
+  creditDays    Int      @default(0)
+  accountNo     String?  @db.VarChar(30)
+  bank          String?  @db.VarChar(30)
+  ifscCode      String?  @db.VarChar(12)
+  branch        String?  @db.VarChar(30)
+  active        Int      @default(1)
+  isDeleted     Boolean  @default(false)
+  deletedAt     DateTime?
+  deletedBy     Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  tenant     Tenant @relation(fields: [tenantId], references: [id])
+  contacts   PartyContact[]
+  partyTypes PartyPartyType[]
+  
+  @@map("parties")
+}
+
+model PartyContact {
+  id               Int     @id @default(autoincrement())
+  partyId          Int
+  name             String  @db.VarChar(50)
+  mobileNo         String? @db.VarChar(10)
+  email            String? @db.VarChar(12)
+  whatsappRequired Int     @default(0)
+  mailRequired     Int     @default(0)
+  
+  party Party @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  
+  @@map("party_contacts")
+}
+
+model Concern {
+  id            Int      @id @default(autoincrement())
+  tenantId      Int
+  partyName     String   @db.VarChar(50)
+  vendorCode    String?  @db.VarChar(50)
+  address1      String?  @db.VarChar(50)
+  address2      String?  @db.VarChar(50)
+  address3      String?  @db.VarChar(50)
+  address4      String?  @db.VarChar(50)
+  pincode       String?  @db.VarChar(8)
+  district      String?  @db.VarChar(50)
+  mobileNo      String?  @db.VarChar(10)
+  phoneNo       String?  @db.VarChar(10)
+  email         String?  @db.VarChar(20)
+  panNo         String?  @db.VarChar(20)
+  tallyAccName  String?  @db.VarChar(50)
+  gstNo         String   @db.VarChar(50)
+  creditDays    Int      @default(0)
+  accountNo     String?  @db.VarChar(30)
+  bank          String?  @db.VarChar(30)
+  ifscCode      String?  @db.VarChar(12)
+  branch        String?  @db.VarChar(30)
+  active        Int      @default(1)
+  isDeleted     Boolean  @default(false)
+  deletedAt     DateTime?
+  deletedBy     Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  contacts ConcernContact[]
+  
+  @@map("concerns")
+}
+
+model ConcernContact {
+  id               Int     @id @default(autoincrement())
+  concernId        Int
+  name             String  @db.VarChar(50)
+  mobileNo         String? @db.VarChar(10)
+  email            String? @db.VarChar(12)
+  whatsappRequired Int     @default(0)
+  mailRequired     Int     @default(0)
+  
+  concern Concern @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  
+  @@map("concern_contacts")
+}
+
+model PartyType {
+  id            Int      @id @default(autoincrement())
+  tenantId      Int
+  partyTypeName String   @db.VarChar(50)
+  isActive      Boolean  @default(true)
+  isDeleted     Boolean  @default(false)
+  deletedAt     DateTime?
+  deletedBy     Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  parties PartyPartyType[]
+  
+  @@map("party_types")
+}
+
+model PartyPartyType {
+  id          Int @id @default(autoincrement())
+  partyId     Int
+  partyTypeId Int
+  
+  party     Party     @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  partyType PartyType @relation(fields: [partyTypeId], references: [id], onDelete: Cascade)
+  
+  @@unique([partyId, partyTypeId])
+  @@map("party_party_types")
+}
