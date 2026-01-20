@@ -43,12 +43,10 @@ const PartyTypeMaster = () => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      const formData = { ...values, tenantId: 1 };
-      
       if (editingPartyType) {
-        await updatePartyType(editingPartyType.id, formData);
+        await updatePartyType(editingPartyType.id, values);
       } else {
-        await createPartyType(formData);
+        await createPartyType(values);
       }
       
       setIsModalVisible(false);

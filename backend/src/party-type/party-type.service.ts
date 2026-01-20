@@ -8,15 +8,19 @@ export class PartyTypeService {
   constructor(private prisma: PrismaService) {}
 
   async create(createPartyTypeDto: CreatePartyTypeDto) {
+    console.log('Creating party type with data:', createPartyTypeDto);
+    console.log('tenantId:', createPartyTypeDto.tenantId);
+    
     return this.prisma.partyType.create({
       data: createPartyTypeDto,
     });
   }
 
-  async findAll(search?: string, page = 1, limit = 10) {
+  async findAll(tenantId: number, search?: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
     const where = {
       isDeleted: false,
+      tenantId,
       ...(search && {
         partyTypeName: { contains: search, mode: 'insensitive' as const }
       })
