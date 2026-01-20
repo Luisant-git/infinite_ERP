@@ -23,26 +23,6 @@ export class AuthService {
       }
     });
     
-    // Create default company and tenant
-    const defaultCompany = await this.prisma.company.create({
-      data: { name: 'Default Company' }
-    });
-    
-    const defaultTenant = await this.prisma.tenant.create({
-      data: {
-        companyId: defaultCompany.id,
-        financialYear: '2025-2026'
-      }
-    });
-    
-    // Link user to tenant
-    await this.prisma.userTenant.create({
-      data: {
-        userId: user.id,
-        tenantId: defaultTenant.id
-      }
-    });
-    
     return { id: user.id, username: user.username };
   }
 
