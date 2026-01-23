@@ -11,7 +11,7 @@ export class AuthService {
   ) {}
 
   async register(registerDto: any) {
-    const { username, password, adminUser, dcClose, isActive } = registerDto;
+    const { username, password, adminUser, dcClose, isActive, concernId } = registerDto;
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await this.prisma.user.create({
       data: {
@@ -19,11 +19,20 @@ export class AuthService {
         password: hashedPassword,
         adminUser: adminUser || false,
         dcClose: dcClose || false,
-        isActive: isActive !== undefined ? isActive : true
+        isActive: isActive !== undefined ? isActive : true,
+        concernId: concernId || null
       }
     });
     
-    return { id: user.id, username: user.username };
+    return { 
+      id: user.id, 
+      username: user.username, 
+      adminUser: user.adminUser,
+      dcClose: user.dcClose,
+      isActive: user.isActive,
+      concernId: user.concernId,
+      createdAt: user.createdAt
+    };
   }
 
   async login(username: string, password: string) {

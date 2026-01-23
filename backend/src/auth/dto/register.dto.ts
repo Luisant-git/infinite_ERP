@@ -15,4 +15,7 @@ export class RegisterDto {
 
   @ApiPropertyOptional({ example: true })
   isActive?: boolean;
+
+  @ApiPropertyOptional({ example: 1 })
+  concernId?: number;
 }
