@@ -1,6 +1,6 @@
 import apiClient from './index';
 
-export const getConcerns = async (search, page = 1, limit = 1) => {
+export const getConcerns = async (search, page = 1, limit = 10) => {
   const params = new URLSearchParams();
   if (search) params.append('search', search);
   params.append('page', page.toString());

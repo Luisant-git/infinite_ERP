@@ -15,13 +15,13 @@ const ConcernMaster = () => {
   const [searchText, setSearchText] = useState('');
   const [filteredConcerns, setFilteredConcerns] = useState([]);
   const [concerns, setConcerns] = useState([]);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 1, total: 0 });
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
 
   useEffect(() => {
     loadConcerns();
   }, []);
 
-  const loadConcerns = async (page = 1, pageSize = 1, search = searchText) => {
+  const loadConcerns = async (page = 1, pageSize = 10, search = searchText) => {
     try {
       const response = await getConcerns(search, page, pageSize);
       const concernsData = response.data || response;
