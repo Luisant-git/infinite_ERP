@@ -495,7 +495,7 @@ const ConcernMaster = () => {
                             label="Email"
                             rules={[{ type: 'email', message: 'Enter valid email!' }]}
                           >
-                            <Input placeholder="Email" maxLength={12} />
+                            <Input placeholder="Email" maxLength={20} />
                           </Form.Item>
                         </Col>
                         <Col span={3}>

@@ -39,7 +39,7 @@ const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
   const getAvailableYears = () => {
     if (!selectedCompany) return [];
     return tenants
-      .filter(tenant => tenant.company.name === selectedCompany)
+      .filter(tenant => tenant.concern.partyName === selectedCompany)
       .map(tenant => tenant.financialYear);
   };
 
@@ -50,7 +50,7 @@ const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
       
       // Find existing tenant or create new one
       let tenant = tenants.find(t => 
-        t.company.name === values.company && 
+        t.concern.partyName === values.company && 
         t.financialYear === values.year
       );
       
@@ -102,8 +102,8 @@ const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
             allowClear
           >
             {companies.map(company => (
-              <Option key={company.id} value={company.name}>
-                {company.name}
+              <Option key={company.id} value={company.partyName}>
+                {company.partyName}
               </Option>
             ))}
           </Select>

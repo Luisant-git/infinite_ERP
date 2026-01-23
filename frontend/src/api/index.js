@@ -6,6 +6,9 @@ const apiClient = axios.create({
   baseURL: API_BASE_URL,
 });
 
+// List of endpoints that don't need tenant-id
+const noTenantEndpoints = ['/concern', '/party', '/party-types', '/auth'];
+
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   const tenantId = localStorage.getItem('tenantId');
@@ -13,7 +16,10 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  if (tenantId) {
+  
+  // Only add tenant-id for endpoints that need it
+  const needsTenant = !noTenantEndpoints.some(endpoint => config.url?.startsWith(endpoint));
+  if (tenantId && needsTenant) {
     config.headers['tenant-id'] = tenantId;
   }
   

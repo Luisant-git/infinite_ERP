@@ -17,40 +17,28 @@ model User {
   isDeleted Boolean  @default(false)
   deletedAt DateTime?
   deletedBy Int?
+  concernId Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   userTenants UserTenant[]
+  concern     Concern? @relation(fields: [concernId], references: [id])
   
   @@map("users")
 }
 
-model Company {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  tenants Tenant[]
-  
-  @@map("companies")
-}
-
 model Tenant {
   id           Int     @id @default(autoincrement())
-  companyId    Int
+  concernId    Int
   financialYear String
   isActive     Boolean @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   
-  company     Company @relation(fields: [companyId], references: [id])
+  concern     Concern @relation(fields: [concernId], references: [id])
   userTenants UserTenant[]
-  parties     Party[]
-  concerns    Concern[]
-  partyTypes  PartyType[]
   
-  @@unique([companyId, financialYear])
+  @@unique([concernId, financialYear])
   @@map("tenants")
 }
 
@@ -68,7 +56,6 @@ model UserTenant {
 
 model Party {
   id            Int      @id @default(autoincrement())
-  tenantId      Int
   partyName     String   @db.VarChar(50)
   partyCode     String   @db.VarChar(50)
   address1      String?  @db.VarChar(50)
@@ -95,7 +82,6 @@ model Party {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
-  tenant     Tenant @relation(fields: [tenantId], references: [id])
   contacts   PartyContact[]
   partyTypes PartyPartyType[]
   
@@ -107,7 +93,7 @@ model PartyContact {
   partyId          Int
   name             String  @db.VarChar(50)
   mobileNo         String? @db.VarChar(10)
-  email            String? @db.VarChar(12)
+  email            String? @db.VarChar(20)
   whatsappRequired Int     @default(0)
   mailRequired     Int     @default(0)
   
@@ -118,7 +104,6 @@ model PartyContact {
 
 model Concern {
   id            Int      @id @default(autoincrement())
-  tenantId      Int
   partyName     String   @db.VarChar(50)
   vendorCode    String?  @db.VarChar(50)
   address1      String?  @db.VarChar(50)
@@ -145,8 +130,9 @@ model Concern {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
-  tenant   Tenant @relation(fields: [tenantId], references: [id])
   contacts ConcernContact[]
+  tenants  Tenant[]
+  users    User[]
   
   @@map("concerns")
 }
@@ -156,7 +142,7 @@ model ConcernContact {
   concernId        Int
   name             String  @db.VarChar(50)
   mobileNo         String? @db.VarChar(10)
-  email            String? @db.VarChar(12)
+  email            String? @db.VarChar(20)
   whatsappRequired Int     @default(0)
   mailRequired     Int     @default(0)
   
@@ -167,7 +153,6 @@ model ConcernContact {
 
 model PartyType {
   id            Int      @id @default(autoincrement())
-  tenantId      Int
   partyTypeName String   @db.VarChar(50)
   isActive      Boolean  @default(true)
   isDeleted     Boolean  @default(false)
@@ -176,7 +161,6 @@ model PartyType {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
-  tenant  Tenant  @relation(fields: [tenantId], references: [id])
   parties PartyPartyType[]
   
   @@map("party_types")

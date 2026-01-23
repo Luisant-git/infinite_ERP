@@ -149,7 +149,11 @@ const PartyMaster = () => {
 
   const handleEdit = (record) => {
     setEditingParty(record);
-    form.setFieldsValue(record);
+    const formData = {
+      ...record,
+      partyTypeIds: record.partyTypes?.map(pt => pt.partyTypeId) || []
+    };
+    form.setFieldsValue(formData);
     setIsModalVisible(true);
   };
 
@@ -534,7 +538,7 @@ const PartyMaster = () => {
                             label="Email"
                             rules={[{ type: 'email', message: 'Enter valid email!' }]}
                           >
-                            <Input placeholder="Email" maxLength={12} />
+                            <Input placeholder="Email" maxLength={20} />
                           </Form.Item>
                         </Col>
                         <Col span={3}>

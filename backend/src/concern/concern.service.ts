@@ -6,11 +6,10 @@ import { Prisma } from '@prisma/client';
 export class ConcernService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(tenantId: number, search?: string, page: number = 1, limit: number = 10) {
+  async findAll(search?: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     
     const where: Prisma.ConcernWhereInput = {
-      tenantId,
       isDeleted: false,
       ...(search && {
         OR: [
@@ -45,7 +44,7 @@ export class ConcernService {
     };
   }
 
-  async create(tenantId: number, data: any) {
+  async create(data: any) {
     const { contacts, ...concernData } = data;
     
     // Truncate fields to match database constraints
@@ -75,24 +74,36 @@ export class ConcernService {
     const processedContacts = contacts?.map(contact => ({
       name: contact.name?.substring(0, 50),
       mobileNo: contact.mobileNo?.substring(0, 10),
-      email: contact.email?.substring(0, 12),
+      email: contact.email?.substring(0, 20),
       whatsappRequired: contact.whatsappRequired ? 1 : 0,
       mailRequired: contact.mailRequired ? 1 : 0
     }));
     
-    return this.prisma.concern.create({
+    const concern = await this.prisma.concern.create({
       data: {
         ...processedConcernData,
-        tenantId,
         contacts: processedContacts ? {
           create: processedContacts
         } : undefined
       },
       include: { contacts: true }
     });
+
+    // Create tenant for current financial year
+    const currentYear = new Date().getFullYear();
+    const financialYear = `${currentYear}-${currentYear + 1}`;
+    
+    await this.prisma.tenant.create({
+      data: {
+        concernId: concern.id,
+        financialYear
+      }
+    });
+
+    return concern;
   }
 
-  async update(id: number, tenantId: number, data: any) {
+  async update(id: number, data: any) {
     const { contacts, ...concernData } = data;
     
     await this.prisma.concernContact.deleteMany({
@@ -103,13 +114,13 @@ export class ConcernService {
     const processedContacts = contacts?.map(contact => ({
       name: contact.name?.substring(0, 50),
       mobileNo: contact.mobileNo?.substring(0, 10),
-      email: contact.email?.substring(0, 12),
+      email: contact.email?.substring(0, 20),
       whatsappRequired: contact.whatsappRequired ? 1 : 0,
       mailRequired: contact.mailRequired ? 1 : 0
     }));
 
     return this.prisma.concern.update({
-      where: { id, tenantId },
+      where: { id },
       data: {
         ...concernData,
         contacts: processedContacts ? {
@@ -120,9 +131,9 @@ export class ConcernService {
     });
   }
 
-  async delete(id: number, tenantId: number, userId: number) {
+  async delete(id: number, userId: number) {
     return this.prisma.concern.update({
-      where: { id, tenantId },
+      where: { id },
       data: {
         isDeleted: true,
         deletedAt: new Date(),

@@ -6,11 +6,10 @@ import { Prisma } from '@prisma/client';
 export class PartyService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(tenantId: number, search?: string, page: number = 1, limit: number = 10) {
+  async findAll(search?: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     
     const where: Prisma.PartyWhereInput = {
-      tenantId,
       isDeleted: false,
       ...(search && {
         OR: [
@@ -52,7 +51,7 @@ export class PartyService {
     };
   }
 
-  async create(tenantId: number, data: any) {
+  async create(data: any) {
     const { contacts, partyTypeIds, ...partyData } = data;
     
     // Convert boolean to int for contacts
@@ -65,7 +64,6 @@ export class PartyService {
     return this.prisma.party.create({
       data: {
         ...partyData,
-        tenantId,
         contacts: processedContacts ? {
           create: processedContacts
         } : undefined,
@@ -84,7 +82,7 @@ export class PartyService {
     });
   }
 
-  async update(id: number, tenantId: number, data: any) {
+  async update(id: number, data: any) {
     const { contacts, partyTypeIds, ...partyData } = data;
     
     await this.prisma.partyContact.deleteMany({
@@ -103,7 +101,7 @@ export class PartyService {
     }));
 
     return this.prisma.party.update({
-      where: { id, tenantId },
+      where: { id },
       data: {
         ...partyData,
         contacts: processedContacts ? {
@@ -124,9 +122,9 @@ export class PartyService {
     });
   }
 
-  async delete(id: number, tenantId: number, userId: number) {
+  async delete(id: number, userId: number) {
     return this.prisma.party.update({
-      where: { id, tenantId },
+      where: { id },
       data: {
         isDeleted: true,
         deletedAt: new Date(),

@@ -30,11 +30,12 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { username },
       include: {
+        concern: true,
         userTenants: {
           include: {
             tenant: {
               include: {
-                company: true
+                concern: true
               }
             }
           }
@@ -53,19 +54,50 @@ export class AuthService {
     const payload = { sub: user.id, username: user.username };
     const token = this.jwtService.sign(payload);
 
+    // For users with mapped concern, auto-select tenant
+    if (user.concernId) {
+      const tenant = await this.prisma.tenant.findFirst({
+        where: { concernId: user.concernId }
+      });
+      
+      return {
+        access_token: token,
+        user: { 
+          id: user.id, 
+          username: user.username,
+          adminUser: user.adminUser,
+          dcClose: user.dcClose,
+          isActive: user.isActive,
+          concernId: user.concernId
+        },
+        autoSelectTenant: tenant ? {
+          id: tenant.id,
+          company: user.concern?.partyName || '',
+          financialYear: tenant.financialYear
+        } : null
+      };
+    }
+
     return {
       access_token: token,
-      user: { id: user.id, username: user.username },
+      user: { 
+        id: user.id, 
+        username: user.username,
+        adminUser: user.adminUser,
+        dcClose: user.dcClose,
+        isActive: user.isActive,
+        concernId: user.concernId
+      },
       tenants: user.userTenants.map(ut => ({
         id: ut.tenant.id,
-        company: ut.tenant.company.name,
+        company: ut.tenant.concern.partyName,
         financialYear: ut.tenant.financialYear
       }))
     };
   }
 
   async getCompanies() {
-    return this.prisma.company.findMany({
+    return this.prisma.concern.findMany({
       include: {
         tenants: true
       }
@@ -75,25 +107,28 @@ export class AuthService {
   async getTenants() {
     return this.prisma.tenant.findMany({
       include: {
-        company: true
+        concern: true
       }
     });
   }
 
   async createTenant(companyName: string, financialYear: string) {
-    let company = await this.prisma.company.findFirst({
-      where: { name: companyName }
+    let concern = await this.prisma.concern.findFirst({
+      where: { partyName: companyName }
     });
 
-    if (!company) {
-      company = await this.prisma.company.create({
-        data: { name: companyName }
+    if (!concern) {
+      concern = await this.prisma.concern.create({
+        data: { 
+          partyName: companyName,
+          gstNo: 'TEMP_GST_' + Date.now()
+        }
       });
     }
 
     return this.prisma.tenant.create({
       data: {
-        companyId: company.id,
+        concernId: concern.id,
         financialYear
       }
     });
@@ -117,6 +152,7 @@ export class AuthService {
           adminUser: true,
           dcClose: true,
           isActive: true,
+          concernId: true,
           createdAt: true
         },
         skip,
@@ -141,26 +177,29 @@ export class AuthService {
         adminUser: true,
         dcClose: true,
         isActive: true,
+        concernId: true,
         createdAt: true
       }
     });
   }
 
   async updateUser(id: number, updateData: any) {
-    const { adminUser, dcClose, isActive } = updateData;
+    const { adminUser, dcClose, isActive, concernId } = updateData;
     return this.prisma.user.update({
       where: { id },
       data: {
         adminUser,
         dcClose,
-        isActive
+        isActive,
+        concernId
       },
       select: {
         id: true,
         username: true,
         adminUser: true,
         dcClose: true,
-        isActive: true
+        isActive: true,
+        concernId: true
       }
     });
   }

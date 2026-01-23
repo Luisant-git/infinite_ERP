@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, Button, Space, Table, Modal, Checkbox, Typography } from 'antd';
+import { Card, Form, Input, Button, Space, Table, Modal, Checkbox, Typography, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getUsers, createUser, updateUser, deleteUser, getUserById } from '../../api/user';
+import { getConcerns } from '../../api/concern';
 
 const { Title } = Typography;
+const { Option } = Select;
 
 const UserMaster = () => {
   const [form] = Form.useForm();
@@ -12,11 +14,24 @@ const UserMaster = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [users, setUsers] = useState([]);
+  const [concerns, setConcerns] = useState([]);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [selectedConcern, setSelectedConcern] = useState(null);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
 
   useEffect(() => {
     loadUsers();
+    loadConcerns();
   }, []);
+
+  const loadConcerns = async () => {
+    try {
+      const response = await getConcerns('', 1, 100);
+      setConcerns(response.data || response);
+    } catch (error) {
+      console.error('Error loading concerns:', error);
+    }
+  };
 
   const loadUsers = async (page = 1, pageSize = 10, search = searchText) => {
     try {
@@ -63,12 +78,15 @@ const UserMaster = () => {
     try {
       const userData = await getUserById(record.id);
       setEditingUser(userData);
+      setIsAdminUser(userData.adminUser);
+      setSelectedConcern(userData.concernId);
       form.setFieldsValue({
         username: userData.username,
         password: '********',
         adminUser: userData.adminUser,
         dcClose: userData.dcClose,
-        isActive: userData.isActive
+        isActive: userData.isActive,
+        concernId: userData.concernId
       });
       setIsModalVisible(true);
     } catch (error) {
@@ -89,6 +107,8 @@ const UserMaster = () => {
     setIsModalVisible(false);
     form.resetFields();
     setEditingUser(null);
+    setIsAdminUser(false);
+    setSelectedConcern(null);
   };
 
   const columns = [
@@ -212,10 +232,46 @@ const UserMaster = () => {
             <Input.Password placeholder="Enter password" disabled={editingUser} />
           </Form.Item>
 
-          <div style={{ display: 'flex', gap: 16 }}>
-            <Form.Item name="adminUser" valuePropName="checked">
-              <Checkbox>Admin User</Checkbox>
+          {!isAdminUser && (
+            <Form.Item
+              label="Concern"
+              name="concernId"
+            >
+              <Select 
+                placeholder="Select concern" 
+                allowClear
+                onChange={(value) => {
+                  setSelectedConcern(value);
+                  if (value) {
+                    form.setFieldsValue({ adminUser: false });
+                  }
+                }}
+              >
+                {concerns.map(concern => (
+                  <Option key={concern.id} value={concern.id}>
+                    {concern.partyName}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
+          )}
+
+          <div style={{ display: 'flex', gap: 16 }}>
+            {!selectedConcern && (
+              <Form.Item name="adminUser" valuePropName="checked">
+                <Checkbox 
+                  onChange={(e) => {
+                    setIsAdminUser(e.target.checked);
+                    if (e.target.checked) {
+                      form.setFieldsValue({ concernId: null });
+                      setSelectedConcern(null);
+                    }
+                  }}
+                >
+                  Admin User
+                </Checkbox>
+              </Form.Item>
+            )}
             
             <Form.Item name="dcClose" valuePropName="checked">
               <Checkbox>DC Close</Checkbox>

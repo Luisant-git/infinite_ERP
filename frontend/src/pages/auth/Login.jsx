@@ -24,14 +24,22 @@ const Login = () => {
       console.log('Login response:', response);
       
       localStorage.setItem('token', response.access_token);
-      dispatch(loginSuccess({
-        user: response.user,
-        tenants: response.tenants
-      }));
       
-      // Always show company selection after login
-      console.log('Setting company selection modal to show');
-      dispatch(setCompanySelection({ showModal: true }));
+      if (response.autoSelectTenant) {
+        // Auto-select tenant for users with concern mapping
+        dispatch(loginSuccess({
+          user: response.user,
+          autoSelectTenant: response.autoSelectTenant
+        }));
+        navigate(ROUTES.DASHBOARD);
+      } else {
+        // Show company selection for admin users
+        dispatch(loginSuccess({
+          user: response.user,
+          tenants: response.tenants
+        }));
+        dispatch(setCompanySelection({ showModal: true }));
+      }
     } catch (error) {
       console.error('Login error:', error);
       let errorMessage = 'Login failed';

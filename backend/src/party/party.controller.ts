@@ -11,19 +11,13 @@ export class PartyController {
 
   @Get()
   @ApiOperation({ summary: 'Get all parties' })
-  @ApiHeader({ name: 'tenant-id', description: 'Tenant ID' })
   @ApiResponse({ status: 200, description: 'List of parties' })
   async findAll(
-    @Headers('tenant-id') tenantId: string,
     @Query('search') search?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string
   ) {
-    if (!tenantId) {
-      throw new Error('Tenant ID is required');
-    }
     return this.partyService.findAll(
-      parseInt(tenantId), 
       search, 
       page ? parseInt(page) : 1, 
       limit ? parseInt(limit) : 10
@@ -32,26 +26,23 @@ export class PartyController {
 
   @Post()
   @ApiOperation({ summary: 'Create new party' })
-  @ApiHeader({ name: 'tenant-id', description: 'Tenant ID' })
   @ApiResponse({ status: 201, description: 'Party created successfully' })
-  async create(@Headers('tenant-id') tenantId: string, @Body() createPartyDto: CreatePartyDto) {
-    return this.partyService.create(parseInt(tenantId), createPartyDto);
+  async create(@Body() createPartyDto: CreatePartyDto) {
+    return this.partyService.create(createPartyDto);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update party' })
-  @ApiHeader({ name: 'tenant-id', description: 'Tenant ID' })
   @ApiResponse({ status: 200, description: 'Party updated successfully' })
-  async update(@Param('id') id: string, @Headers('tenant-id') tenantId: string, @Body() updatePartyDto: CreatePartyDto) {
-    return this.partyService.update(parseInt(id), parseInt(tenantId), updatePartyDto);
+  async update(@Param('id') id: string, @Body() updatePartyDto: CreatePartyDto) {
+    return this.partyService.update(parseInt(id), updatePartyDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete party' })
-  @ApiHeader({ name: 'tenant-id', description: 'Tenant ID' })
   @ApiHeader({ name: 'user-id', description: 'User ID' })
   @ApiResponse({ status: 200, description: 'Party deleted successfully' })
-  async delete(@Param('id') id: string, @Headers('tenant-id') tenantId: string, @Headers('user-id') userId: string) {
-    return this.partyService.delete(parseInt(id), parseInt(tenantId), parseInt(userId));
+  async delete(@Param('id') id: string, @Headers('user-id') userId: string) {
+    return this.partyService.delete(parseInt(id), parseInt(userId));
   }
 }

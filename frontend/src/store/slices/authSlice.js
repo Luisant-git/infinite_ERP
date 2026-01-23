@@ -17,12 +17,16 @@ const loadPersistedState = () => {
   try {
     const token = localStorage.getItem('token');
     const tenantId = localStorage.getItem('tenantId');
+    const userData = localStorage.getItem('userData');
     
     if (token) {
+      const user = userData ? JSON.parse(userData) : null;
       return {
         ...initialState,
         isAuthenticated: true,
-        selectedTenantId: tenantId
+        selectedTenantId: tenantId,
+        user: user,
+        showCompanySelection: user?.concernId ? false : false
       };
     }
   } catch (error) {
@@ -43,8 +47,20 @@ const authSlice = createSlice({
       state.loading = false;
       state.isAuthenticated = true;
       state.user = action.payload.user;
-      state.tenants = action.payload.tenants;
-      state.showCompanySelection = true;
+      
+      // Auto-select tenant for users with concern mapping
+      if (action.payload.autoSelectTenant) {
+        state.selectedCompany = action.payload.autoSelectTenant.company;
+        state.selectedYear = action.payload.autoSelectTenant.financialYear;
+        state.selectedTenantId = action.payload.autoSelectTenant.id;
+        state.showCompanySelection = false;
+        localStorage.setItem('tenantId', action.payload.autoSelectTenant.id);
+        localStorage.setItem('userData', JSON.stringify(action.payload.user));
+      } else {
+        state.tenants = action.payload.tenants || [];
+        state.showCompanySelection = true;
+        localStorage.setItem('userData', JSON.stringify(action.payload.user));
+      }
     },
     loginFailure: (state, action) => {
       state.loading = false;
@@ -61,6 +77,7 @@ const authSlice = createSlice({
       state.selectedTenantId = null;
       localStorage.removeItem('token');
       localStorage.removeItem('tenantId');
+      localStorage.removeItem('userData');
     },
     clearError: (state) => {
       state.error = null;

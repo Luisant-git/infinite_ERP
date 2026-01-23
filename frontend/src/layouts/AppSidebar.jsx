@@ -1,6 +1,7 @@
 import React from 'react';
 import { Layout, Menu } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -20,6 +21,8 @@ const AppSidebar = ({ collapsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { canDCClose } = usePermissions();
+  const { user } = useSelector(state => state.auth);
+  console.log('AppSidebar - user:', user);
 
   const menuItems = [
     {
@@ -32,16 +35,18 @@ const AppSidebar = ({ collapsed }) => {
       icon: <TeamOutlined />,
       label: 'Masters',
       children: [
-        {
-          key: ROUTES.USER_MASTER,
-          icon: <UserOutlined />,
-          label: 'Login Creation'
-        },
-        {
-          key: ROUTES.CONCERN_MASTER,
-          icon: <ShopOutlined />,
-          label: 'Concern Master'
-        },
+        ...(user?.adminUser === true ? [
+          {
+            key: ROUTES.USER_MASTER,
+            icon: <UserOutlined />,
+            label: 'Login Creation'
+          },
+          {
+            key: ROUTES.CONCERN_MASTER,
+            icon: <ShopOutlined />,
+            label: 'Concern Master'
+          }
+        ] : []),
         {
           key: ROUTES.PARTY_MASTER,
           icon: <TeamOutlined />,
