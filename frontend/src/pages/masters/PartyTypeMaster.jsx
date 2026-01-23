@@ -143,6 +143,7 @@ const PartyTypeMaster = () => {
           ...pagination,
           showSizeChanger: true,
           showQuickJumper: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
           showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
           onChange: (page, pageSize) => loadPartyTypes(page, pageSize),
           onShowSizeChange: (current, size) => loadPartyTypes(1, size)

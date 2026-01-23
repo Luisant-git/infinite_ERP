@@ -185,6 +185,7 @@ const UserMaster = () => {
           ...pagination,
           showSizeChanger: true,
           showQuickJumper: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
           showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
           onChange: (page, pageSize) => loadUsers(page, pageSize),
           onShowSizeChange: (current, size) => loadUsers(1, size)

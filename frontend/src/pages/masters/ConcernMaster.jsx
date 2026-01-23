@@ -246,6 +246,7 @@ const ConcernMaster = () => {
           ...pagination,
           showSizeChanger: true,
           showQuickJumper: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
           showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
           onChange: (page, pageSize) => loadConcerns(page, pageSize),
           onShowSizeChange: (current, size) => loadConcerns(1, size)
