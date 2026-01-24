@@ -76,23 +76,26 @@ const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
       open={visible}
       onCancel={onCancel}
       footer={[
-        <Button key="submit" type="primary" loading={loading} onClick={handleSubmit}>
+        <Button key="submit" type="primary" loading={loading} onClick={handleSubmit} style={{ marginTop: '8px' }}>
           Select
         </Button>
       ]}
       closable={true}
       maskClosable={false}
       width={400}
+      bodyStyle={{ paddingBottom: '16px' }}
     >
       <Form
         form={form}
         layout="vertical"
         initialValues={{}}
+        style={{ marginTop: '8px' }}
       >
         <Form.Item
           label="Company"
           name="company"
           rules={[{ required: true, message: 'Please select a company!' }]}
+          style={{ marginBottom: '16px' }}
         >
           <Select 
             placeholder="Select company" 
@@ -113,6 +116,7 @@ const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
           label="Financial Year"
           name="year"
           rules={[{ required: true, message: 'Please select a year!' }]}
+          style={{ marginBottom: '0px' }}
         >
           <Select 
             placeholder="Select year" 

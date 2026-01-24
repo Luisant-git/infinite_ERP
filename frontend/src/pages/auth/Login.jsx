@@ -77,10 +77,10 @@ const Login = () => {
       background: '#f0f2f5'
     }}>
       <Card style={{ width: 400, boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
           <div style={{ textAlign: 'center' }}>
-            <img src={logo} alt="Infinite ERP" style={{ height: '50px', marginBottom: '8px' }} />
-            <Title level={4} type="secondary" style={{ margin: 0 }}>Login</Title>
+            <img src={logo} alt="Infinite ERP" style={{ height: '50px', marginBottom: '4px' }} />
+            <Title level={3} style={{ margin: 0, fontWeight: 'bold' }}>Login</Title>
           </div>
 
           {error && (

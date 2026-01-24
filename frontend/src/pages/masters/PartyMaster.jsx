@@ -312,7 +312,9 @@ const PartyMaster = () => {
             Save
           </Button>,
         ]}
-        width={1000}
+        width={950}
+        style={{ top: 20 }}
+        bodyStyle={{ paddingBottom: '16px' }}
       >
         <Form
           form={form}

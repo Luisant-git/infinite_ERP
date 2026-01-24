@@ -209,18 +209,21 @@ const UserMaster = () => {
             OK
           </Button>,
         ]}
-        width={500}
+        width={450}
+        bodyStyle={{ paddingBottom: '16px' }}
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
           initialValues={{ isActive: true }}
+          style={{ marginTop: '8px' }}
         >
           <Form.Item
             label="User Name"
             name="username"
             rules={[{ required: true, message: 'Please input user name!' }]}
+            style={{ marginBottom: '16px' }}
           >
             <Input placeholder="Enter user name" disabled={editingUser} />
           </Form.Item>
@@ -229,6 +232,7 @@ const UserMaster = () => {
             label="Password"
             name="password"
             rules={[{ required: !editingUser, message: 'Please input password!' }]}
+            style={{ marginBottom: '16px' }}
           >
             <Input.Password placeholder="Enter password" disabled={editingUser} />
           </Form.Item>
@@ -237,6 +241,7 @@ const UserMaster = () => {
             <Form.Item
               label="Concern"
               name="concernId"
+              style={{ marginBottom: '16px' }}
             >
               <Select 
                 placeholder="Select concern" 
@@ -257,7 +262,7 @@ const UserMaster = () => {
             </Form.Item>
           )}
 
-          <div style={{ display: 'flex', gap: 16 }}>
+          <div style={{ display: 'flex', gap: 16, marginBottom: '0px' }}>
             {!selectedConcern && (
               <Form.Item name="adminUser" valuePropName="checked">
                 <Checkbox 
