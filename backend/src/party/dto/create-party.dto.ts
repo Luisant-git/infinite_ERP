@@ -29,6 +29,9 @@ export class CreatePartyDto {
   @ApiPropertyOptional({ example: 'Mumbai' })
   district?: string;
 
+  @ApiPropertyOptional({ example: 'Maharashtra' })
+  state?: string;
+
   @ApiPropertyOptional({ example: '9876543210' })
   mobileNo?: string;
 

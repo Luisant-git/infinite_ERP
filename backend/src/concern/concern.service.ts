@@ -17,7 +17,9 @@ export class ConcernService {
           { vendorCode: { contains: search, mode: Prisma.QueryMode.insensitive } },
           { mobileNo: { contains: search } },
           { gstNo: { contains: search, mode: Prisma.QueryMode.insensitive } },
-          { email: { contains: search, mode: Prisma.QueryMode.insensitive } }
+          { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          { district: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          { state: { contains: search, mode: Prisma.QueryMode.insensitive } }
         ]
       })
     };
@@ -58,6 +60,7 @@ export class ConcernService {
       address4: concernData.address4?.substring(0, 50),
       pincode: concernData.pincode?.substring(0, 8),
       district: concernData.district?.substring(0, 50),
+      state: concernData.state?.substring(0, 50),
       mobileNo: concernData.mobileNo?.substring(0, 10),
       phoneNo: concernData.phoneNo?.substring(0, 10),
       email: concernData.email?.substring(0, 20),

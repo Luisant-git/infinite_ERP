@@ -92,6 +92,7 @@ const ConcernMaster = () => {
               <p><strong>Address 3:</strong> {record.address3 || 'N/A'}</p>
               <p><strong>Address 4:</strong> {record.address4 || 'N/A'}</p>
               <p><strong>Pincode:</strong> {record.pincode || 'N/A'}</p>
+              <p><strong>State:</strong> {record.state || 'N/A'}</p>
               <p><strong>District:</strong> {record.district || 'N/A'}</p>
               <p><strong>Mobile:</strong> {record.mobileNo || 'N/A'}</p>
               <p><strong>Phone:</strong> {record.phoneNo || 'N/A'}</p>
@@ -158,6 +159,13 @@ const ConcernMaster = () => {
     'Chandrapur', 'Parbhani', 'Jalna', 'Bhiwandi', 'Nanded', 'Ulhasnagar'
   ];
 
+  const states = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana',
+    'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+    'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+    'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+  ];
+
   const columns = [
     {
       title: 'S.No',
@@ -184,6 +192,11 @@ const ConcernMaster = () => {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
+    },
+    {
+      title: 'State',
+      dataIndex: 'state',
+      key: 'state',
     },
     {
       title: 'District',
@@ -344,14 +357,22 @@ const ConcernMaster = () => {
                 </Col>
                 <Col span={12}>
                   <Form.Item
+                    label="State"
+                    name="state"
+                  >
+                    <Select placeholder="Choose State" showSearch>
+                      {states.map(state => (
+                        <Option key={state} value={state}>{state}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
                     label="District"
                     name="district"
                   >
-                    <Select placeholder="Choose District" showSearch>
-                      {districts.map(district => (
-                        <Option key={district} value={district}>{district}</Option>
-                      ))}
-                    </Select>
+                    <Input placeholder="Enter district" maxLength={50} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>

@@ -17,7 +17,9 @@ export class PartyService {
           { partyCode: { contains: search, mode: Prisma.QueryMode.insensitive } },
           { mobileNo: { contains: search } },
           { gstNo: { contains: search, mode: Prisma.QueryMode.insensitive } },
-          { email: { contains: search, mode: Prisma.QueryMode.insensitive } }
+          { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          { district: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          { state: { contains: search, mode: Prisma.QueryMode.insensitive } }
         ]
       })
     };

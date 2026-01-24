@@ -42,6 +42,9 @@ export class CreateConcernDto {
   @ApiPropertyOptional({ example: 'Mumbai' })
   district?: string;
 
+  @ApiPropertyOptional({ example: 'Maharashtra' })
+  state?: string;
+
   @ApiPropertyOptional({ example: '9876543210' })
   mobileNo?: string;
 
