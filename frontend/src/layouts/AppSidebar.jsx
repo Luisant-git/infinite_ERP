@@ -55,7 +55,7 @@ const AppSidebar = ({ collapsed }) => {
         {
           key: ROUTES.PARTY_TYPE_MASTER,
           icon: <TeamOutlined />,
-          label: 'Party Type Master'
+          label: 'Party Type'
         }
       ]
     },
