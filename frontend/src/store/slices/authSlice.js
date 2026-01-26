@@ -18,6 +18,8 @@ const loadPersistedState = () => {
     const token = localStorage.getItem('token');
     const tenantId = localStorage.getItem('tenantId');
     const userData = localStorage.getItem('userData');
+    const selectedCompany = localStorage.getItem('selectedCompany');
+    const selectedYear = localStorage.getItem('selectedYear');
     
     if (token) {
       const user = userData ? JSON.parse(userData) : null;
@@ -25,6 +27,8 @@ const loadPersistedState = () => {
         ...initialState,
         isAuthenticated: true,
         selectedTenantId: tenantId,
+        selectedCompany: selectedCompany,
+        selectedYear: selectedYear,
         user: user,
         showCompanySelection: user?.concernId ? false : false
       };
@@ -55,6 +59,8 @@ const authSlice = createSlice({
         state.selectedTenantId = action.payload.autoSelectTenant.id;
         state.showCompanySelection = false;
         localStorage.setItem('tenantId', action.payload.autoSelectTenant.id);
+        localStorage.setItem('selectedCompany', action.payload.autoSelectTenant.company);
+        localStorage.setItem('selectedYear', action.payload.autoSelectTenant.financialYear);
         localStorage.setItem('userData', JSON.stringify(action.payload.user));
       } else {
         state.tenants = action.payload.tenants || [];
@@ -78,6 +84,8 @@ const authSlice = createSlice({
       localStorage.removeItem('token');
       localStorage.removeItem('tenantId');
       localStorage.removeItem('userData');
+      localStorage.removeItem('selectedCompany');
+      localStorage.removeItem('selectedYear');
     },
     clearError: (state) => {
       state.error = null;
@@ -91,6 +99,8 @@ const authSlice = createSlice({
         state.selectedTenantId = action.payload.tenantId;
         state.showCompanySelection = false;
         localStorage.setItem('tenantId', action.payload.tenantId);
+        localStorage.setItem('selectedCompany', action.payload.company);
+        localStorage.setItem('selectedYear', action.payload.year);
       }
     },
     hideCompanySelection: (state) => {

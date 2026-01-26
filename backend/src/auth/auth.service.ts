@@ -13,15 +13,29 @@ export class AuthService {
   async register(registerDto: any) {
     const { username, password, adminUser, dcClose, isActive, concernId } = registerDto;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await this.prisma.user.create({
-      data: {
-        username,
-        password: hashedPassword,
-        adminUser: adminUser || false,
-        dcClose: dcClose || false,
-        isActive: isActive !== undefined ? isActive : true,
-        concernId: concernId || null
+    
+    // Only include concernId if it's provided and valid
+    const userData: any = {
+      username,
+      password: hashedPassword,
+      adminUser: adminUser || false,
+      dcClose: dcClose || false,
+      isActive: isActive !== undefined ? isActive : true
+    };
+    
+    // Validate concernId if provided
+    if (concernId) {
+      const concernExists = await this.prisma.concern.findUnique({
+        where: { id: concernId }
+      });
+      
+      if (concernExists) {
+        userData.concernId = concernId;
       }
+    }
+    
+    const user = await this.prisma.user.create({
+      data: userData
     });
     
     return { 

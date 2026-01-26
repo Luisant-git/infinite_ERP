@@ -230,9 +230,9 @@ const ConcernMaster = () => {
 
   return (
     <Card>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={3} style={{ margin: 0 }}>Concern Master</Title>
-        <Space>
+        <Space style={{ width: 'auto' }}>
           <Input 
             placeholder="Search by name, code, mobile, GST" 
             value={searchText}

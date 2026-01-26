@@ -13,6 +13,7 @@ import PartyMaster from './pages/masters/PartyMaster';
 import PartyTypeMaster from './pages/masters/PartyTypeMaster';
 import { ROUTES } from './constants/permissions';
 import './App.css';
+import './styles/mobile.css';
 
 function App() {
   return (
