@@ -273,6 +273,14 @@ const ConcernMaster = () => {
         title={editingConcern ? 'Edit Concern' : 'Add Concern'}
         open={isModalVisible}
         onCancel={handleCancel}
+        afterOpenChange={(open) => {
+          if (open) {
+            setTimeout(() => {
+              const input = document.querySelector('input[id="partyName"]');
+              if (input) input.focus();
+            }, 100);
+          }
+        }}
         footer={[
           <Button key="cancel" onClick={handleCancel}>
             Cancel
@@ -290,14 +298,21 @@ const ConcernMaster = () => {
           </Button>,
         ]}
         width={950}
-        style={{ top: 20 }}
-        bodyStyle={{ paddingBottom: '16px' }}
+        style={{ top: 10 }}
+        styles={{ body: { padding: '8px 16px' }, footer: { padding: '2px 8px', margin: 0 }, header: { padding: '4px 12px', margin: 0, minHeight: 'auto' } }}
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
+          onFinishFailed={(errorInfo) => {
+            const firstErrorField = errorInfo.errorFields[0]?.name[0];
+            if (firstErrorField) {
+              form.getFieldInstance(firstErrorField)?.focus();
+            }
+          }}
           initialValues={{ active: true, creditDays: 0 }}
+          scrollToFirstError
         >
           <Tabs defaultActiveKey="1">
             <TabPane tab="Basic Details" key="1">
@@ -315,6 +330,7 @@ const ConcernMaster = () => {
                   <Form.Item
                     label="Vendor Code"
                     name="vendorCode"
+                    rules={[{ required: true, message: 'Please input vendor code!' }]}
                   >
                     <Input placeholder="Enter vendor code" maxLength={50} />
                   </Form.Item>
@@ -429,7 +445,6 @@ const ConcernMaster = () => {
                     label="GST No"
                     name="gstNo"
                     rules={[
-                      { required: true, message: 'Please input GST number!' },
                       { pattern: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, message: 'Please enter valid GST number!' }
                     ]}
                   >

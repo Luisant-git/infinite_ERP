@@ -132,7 +132,7 @@ export class AuthService {
       concern = await this.prisma.concern.create({
         data: { 
           partyName: companyName,
-          gstNo: 'TEMP_GST_' + Date.now()
+          vendorCode: 'VC_' + Date.now()
         }
       });
     }
