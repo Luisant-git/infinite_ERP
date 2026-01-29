@@ -231,7 +231,7 @@ const UserMaster = () => {
             rules={[{ required: true, message: 'Please input user name!' }]}
             style={{ marginBottom: '16px' }}
           >
-            <Input placeholder="Enter user name" disabled={editingUser} />
+            <Input placeholder="Enter user name" />
           </Form.Item>
           
           <Form.Item
@@ -240,7 +240,7 @@ const UserMaster = () => {
             rules={[{ required: !editingUser, message: 'Please input password!' }]}
             style={{ marginBottom: '16px' }}
           >
-            <Input.Password placeholder="Enter password" disabled={editingUser} />
+            <Input.Password placeholder="Enter password" />
           </Form.Item>
 
           {!isAdminUser && (

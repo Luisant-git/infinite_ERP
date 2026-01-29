@@ -220,18 +220,29 @@ export class AuthService {
   }
 
   async updateUser(id: number, updateData: any) {
-    const { adminUser, dcClose, isActive, concernIds, canAdd, canEdit, canDelete } = updateData;
+    const { username, password, adminUser, dcClose, isActive, concernIds, canAdd, canEdit, canDelete } = updateData;
+    
+    const updateFields: any = {
+      adminUser,
+      dcClose,
+      isActive,
+      concernIds,
+      canAdd,
+      canEdit,
+      canDelete
+    };
+    
+    if (username) {
+      updateFields.username = username;
+    }
+    
+    if (password && password !== '********') {
+      updateFields.password = await bcrypt.hash(password, 10);
+    }
+    
     return this.prisma.user.update({
       where: { id },
-      data: {
-        adminUser,
-        dcClose,
-        isActive,
-        concernIds,
-        canAdd,
-        canEdit,
-        canDelete
-      },
+      data: updateFields,
       select: {
         id: true,
         username: true,
