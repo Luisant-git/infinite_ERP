@@ -31,13 +31,16 @@ const AppHeader = () => {
   ];
 
   return (
-    <Header style={{ 
+    <Header className="app-header" style={{ 
       padding: '0 16px', 
       background: '#fff', 
       display: 'flex', 
       justifyContent: 'space-between',
       alignItems: 'center',
-      borderBottom: '1px solid #f0f0f0'
+      borderBottom: '1px solid #f0f0f0',
+      position: 'sticky',
+      top: 0,
+      zIndex: 998
     }}>
       <Space>
         <Button
@@ -45,12 +48,12 @@ const AppHeader = () => {
           icon={sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           onClick={() => dispatch(toggleSidebar())}
         />
-        <img src={logo} alt="Infinite ERP" style={{ height: '36px', marginTop: '25px' }} />
+        <img src={logo} alt="Infinite ERP" className="header-logo" style={{ height: '36px', marginTop: '25px' }} />
       </Space>
       
-      <Space>
+      <Space className="header-right">
         {selectedCompany && selectedYear && (
-          <div style={{
+          <div className="company-info" style={{
             background: '#f5f5f5',
             border: '1px solid #d9d9d9',
             borderRadius: '6px',
@@ -61,14 +64,14 @@ const AppHeader = () => {
             gap: '8px'
           }}>
             <UserOutlined style={{ color: '#1890ff', fontSize: '14px' }} />
-            <Text style={{ color: '#262626', fontSize: '13px', fontWeight: '500' }}>
+            <Text className="company-text" style={{ color: '#262626', fontSize: '13px', fontWeight: '500' }}>
               Company : {selectedCompany} | FY : {selectedYear}
             </Text>
           </div>
         )}
         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
           <Button type="text" icon={<UserOutlined />}>
-            {user?.username || 'User'}
+            <span className="username-text">{user?.username || 'User'}</span>
           </Button>
         </Dropdown>
       </Space>

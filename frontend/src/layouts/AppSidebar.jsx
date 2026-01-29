@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout, Menu } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -15,10 +15,12 @@ import {
 import { usePermissions } from '../hooks/usePermissions';
 import { useMenuPermissions } from '../hooks/useMenuPermissions';
 import { ROUTES } from '../constants/permissions';
+import { toggleSidebar } from '../store/slices/uiSlice';
 
 const { Sider } = Layout;
 
-const AppSidebar = ({ collapsed }) => {
+const AppSidebar = ({ collapsed, isMobile }) => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { canDCClose } = usePermissions();
@@ -101,6 +103,9 @@ const AppSidebar = ({ collapsed }) => {
 
   const handleMenuClick = ({ key }) => {
     navigate(key);
+    if (isMobile && !collapsed) {
+      dispatch(toggleSidebar());
+    }
   };
 
   return (
@@ -108,7 +113,19 @@ const AppSidebar = ({ collapsed }) => {
       trigger={null} 
       collapsible 
       collapsed={collapsed}
-      style={{ background: '#001529' }}
+      style={{
+        background: '#001529',
+        ...(isMobile && {
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          zIndex: 1000,
+          transform: collapsed ? 'translateX(-100%)' : 'translateX(0)',
+          transition: 'transform 0.3s ease'
+        })
+      }}
+      width={isMobile ? 250 : 200}
     >
       <Menu
         theme="dark"

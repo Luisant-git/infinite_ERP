@@ -81,14 +81,14 @@ const UserMaster = () => {
       const userData = await getUserById(record.id);
       setEditingUser(userData);
       setIsAdminUser(userData.adminUser);
-      setSelectedConcern(userData.concernId);
+      setSelectedConcern(userData.concernIds || []);
       form.setFieldsValue({
         username: userData.username,
         password: '********',
         adminUser: userData.adminUser,
         dcClose: userData.dcClose,
         isActive: userData.isActive,
-        concernId: userData.concernId
+        concernIds: userData.concernIds || []
       });
       setIsModalVisible(true);
     } catch (error) {
@@ -158,9 +158,9 @@ const UserMaster = () => {
 
   return (
     <Card>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={3} style={{ margin: 0 }}>User Master</Title>
-        <Space>
+        <Space style={{ width: 'auto' }}>
           <Input 
             placeholder="Search users" 
             value={searchText}
@@ -243,15 +243,16 @@ const UserMaster = () => {
           {!isAdminUser && (
             <Form.Item
               label="Concern"
-              name="concernId"
+              name="concernIds"
               style={{ marginBottom: '16px' }}
             >
               <Select 
-                placeholder="Select concern" 
+                mode="multiple"
+                placeholder="Select concerns" 
                 allowClear
                 onChange={(value) => {
-                  setSelectedConcern(value);
-                  if (value) {
+                  setSelectedConcern(value && value.length > 0 ? value : null);
+                  if (value && value.length > 0) {
                     form.setFieldsValue({ adminUser: false });
                   }
                 }}
@@ -272,7 +273,7 @@ const UserMaster = () => {
                   onChange={(e) => {
                     setIsAdminUser(e.target.checked);
                     if (e.target.checked) {
-                      form.setFieldsValue({ concernId: null });
+                      form.setFieldsValue({ concernIds: [] });
                       setSelectedConcern(null);
                     }
                   }}

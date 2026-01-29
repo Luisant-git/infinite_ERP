@@ -8,8 +8,8 @@ const Dashboard = () => {
   return (
     <div>
       <Title level={2}>Dashboard</Title>
-      <Row gutter={16}>
-        <Col span={8}>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} lg={8}>
           <Card>
             <Statistic
               title="Total Users"
@@ -18,7 +18,7 @@ const Dashboard = () => {
             />
           </Card>
         </Col>
-        <Col span={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Card>
             <Statistic
               title="Total Concerns"
@@ -27,7 +27,7 @@ const Dashboard = () => {
             />
           </Card>
         </Col>
-        <Col span={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Card>
             <Statistic
               title="Total Transactions"

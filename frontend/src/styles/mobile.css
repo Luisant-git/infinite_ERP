@@ -1,0 +1,47 @@
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  /* Force vertical stacking */
+  .page-header {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .page-header .ant-typography {
+    margin: 0 !important;
+  }
+
+  .page-header .ant-space {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .page-header .ant-space-item {
+    width: 100% !important;
+  }
+
+  .page-header .ant-input,
+  .page-header .ant-btn {
+    width: 100% !important;
+  }
+
+  /* Modal forms single column */
+  .ant-modal .ant-col {
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+  }
+
+  /* Table scroll */
+  .ant-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Full width modals */
+  .ant-modal {
+    max-width: 95vw !important;
+    margin: 10px !important;
+  }
+}

@@ -14,6 +14,7 @@ import PartyTypeMaster from './pages/masters/PartyTypeMaster';
 import MenuPermission from './pages/settings/MenuPermission';
 import { ROUTES } from './constants/permissions';
 import './App.css';
+import './styles/mobile.css';
 
 function App() {
   return (
