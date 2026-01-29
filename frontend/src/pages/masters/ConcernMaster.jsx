@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Checkbox, Button, Row, Col, Typography, Select, Space, Table, Modal, InputNumber, Tabs } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined, EyeOutlined } from '@ant-design/icons';
 import { getConcerns, createConcern, updateConcern, deleteConcern } from '../../api/concern';
+import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -16,6 +17,7 @@ const ConcernMaster = () => {
   const [filteredConcerns, setFilteredConcerns] = useState([]);
   const [concerns, setConcerns] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const { canAdd, canEdit, canDelete } = useMenuPermissions();
 
   useEffect(() => {
     loadConcerns();
@@ -221,8 +223,8 @@ const ConcernMaster = () => {
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} />
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
-          <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
+          {canEdit('concern_master') && <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />}
+          {canDelete('concern_master') && <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />}
         </Space>
       ),
     },
@@ -245,6 +247,7 @@ const ConcernMaster = () => {
             type="primary" 
             icon={<PlusOutlined />} 
             onClick={() => setIsModalVisible(true)}
+            disabled={!canAdd('concern_master')}
           >
             Add Concern
           </Button>

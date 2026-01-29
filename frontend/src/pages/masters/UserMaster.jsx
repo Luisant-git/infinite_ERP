@@ -3,6 +3,7 @@ import { Card, Form, Input, Button, Space, Table, Modal, Checkbox, Typography, S
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getUsers, createUser, updateUser, deleteUser, getUserById } from '../../api/user';
 import { getConcerns } from '../../api/concern';
+import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -18,6 +19,7 @@ const UserMaster = () => {
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [selectedConcern, setSelectedConcern] = useState(null);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const { canAdd, canEdit, canDelete } = useMenuPermissions();
 
   useEffect(() => {
     loadUsers();
@@ -147,8 +149,8 @@ const UserMaster = () => {
       width: 120,
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
-          <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
+          {canEdit('user_master') && <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />}
+          {canDelete('user_master') && <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />}
         </Space>
       ),
     },
@@ -171,6 +173,7 @@ const UserMaster = () => {
             type="primary" 
             icon={<PlusOutlined />} 
             onClick={() => setIsModalVisible(true)}
+            disabled={!canAdd('user_master')}
           >
             Add User
           </Button>

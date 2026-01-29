@@ -11,6 +11,7 @@ import UserMaster from './pages/masters/UserMaster';
 import ConcernMaster from './pages/masters/ConcernMaster';
 import PartyMaster from './pages/masters/PartyMaster';
 import PartyTypeMaster from './pages/masters/PartyTypeMaster';
+import MenuPermission from './pages/settings/MenuPermission';
 import { ROUTES } from './constants/permissions';
 import './App.css';
 
@@ -37,6 +38,7 @@ function App() {
                     <Route path={ROUTES.CONCERN_MASTER} element={<ConcernMaster />} />
                     <Route path={ROUTES.PARTY_MASTER} element={<PartyMaster />} />
                     <Route path={ROUTES.PARTY_TYPE_MASTER} element={<PartyTypeMaster />} />
+                    <Route path={ROUTES.MENU_PERMISSION} element={<MenuPermission />} />
                     <Route path={ROUTES.DC_ENTRY} element={<div>DC Entry</div>} />
                     <Route path={ROUTES.DC_CLOSE} element={<div>DC Close</div>} />
                     <Route path={ROUTES.REPORTS} element={<div>Reports</div>} />

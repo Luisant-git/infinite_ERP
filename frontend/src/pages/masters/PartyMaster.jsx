@@ -3,6 +3,7 @@ import { Card, Form, Input, Checkbox, Button, Row, Col, Typography, Select, Spac
 import { PlusOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined, EyeOutlined } from '@ant-design/icons';
 import { getParties, createParty, updateParty, deleteParty } from '../../api/party';
 import { getPartyTypes } from '../../api/partyType';
+import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -16,6 +17,7 @@ const PartyMaster = () => {
   const [searchText, setSearchText] = useState('');
   const [filteredParties, setFilteredParties] = useState([]);
   const [partyTypes, setPartyTypes] = useState([]);
+  const { canAdd, canEdit, canDelete } = useMenuPermissions();
 
   // Sample data for the table
   const [parties, setParties] = useState([]);
@@ -247,8 +249,8 @@ const PartyMaster = () => {
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} />
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
-          <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
+          {canEdit('party_master') && <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />}
+          {canDelete('party_master') && <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />}
         </Space>
       ),
     },
@@ -271,6 +273,7 @@ const PartyMaster = () => {
             type="primary" 
             icon={<PlusOutlined />} 
             onClick={() => setIsModalVisible(true)}
+            disabled={!canAdd('party_master')}
           >
             Add Party
           </Button>

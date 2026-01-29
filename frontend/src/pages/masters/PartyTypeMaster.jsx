@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Button, Space, Table, Modal, Checkbox, Typography } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getPartyTypes, createPartyType, updatePartyType, deletePartyType } from '../../api/partyType';
+import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 
 const { Title } = Typography;
 
@@ -13,6 +14,7 @@ const PartyTypeMaster = () => {
   const [searchText, setSearchText] = useState('');
   const [partyTypes, setPartyTypes] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const { canAdd, canEdit, canDelete } = useMenuPermissions();
 
   useEffect(() => {
     loadPartyTypes();
@@ -105,8 +107,8 @@ const PartyTypeMaster = () => {
       width: 120,
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
-          <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
+          {canEdit('party_type_master') && <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />}
+          {canDelete('party_type_master') && <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />}
         </Space>
       ),
     },
@@ -129,6 +131,7 @@ const PartyTypeMaster = () => {
             type="primary" 
             icon={<PlusOutlined />} 
             onClick={() => setIsModalVisible(true)}
+            disabled={!canAdd('party_type_master')}
           >
             Add Party Type
           </Button>

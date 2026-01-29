@@ -19,6 +19,7 @@ export const ROUTES = {
   CONCERN_MASTER: '/masters/concerns',
   PARTY_MASTER: '/masters/parties',
   PARTY_TYPE_MASTER: '/masters/party-types',
+  MENU_PERMISSION: '/settings/menu-permission',
   DC_ENTRY: '/transactions/dc-entry',
   DC_CLOSE: '/transactions/dc-close',
   REPORTS: '/reports',

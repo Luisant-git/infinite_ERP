@@ -13,6 +13,7 @@ import {
   SettingOutlined
 } from '@ant-design/icons';
 import { usePermissions } from '../hooks/usePermissions';
+import { useMenuPermissions } from '../hooks/useMenuPermissions';
 import { ROUTES } from '../constants/permissions';
 
 const { Sider } = Layout;
@@ -21,43 +22,44 @@ const AppSidebar = ({ collapsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { canDCClose } = usePermissions();
+  const { canView } = useMenuPermissions();
   const { user } = useSelector(state => state.auth);
   console.log('AppSidebar - user:', user);
 
   const menuItems = [
-    {
+    ...(canView('dashboard') ? [{
       key: ROUTES.DASHBOARD,
       icon: <DashboardOutlined />,
       label: 'Dashboard'
-    },
+    }] : []),
     {
       key: 'masters',
       icon: <TeamOutlined />,
       label: 'Masters',
       children: [
         ...(user?.adminUser === true ? [
-          {
+          ...(canView('user_master') ? [{
             key: ROUTES.USER_MASTER,
             icon: <UserOutlined />,
             label: 'Login Creation'
-          },
-          {
+          }] : []),
+          ...(canView('concern_master') ? [{
             key: ROUTES.CONCERN_MASTER,
             icon: <ShopOutlined />,
             label: 'Concern Master'
-          }
+          }] : [])
         ] : []),
-        {
+        ...(canView('party_master') ? [{
           key: ROUTES.PARTY_MASTER,
           icon: <TeamOutlined />,
           label: 'Party Master'
-        },
-        {
+        }] : []),
+        ...(canView('party_type_master') ? [{
           key: ROUTES.PARTY_TYPE_MASTER,
           icon: <TeamOutlined />,
           label: 'Party Type'
-        }
-      ]
+        }] : [])
+      ].filter(item => item)
     },
     {
       key: 'transactions',
@@ -82,9 +84,18 @@ const AppSidebar = ({ collapsed }) => {
       label: 'Reports'
     },
     {
-      key: ROUTES.SETTINGS,
+      key: 'settings',
       icon: <SettingOutlined />,
-      label: 'Settings'
+      label: 'Settings',
+      children: [
+        ...(user?.adminUser === true ? [
+          {
+            key: ROUTES.MENU_PERMISSION,
+            icon: <SettingOutlined />,
+            label: 'Menu Permission'
+          }
+        ] : [])
+      ]
     }
   ];
 
