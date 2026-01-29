@@ -356,7 +356,6 @@ const PartyMaster = () => {
                   <Form.Item
                     label="Party Code"
                     name="partyCode"
-                    rules={[{ required: true, message: 'Please input party code!' }]}
                   >
                     <Input placeholder="Enter party code" maxLength={50} />
                   </Form.Item>

@@ -57,7 +57,7 @@ model UserTenant {
 model Party {
   id            Int      @id @default(autoincrement())
   partyName     String   @db.VarChar(50)
-  partyCode     String   @db.VarChar(50)
+  partyCode     String?  @db.VarChar(50)
   address1      String?  @db.VarChar(50)
   address2      String?  @db.VarChar(50)
   address3      String?  @db.VarChar(50)

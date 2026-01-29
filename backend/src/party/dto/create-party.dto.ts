@@ -8,8 +8,8 @@ export class CreatePartyDto {
   @ApiProperty({ example: 'ABC Suppliers' })
   partyName: string;
 
-  @ApiProperty({ example: 'P001' })
-  partyCode: string;
+  @ApiPropertyOptional({ example: 'P001' })
+  partyCode?: string;
 
   @ApiPropertyOptional({ example: '123 Main St' })
   address1?: string;
