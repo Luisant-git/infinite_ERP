@@ -11,28 +11,17 @@ export class AuthService {
   ) {}
 
   async register(registerDto: any) {
-    const { username, password, adminUser, dcClose, isActive, concernId } = registerDto;
+    const { username, password, adminUser, dcClose, isActive, concernIds } = registerDto;
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Only include concernId if it's provided and valid
     const userData: any = {
       username,
       password: hashedPassword,
       adminUser: adminUser || false,
       dcClose: dcClose || false,
-      isActive: isActive !== undefined ? isActive : true
+      isActive: isActive !== undefined ? isActive : true,
+      concernIds: concernIds || []
     };
-    
-    // Validate concernId if provided
-    if (concernId) {
-      const concernExists = await this.prisma.concern.findUnique({
-        where: { id: concernId }
-      });
-      
-      if (concernExists) {
-        userData.concernId = concernId;
-      }
-    }
     
     const user = await this.prisma.user.create({
       data: userData
@@ -44,7 +33,7 @@ export class AuthService {
       adminUser: user.adminUser,
       dcClose: user.dcClose,
       isActive: user.isActive,
-      concernId: user.concernId,
+      concernIds: user.concernIds,
       createdAt: user.createdAt
     };
   }
@@ -53,7 +42,6 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { username },
       include: {
-        concern: true,
         userTenants: {
           include: {
             tenant: {
@@ -77,10 +65,10 @@ export class AuthService {
     const payload = { sub: user.id, username: user.username };
     const token = this.jwtService.sign(payload);
 
-    // For users with mapped concern, auto-select tenant
-    if (user.concernId) {
+    if (user.concernIds.length > 0) {
       const tenant = await this.prisma.tenant.findFirst({
-        where: { concernId: user.concernId }
+        where: { concernId: { in: user.concernIds } },
+        include: { concern: true }
       });
       
       return {
@@ -91,11 +79,11 @@ export class AuthService {
           adminUser: user.adminUser,
           dcClose: user.dcClose,
           isActive: user.isActive,
-          concernId: user.concernId
+          concernIds: user.concernIds
         },
         autoSelectTenant: tenant ? {
           id: tenant.id,
-          company: user.concern?.partyName || '',
+          company: tenant.concern.partyName,
           financialYear: tenant.financialYear
         } : null
       };
@@ -109,7 +97,7 @@ export class AuthService {
         adminUser: user.adminUser,
         dcClose: user.dcClose,
         isActive: user.isActive,
-        concernId: user.concernId
+        concernIds: user.concernIds
       },
       tenants: user.userTenants.map(ut => ({
         id: ut.tenant.id,
@@ -175,7 +163,7 @@ export class AuthService {
           adminUser: true,
           dcClose: true,
           isActive: true,
-          concernId: true,
+          concernIds: true,
           createdAt: true
         },
         skip,
@@ -200,21 +188,21 @@ export class AuthService {
         adminUser: true,
         dcClose: true,
         isActive: true,
-        concernId: true,
+        concernIds: true,
         createdAt: true
       }
     });
   }
 
   async updateUser(id: number, updateData: any) {
-    const { adminUser, dcClose, isActive, concernId } = updateData;
+    const { adminUser, dcClose, isActive, concernIds } = updateData;
     return this.prisma.user.update({
       where: { id },
       data: {
         adminUser,
         dcClose,
         isActive,
-        concernId
+        concernIds
       },
       select: {
         id: true,
@@ -222,7 +210,7 @@ export class AuthService {
         adminUser: true,
         dcClose: true,
         isActive: true,
-        concernId: true
+        concernIds: true
       }
     });
   }

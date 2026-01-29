@@ -8,21 +8,20 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  password  String
-  adminUser Boolean  @default(false)
-  dcClose   Boolean  @default(false)
-  isActive  Boolean  @default(true)
-  isDeleted Boolean  @default(false)
-  deletedAt DateTime?
-  deletedBy Int?
-  concernId Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  username   String   @unique
+  password   String
+  adminUser  Boolean  @default(false)
+  dcClose    Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  isDeleted  Boolean  @default(false)
+  deletedAt  DateTime?
+  deletedBy  Int?
+  concernIds Int[]    @default([])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   
   userTenants UserTenant[]
-  concern     Concern? @relation(fields: [concernId], references: [id])
   
   @@map("users")
 }
@@ -134,7 +133,6 @@ model Concern {
   
   contacts ConcernContact[]
   tenants  Tenant[]
-  users    User[]
   
   @@map("concerns")
 }
