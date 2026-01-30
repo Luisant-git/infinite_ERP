@@ -128,6 +128,10 @@
 }
 
 /* Override Ant Design Tables */
+.ant-table-wrapper {
+  overflow-x: auto !important;
+}
+
 .ant-table {
   background: var(--white) !important;
   border-radius: var(--radius-md) !important;
@@ -145,9 +149,13 @@
 
 .ant-table-tbody > tr > td {
   border-bottom: 1px solid var(--border-light) !important;
-  padding: var(--spacing-md) !important;
+  padding: 8px var(--spacing-md) !important;
   color: var(--text-secondary) !important;
   font-size: var(--font-size-sm) !important;
+  max-width: 300px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 .ant-table-tbody > tr:hover > td {
@@ -155,10 +163,19 @@
 }
 
 /* Override Ant Design Forms */
+.ant-form-item {
+  margin-bottom: 8px !important;
+}
+
+.ant-form-item-label {
+  padding-bottom: 2px !important;
+}
+
 .ant-form-item-label > label {
   font-weight: 500 !important;
   color: var(--text-primary) !important;
   font-size: var(--font-size-sm) !important;
+  height: auto !important;
 }
 
 .ant-input {
@@ -380,6 +397,11 @@
     flex: 0 0 100% !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
+  }
+
+  /* Form items spacing */
+  .ant-form-item {
+    margin-bottom: 12px !important;
   }
 
   /* Checkbox row - keep horizontal */

@@ -54,6 +54,19 @@ const ConcernMaster = () => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
+      // Check for duplicate party name
+      if (!editingConcern) {
+        const duplicateName = concerns.find(c => c.partyName.toLowerCase() === values.partyName.toLowerCase());
+        if (duplicateName) {
+          Modal.error({
+            title: 'Duplicate Concern',
+            content: 'A concern with this name already exists!',
+          });
+          setLoading(false);
+          return;
+        }
+      }
+      
       const formData = {
         ...values,
         active: values.active ? 1 : 0,
@@ -74,6 +87,10 @@ const ConcernMaster = () => {
       setEditingConcern(null);
     } catch (error) {
       console.error('Error saving concern:', error);
+      Modal.error({
+        title: 'Error',
+        content: error.response?.data?.message || 'Failed to save concern',
+      });
     } finally {
       setLoading(false);
     }
@@ -311,8 +328,9 @@ const ConcernMaster = () => {
               form.getFieldInstance(firstErrorField)?.focus();
             }
           }}
-          initialValues={{ active: true, creditDays: 0 }}
+          initialValues={{ active: true, creditDays: 0, state: 'Tamil Nadu' }}
           scrollToFirstError
+          autoComplete="off"
         >
           <Tabs defaultActiveKey="1">
             <TabPane tab="Basic Details" key="1">
@@ -330,7 +348,6 @@ const ConcernMaster = () => {
                   <Form.Item
                     label="Vendor Code"
                     name="vendorCode"
-                    rules={[{ required: true, message: 'Please input vendor code!' }]}
                   >
                     <Input placeholder="Enter vendor code" maxLength={50} />
                   </Form.Item>
@@ -373,7 +390,7 @@ const ConcernMaster = () => {
                     name="pincode"
                     rules={[{ pattern: /^[0-9]{6}$/, message: 'Please enter valid 6-digit pincode!' }]}
                   >
-                    <Input placeholder="Enter pincode" maxLength={8} />
+                    <Input placeholder="Enter pincode" maxLength={6} onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -420,7 +437,7 @@ const ConcernMaster = () => {
                     name="email"
                     rules={[{ type: 'email', message: 'Please enter valid email!' }]}
                   >
-                    <Input placeholder="Enter email" maxLength={20} />
+                    <Input placeholder="Enter email" maxLength={50} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -429,7 +446,7 @@ const ConcernMaster = () => {
                     name="panNo"
                     rules={[{ pattern: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, message: 'Please enter valid PAN number!' }]}
                   >
-                    <Input placeholder="Enter PAN number" maxLength={20} style={{ textTransform: 'uppercase' }} />
+                    <Input placeholder="Enter PAN number" maxLength={10} style={{ textTransform: 'uppercase' }} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -448,7 +465,7 @@ const ConcernMaster = () => {
                       { pattern: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, message: 'Please enter valid GST number!' }
                     ]}
                   >
-                    <Input placeholder="Enter GST number" maxLength={50} style={{ textTransform: 'uppercase' }} />
+                    <Input placeholder="Enter GST number" maxLength={15} style={{ textTransform: 'uppercase' }} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
