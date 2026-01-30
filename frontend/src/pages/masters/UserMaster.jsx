@@ -60,6 +60,19 @@ const UserMaster = () => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
+      // Check for duplicate username
+      if (!editingUser) {
+        const duplicate = users.find(u => u.username.toLowerCase() === values.username.toLowerCase());
+        if (duplicate) {
+          Modal.error({
+            title: 'Duplicate User',
+            content: 'A user with this username already exists!',
+          });
+          setLoading(false);
+          return;
+        }
+      }
+      
       if (editingUser) {
         await updateUser(editingUser.id, values);
       } else {
@@ -71,6 +84,10 @@ const UserMaster = () => {
       loadUsers();
     } catch (error) {
       console.error('Error saving user:', error);
+      Modal.error({
+        title: 'Error',
+        content: error.response?.data?.message || 'Failed to save user',
+      });
     } finally {
       setLoading(false);
     }
@@ -86,7 +103,6 @@ const UserMaster = () => {
         username: userData.username,
         password: '********',
         adminUser: userData.adminUser,
-        dcClose: userData.dcClose,
         isActive: userData.isActive,
         concernIds: userData.concernIds || [],
         canAdd: userData.canAdd,
@@ -133,12 +149,6 @@ const UserMaster = () => {
       dataIndex: 'adminUser',
       key: 'adminUser',
       render: (adminUser) => adminUser ? 'Yes' : 'No',
-    },
-    {
-      title: 'DC Close',
-      dataIndex: 'dcClose',
-      key: 'dcClose',
-      render: (dcClose) => dcClose ? 'Yes' : 'No',
     },
     {
       title: 'Status',
@@ -285,10 +295,6 @@ const UserMaster = () => {
                 </Checkbox>
               </Form.Item>
             )}
-            
-            <Form.Item name="dcClose" valuePropName="checked">
-              <Checkbox>DC Close</Checkbox>
-            </Form.Item>
             
             <Form.Item name="isActive" valuePropName="checked">
               <Checkbox>Active</Checkbox>

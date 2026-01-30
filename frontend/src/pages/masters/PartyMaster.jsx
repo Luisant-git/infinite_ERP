@@ -69,6 +69,28 @@ const PartyMaster = () => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
+      // Check for duplicate party name or code
+      if (!editingParty) {
+        const duplicateName = parties.find(p => p.partyName.toLowerCase() === values.partyName.toLowerCase());
+        if (duplicateName) {
+          Modal.error({
+            title: 'Duplicate Party',
+            content: 'A party with this name already exists!',
+          });
+          setLoading(false);
+          return;
+        }
+        const duplicateCode = parties.find(p => p.partyCode.toLowerCase() === values.partyCode.toLowerCase());
+        if (duplicateCode) {
+          Modal.error({
+            title: 'Duplicate Party Code',
+            content: 'A party with this code already exists!',
+          });
+          setLoading(false);
+          return;
+        }
+      }
+      
       const formData = {
         ...values,
         active: values.active ? 1 : 0,
@@ -89,6 +111,10 @@ const PartyMaster = () => {
       setEditingParty(null);
     } catch (error) {
       console.error('Error saving party:', error);
+      Modal.error({
+        title: 'Error',
+        content: error.response?.data?.message || 'Failed to save party',
+      });
     } finally {
       setLoading(false);
     }
@@ -206,11 +232,11 @@ const PartyMaster = () => {
       key: 'partyTypes',
       render: (partyTypes) => partyTypes?.map(pt => pt.partyType.partyTypeName).join(', ') || 'N/A',
     },
-    {
-      title: 'Party Code',
-      dataIndex: 'partyCode',
-      key: 'partyCode',
-    },
+    // {
+    //   title: 'Party Code',
+    //   dataIndex: 'partyCode',
+    //   key: 'partyCode',
+    // },
     {
       title: 'Mobile No',
       dataIndex: 'mobileNo',
@@ -337,8 +363,9 @@ const PartyMaster = () => {
               form.getFieldInstance(firstErrorField)?.focus();
             }
           }}
-          initialValues={{ active: true, creditDays: 0 }}
+          initialValues={{ active: true, creditDays: 0, state: 'Tamil Nadu' }}
           scrollToFirstError
+          autoComplete="off"
         >
           <Tabs defaultActiveKey="1">
             <TabPane tab="Basic Details" key="1">
@@ -352,14 +379,14 @@ const PartyMaster = () => {
                     <Input placeholder="Enter party name" maxLength={50} />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                {/* <Col span={12}>
                   <Form.Item
                     label="Party Code"
                     name="partyCode"
                   >
                     <Input placeholder="Enter party code" maxLength={50} />
                   </Form.Item>
-                </Col>
+                </Col> */}
                 <Col span={12}>
                   <Form.Item
                     label="Party Types"
@@ -415,7 +442,7 @@ const PartyMaster = () => {
                     name="pincode"
                     rules={[{ pattern: /^[0-9]{6}$/, message: 'Please enter valid 6-digit pincode!' }]}
                   >
-                    <Input placeholder="Enter pincode" maxLength={8} />
+                    <Input placeholder="Enter pincode" maxLength={6} onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>

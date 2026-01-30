@@ -54,6 +54,19 @@ const ConcernMaster = () => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
+      // Check for duplicate party name
+      if (!editingConcern) {
+        const duplicateName = concerns.find(c => c.partyName.toLowerCase() === values.partyName.toLowerCase());
+        if (duplicateName) {
+          Modal.error({
+            title: 'Duplicate Concern',
+            content: 'A concern with this name already exists!',
+          });
+          setLoading(false);
+          return;
+        }
+      }
+      
       const formData = {
         ...values,
         active: values.active ? 1 : 0,
@@ -74,6 +87,10 @@ const ConcernMaster = () => {
       setEditingConcern(null);
     } catch (error) {
       console.error('Error saving concern:', error);
+      Modal.error({
+        title: 'Error',
+        content: error.response?.data?.message || 'Failed to save concern',
+      });
     } finally {
       setLoading(false);
     }
@@ -311,8 +328,9 @@ const ConcernMaster = () => {
               form.getFieldInstance(firstErrorField)?.focus();
             }
           }}
-          initialValues={{ active: true, creditDays: 0 }}
+          initialValues={{ active: true, creditDays: 0, state: 'Tamil Nadu' }}
           scrollToFirstError
+          autoComplete="off"
         >
           <Tabs defaultActiveKey="1">
             <TabPane tab="Basic Details" key="1">
@@ -372,7 +390,7 @@ const ConcernMaster = () => {
                     name="pincode"
                     rules={[{ pattern: /^[0-9]{6}$/, message: 'Please enter valid 6-digit pincode!' }]}
                   >
-                    <Input placeholder="Enter pincode" maxLength={8} />
+                    <Input placeholder="Enter pincode" maxLength={6} onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
