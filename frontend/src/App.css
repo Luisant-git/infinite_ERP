@@ -155,10 +155,19 @@
 }
 
 /* Override Ant Design Forms */
+.ant-form-item {
+  margin-bottom: 8px !important;
+}
+
+.ant-form-item-label {
+  padding-bottom: 2px !important;
+}
+
 .ant-form-item-label > label {
   font-weight: 500 !important;
   color: var(--text-primary) !important;
   font-size: var(--font-size-sm) !important;
+  height: auto !important;
 }
 
 .ant-input {
@@ -380,6 +389,11 @@
     flex: 0 0 100% !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
+  }
+
+  /* Form items spacing */
+  .ant-form-item {
+    margin-bottom: 12px !important;
   }
 
   /* Checkbox row - keep horizontal */

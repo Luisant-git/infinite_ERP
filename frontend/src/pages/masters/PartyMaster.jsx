@@ -463,7 +463,7 @@ const PartyMaster = () => {
                     name="email"
                     rules={[{ type: 'email', message: 'Please enter valid email!' }]}
                   >
-                    <Input placeholder="Enter email" maxLength={20} />
+                    <Input placeholder="Enter email" maxLength={50} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -472,7 +472,7 @@ const PartyMaster = () => {
                     name="panNo"
                     rules={[{ pattern: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, message: 'Please enter valid PAN number!' }]}
                   >
-                    <Input placeholder="Enter PAN number" maxLength={20} style={{ textTransform: 'uppercase' }} />
+                    <Input placeholder="Enter PAN number" maxLength={10} style={{ textTransform: 'uppercase' }} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -491,7 +491,7 @@ const PartyMaster = () => {
                       { pattern: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, message: 'Please enter valid GST number!' }
                     ]}
                   >
-                    <Input placeholder="Enter GST number" maxLength={50} style={{ textTransform: 'uppercase' }} />
+                    <Input placeholder="Enter GST number" maxLength={15} style={{ textTransform: 'uppercase' }} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
