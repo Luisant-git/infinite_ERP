@@ -102,6 +102,7 @@ const Login = () => {
                 prefix={<UserOutlined />} 
                 placeholder="Enter username"
                 size="large"
+                autoComplete="off"
               />
             </Form.Item>
 
@@ -114,7 +115,7 @@ const Login = () => {
                 prefix={<LockOutlined />}
                 placeholder="Enter password"
                 size="large"
-                autoComplete="current-password"
+                autoComplete="off"
               />
             </Form.Item>
 

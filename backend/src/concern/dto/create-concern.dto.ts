@@ -60,8 +60,8 @@ export class CreateConcernDto {
   @ApiPropertyOptional({ example: 'ABC Suppliers Tally' })
   tallyAccName?: string;
 
-  @ApiProperty({ example: '27ABCDE1234F1Z5' })
-  gstNo: string;
+  @ApiPropertyOptional({ example: '27ABCDE1234F1Z5' })
+  gstNo?: string;
 
   @ApiPropertyOptional({ example: 30 })
   creditDays?: number;

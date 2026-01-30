@@ -45,6 +45,20 @@ const PartyTypeMaster = () => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
+      const duplicate = partyTypes.find(pt => 
+        pt.partyTypeName.toLowerCase() === values.partyTypeName.toLowerCase() && 
+        (!editingPartyType || pt.id !== editingPartyType.id)
+      );
+
+      if (duplicate) {
+        Modal.error({
+          title: 'Duplicate Party Type',
+          content: 'A party type with this name already exists!',
+        });
+        setLoading(false);
+        return;
+      }
+
       if (editingPartyType) {
         await updatePartyType(editingPartyType.id, values);
       } else {
@@ -57,6 +71,10 @@ const PartyTypeMaster = () => {
       loadPartyTypes();
     } catch (error) {
       console.error('Error saving party type:', error);
+      Modal.error({
+        title: 'Error',
+        content: error.response?.data?.message || 'Failed to save party type',
+      });
     } finally {
       setLoading(false);
     }

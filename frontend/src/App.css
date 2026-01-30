@@ -162,6 +162,16 @@
   background: var(--gray-50) !important;
 }
 
+/* Checkbox in table - darker tick */
+.ant-table .ant-checkbox-disabled.ant-checkbox-checked .ant-checkbox-inner::after {
+  border-color: #000 !important;
+}
+
+.ant-table .ant-checkbox-disabled.ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #1890ff !important;
+  border-color: #1890ff !important;
+}
+
 /* Override Ant Design Forms */
 .ant-form-item {
   margin-bottom: 8px !important;

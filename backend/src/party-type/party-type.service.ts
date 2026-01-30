@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePartyTypeDto } from './dto/create-party-type.dto';
 import { UpdatePartyTypeDto } from './dto/update-party-type.dto';
@@ -9,6 +9,17 @@ export class PartyTypeService {
 
   async create(createPartyTypeDto: CreatePartyTypeDto) {
     console.log('Creating party type with data:', createPartyTypeDto);
+    
+    const existing = await this.prisma.partyType.findFirst({
+      where: {
+        partyTypeName: { equals: createPartyTypeDto.partyTypeName, mode: 'insensitive' },
+        isDeleted: false
+      }
+    });
+
+    if (existing) {
+      throw new ConflictException('Party type name already exists');
+    }
     
     return this.prisma.partyType.create({
       data: createPartyTypeDto,
@@ -47,6 +58,20 @@ export class PartyTypeService {
   }
 
   async update(id: number, updatePartyTypeDto: UpdatePartyTypeDto) {
+    if (updatePartyTypeDto.partyTypeName) {
+      const existing = await this.prisma.partyType.findFirst({
+        where: {
+          partyTypeName: { equals: updatePartyTypeDto.partyTypeName, mode: 'insensitive' },
+          isDeleted: false,
+          NOT: { id }
+        }
+      });
+
+      if (existing) {
+        throw new ConflictException('Party type name already exists');
+      }
+    }
+
     return this.prisma.partyType.update({
       where: { id },
       data: updatePartyTypeDto,

@@ -145,16 +145,34 @@ const UserMaster = () => {
       key: 'username',
     },
     {
-      title: 'Admin User',
+      title: 'Admin',
       dataIndex: 'adminUser',
       key: 'adminUser',
-      render: (adminUser) => adminUser ? 'Yes' : 'No',
+      render: (adminUser) => <Checkbox checked={adminUser} disabled />,
+    },
+    {
+      title: 'Add',
+      dataIndex: 'canAdd',
+      key: 'canAdd',
+      render: (canAdd) => <Checkbox checked={canAdd} disabled />,
+    },
+    {
+      title: 'Edit',
+      dataIndex: 'canEdit',
+      key: 'canEdit',
+      render: (canEdit) => <Checkbox checked={canEdit} disabled />,
+    },
+    {
+      title: 'Delete',
+      dataIndex: 'canDelete',
+      key: 'canDelete',
+      render: (canDelete) => <Checkbox checked={canDelete} disabled />,
     },
     {
       title: 'Status',
       dataIndex: 'isActive',
       key: 'isActive',
-      render: (isActive) => isActive ? 'Active' : 'Inactive',
+      render: (isActive) => <Checkbox checked={isActive} disabled />,
     },
     {
       title: 'Actions',
@@ -234,6 +252,7 @@ const UserMaster = () => {
           onFinish={handleSubmit}
           initialValues={{ isActive: true, canAdd: false, canEdit: false, canDelete: false }}
           style={{ marginTop: '8px' }}
+          autoComplete="off"
         >
           <Form.Item
             label="User Name"
@@ -241,7 +260,7 @@ const UserMaster = () => {
             rules={[{ required: true, message: 'Please input user name!' }]}
             style={{ marginBottom: '16px' }}
           >
-            <Input placeholder="Enter user name" />
+            <Input placeholder="Enter user name" autoComplete="off" />
           </Form.Item>
           
           <Form.Item
@@ -250,7 +269,7 @@ const UserMaster = () => {
             rules={[{ required: !editingUser, message: 'Please input password!' }]}
             style={{ marginBottom: '16px' }}
           >
-            <Input.Password placeholder="Enter password" />
+            <Input.Password placeholder="Enter password" autoComplete="new-password" />
           </Form.Item>
 
           {!isAdminUser && (

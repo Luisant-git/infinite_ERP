@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, Checkbox, Button, Row, Col, Typography, Select, Space, Table, Modal, InputNumber, Tabs } from 'antd';
+import { Card, Form, Input, Checkbox, Button, Row, Col, Typography, Select, Space, Table, Modal, InputNumber, Tabs, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined, EyeOutlined } from '@ant-design/icons';
 import { getParties, createParty, updateParty, deleteParty } from '../../api/party';
 import { getPartyTypes } from '../../api/partyType';
@@ -69,6 +69,8 @@ const PartyMaster = () => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
+      console.log('Form values:', values);
+      
       // Check for duplicate party name or code
       if (!editingParty) {
         const duplicateName = parties.find(p => p.partyName.toLowerCase() === values.partyName.toLowerCase());
@@ -80,14 +82,16 @@ const PartyMaster = () => {
           setLoading(false);
           return;
         }
-        const duplicateCode = parties.find(p => p.partyCode.toLowerCase() === values.partyCode.toLowerCase());
-        if (duplicateCode) {
-          Modal.error({
-            title: 'Duplicate Party Code',
-            content: 'A party with this code already exists!',
-          });
-          setLoading(false);
-          return;
+        if (values.partyCode) {
+          const duplicateCode = parties.find(p => p.partyCode?.toLowerCase() === values.partyCode.toLowerCase());
+          if (duplicateCode) {
+            Modal.error({
+              title: 'Duplicate Party Code',
+              content: 'A party with this code already exists!',
+            });
+            setLoading(false);
+            return;
+          }
         }
       }
       
@@ -96,6 +100,8 @@ const PartyMaster = () => {
         active: values.active ? 1 : 0,
         creditDays: values.creditDays || 0
       };
+      
+      console.log('Sending data:', formData);
       
       if (editingParty) {
         const updatedParty = await updateParty(editingParty.id, formData);
@@ -111,9 +117,10 @@ const PartyMaster = () => {
       setEditingParty(null);
     } catch (error) {
       console.error('Error saving party:', error);
+      console.error('Error response:', error.response);
       Modal.error({
         title: 'Error',
-        content: error.response?.data?.message || 'Failed to save party',
+        content: error.response?.data?.message || error.message || 'Failed to save party',
       });
     } finally {
       setLoading(false);
@@ -362,6 +369,7 @@ const PartyMaster = () => {
             if (firstErrorField) {
               form.getFieldInstance(firstErrorField)?.focus();
             }
+            message.error('Please fill all required fields correctly!');
           }}
           initialValues={{ active: true, creditDays: 0, state: 'Tamil Nadu' }}
           scrollToFirstError
@@ -376,7 +384,7 @@ const PartyMaster = () => {
                     name="partyName"
                     rules={[{ required: true, message: 'Please input party name!' }]}
                   >
-                    <Input placeholder="Enter party name" maxLength={50} />
+                    <Input placeholder="Enter party name" maxLength={50} autoComplete="off" />
                   </Form.Item>
                 </Col>
                 {/* <Col span={12}>
@@ -397,6 +405,10 @@ const PartyMaster = () => {
                       mode="multiple"
                       placeholder="Select party types" 
                       allowClear
+                      showSearch
+                      filterOption={(input, option) =>
+                        option.children.toLowerCase().includes(input.toLowerCase())
+                      }
                     >
                       {partyTypes.filter(pt => pt.isActive).map(type => (
                         <Option key={type.id} value={type.id}>{type.partyTypeName}</Option>
@@ -409,7 +421,7 @@ const PartyMaster = () => {
                     label="Address 1"
                     name="address1"
                   >
-                    <Input placeholder="Enter address line 1" maxLength={50} />
+                    <Input placeholder="Enter address line 1" maxLength={50} autoComplete="new-address" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -417,7 +429,7 @@ const PartyMaster = () => {
                     label="Address 2"
                     name="address2"
                   >
-                    <Input placeholder="Enter address line 2" maxLength={50} />
+                    <Input placeholder="Enter address line 2" maxLength={50} autoComplete="new-address" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -425,7 +437,7 @@ const PartyMaster = () => {
                     label="Address 3"
                     name="address3"
                   >
-                    <Input placeholder="Enter address line 3" maxLength={50} />
+                    <Input placeholder="Enter address line 3" maxLength={50} autoComplete="new-address" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -433,7 +445,7 @@ const PartyMaster = () => {
                     label="Address 4"
                     name="address4"
                   >
-                    <Input placeholder="Enter address line 4" maxLength={50} />
+                    <Input placeholder="Enter address line 4" maxLength={50} autoComplete="new-address" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -442,7 +454,7 @@ const PartyMaster = () => {
                     name="pincode"
                     rules={[{ pattern: /^[0-9]{6}$/, message: 'Please enter valid 6-digit pincode!' }]}
                   >
-                    <Input placeholder="Enter pincode" maxLength={6} onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()} />
+                    <Input placeholder="Enter pincode" maxLength={6} onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()} autoComplete="new-postal-code" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -462,7 +474,7 @@ const PartyMaster = () => {
                     label="District"
                     name="district"
                   >
-                    <Input placeholder="Enter district" maxLength={50} />
+                    <Input placeholder="Enter district" maxLength={50} autoComplete="new-district" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -471,7 +483,7 @@ const PartyMaster = () => {
                     name="mobileNo"
                     rules={[{ pattern: /^[0-9]{10}$/, message: 'Please enter valid 10-digit mobile number!' }]}
                   >
-                    <Input placeholder="Enter mobile number" maxLength={10} />
+                    <Input placeholder="Enter mobile number" maxLength={10} autoComplete="new-tel" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -480,7 +492,7 @@ const PartyMaster = () => {
                     name="phoneNo"
                     rules={[{ pattern: /^[0-9]{10}$/, message: 'Please enter valid 10-digit phone number!' }]}
                   >
-                    <Input placeholder="Enter phone number" maxLength={10} />
+                    <Input placeholder="Enter phone number" maxLength={10} autoComplete="new-tel" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -489,7 +501,7 @@ const PartyMaster = () => {
                     name="email"
                     rules={[{ type: 'email', message: 'Please enter valid email!' }]}
                   >
-                    <Input placeholder="Enter email" maxLength={50} />
+                    <Input placeholder="Enter email" maxLength={50} autoComplete="new-email" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -498,7 +510,7 @@ const PartyMaster = () => {
                     name="panNo"
                     rules={[{ pattern: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, message: 'Please enter valid PAN number!' }]}
                   >
-                    <Input placeholder="Enter PAN number" maxLength={10} style={{ textTransform: 'uppercase' }} />
+                    <Input placeholder="Enter PAN number" maxLength={10} style={{ textTransform: 'uppercase' }} autoComplete="off" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -506,7 +518,7 @@ const PartyMaster = () => {
                     label="Tally Acc. Name"
                     name="tallyAccName"
                   >
-                    <Input placeholder="Enter tally account name" maxLength={50} />
+                    <Input placeholder="Enter tally account name" maxLength={50} autoComplete="off" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -517,7 +529,7 @@ const PartyMaster = () => {
                       { pattern: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, message: 'Please enter valid GST number!' }
                     ]}
                   >
-                    <Input placeholder="Enter GST number" maxLength={15} style={{ textTransform: 'uppercase' }} />
+                    <Input placeholder="Enter GST number" maxLength={15} style={{ textTransform: 'uppercase' }} autoComplete="off" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -543,7 +555,7 @@ const PartyMaster = () => {
                     label="Account No"
                     name="accountNo"
                   >
-                    <Input placeholder="Enter account number" maxLength={30} />
+                    <Input placeholder="Enter account number" maxLength={30} autoComplete="off" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -551,7 +563,7 @@ const PartyMaster = () => {
                     label="Bank"
                     name="bank"
                   >
-                    <Input placeholder="Enter bank name" maxLength={30} />
+                    <Input placeholder="Enter bank name" maxLength={30} autoComplete="off" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -560,7 +572,7 @@ const PartyMaster = () => {
                     name="ifscCode"
                     rules={[{ pattern: /^[A-Z]{4}0[A-Z0-9]{6}$/, message: 'Please enter valid IFSC code!' }]}
                   >
-                    <Input placeholder="Enter IFSC code" maxLength={12} style={{ textTransform: 'uppercase' }} />
+                    <Input placeholder="Enter IFSC code" maxLength={12} style={{ textTransform: 'uppercase' }} autoComplete="off" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -568,7 +580,7 @@ const PartyMaster = () => {
                     label="Branch"
                     name="branch"
                   >
-                    <Input placeholder="Enter branch name" maxLength={30} />
+                    <Input placeholder="Enter branch name" maxLength={30} autoComplete="off" />
                   </Form.Item>
                 </Col>
               </Row>
@@ -586,7 +598,7 @@ const PartyMaster = () => {
                             name={[name, 'name']}
                             label="Name"
                           >
-                            <Input placeholder="Enter name" maxLength={50} />
+                            <Input placeholder="Enter name" maxLength={50} autoComplete="off" />
                           </Form.Item>
                         </Col>
                         <Col span={5}>
@@ -596,17 +608,17 @@ const PartyMaster = () => {
                             label="Mobile No"
                             rules={[{ pattern: /^[0-9]{10}$/, message: 'Enter valid mobile!' }]}
                           >
-                            <Input placeholder="Mobile number" maxLength={10} />
+                            <Input placeholder="Mobile number" maxLength={10} autoComplete="off" />
                           </Form.Item>
                         </Col>
-                        <Col span={5}>
+                        <Col span={6}>
                           <Form.Item
                             {...restField}
                             name={[name, 'email']}
                             label="Email"
                             rules={[{ type: 'email', message: 'Enter valid email!' }]}
                           >
-                            <Input placeholder="Email" maxLength={20} />
+                            <Input placeholder="Email" maxLength={50} autoComplete="off" />
                           </Form.Item>
                         </Col>
                         <Col span={3}>
@@ -619,7 +631,7 @@ const PartyMaster = () => {
                             <Checkbox />
                           </Form.Item>
                         </Col>
-                        <Col span={3}>
+                        <Col span={2}>
                           <Form.Item
                             {...restField}
                             name={[name, 'mailRequired']}
@@ -629,7 +641,7 @@ const PartyMaster = () => {
                             <Checkbox />
                           </Form.Item>
                         </Col>
-                        <Col span={2}>
+                        <Col span={1}>
                           <Form.Item label=" ">
                             <Button 
                               type="text" 
