@@ -1,34 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Select, Button } from 'antd';
+import { useSelector } from 'react-redux';
 import { createTenant } from '../../api/auth';
-import { getCompanies, getTenants } from '../../api/company';
 
 const { Option } = Select;
 
 const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [companies, setCompanies] = useState([]);
-  const [tenants, setTenants] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const { tenants } = useSelector(state => state.auth);
 
-  useEffect(() => {
-    if (visible) {
-      loadData();
-    }
-  }, [visible]);
-
-  const loadData = async () => {
-    try {
-      const [companiesData, tenantsData] = await Promise.all([
-        getCompanies(),
-        getTenants()
-      ]);
-      setCompanies(companiesData);
-      setTenants(tenantsData);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    }
+  const getUniqueCompanies = () => {
+    if (!tenants) return [];
+    const companies = [...new Set(tenants.map(t => t.company))];
+    return companies.map(company => ({ partyName: company }));
   };
 
   const handleCompanyChange = (companyName) => {
@@ -37,9 +23,9 @@ const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
   };
 
   const getAvailableYears = () => {
-    if (!selectedCompany) return [];
+    if (!selectedCompany || !tenants) return [];
     return tenants
-      .filter(tenant => tenant.concern.partyName === selectedCompany)
+      .filter(tenant => tenant.company === selectedCompany)
       .map(tenant => tenant.financialYear);
   };
 
@@ -48,9 +34,9 @@ const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
       setLoading(true);
       const values = await form.validateFields();
       
-      // Find existing tenant or create new one
+      // Find existing tenant
       let tenant = tenants.find(t => 
-        t.concern.partyName === values.company && 
+        t.company === values.company && 
         t.financialYear === values.year
       );
       
@@ -104,8 +90,8 @@ const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
             showSearch
             allowClear
           >
-            {companies.map(company => (
-              <Option key={company.id} value={company.partyName}>
+            {getUniqueCompanies().map(company => (
+              <Option key={company.partyName} value={company.partyName}>
                 {company.partyName}
               </Option>
             ))}

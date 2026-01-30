@@ -11,7 +11,7 @@ export class AuthService {
   ) {}
 
   async register(registerDto: any) {
-    const { username, password, adminUser, dcClose, isActive, concernIds } = registerDto;
+    const { username, password, adminUser, dcClose, isActive, concernIds, canAdd, canEdit, canDelete } = registerDto;
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const userData: any = {
@@ -20,7 +20,10 @@ export class AuthService {
       adminUser: adminUser || false,
       dcClose: dcClose || false,
       isActive: isActive !== undefined ? isActive : true,
-      concernIds: concernIds || []
+      concernIds: concernIds || [],
+      canAdd: canAdd || false,
+      canEdit: canEdit || false,
+      canDelete: canDelete || false
     };
     
     const user = await this.prisma.user.create({
@@ -34,6 +37,9 @@ export class AuthService {
       dcClose: user.dcClose,
       isActive: user.isActive,
       concernIds: user.concernIds,
+      canAdd: user.canAdd,
+      canEdit: user.canEdit,
+      canDelete: user.canDelete,
       createdAt: user.createdAt
     };
   }
@@ -65,7 +71,7 @@ export class AuthService {
     const payload = { sub: user.id, username: user.username };
     const token = this.jwtService.sign(payload);
 
-    if (user.concernIds.length > 0) {
+    if (user.concernIds.length === 1) {
       const tenant = await this.prisma.tenant.findFirst({
         where: { concernId: { in: user.concernIds } },
         include: { concern: true }
@@ -79,7 +85,10 @@ export class AuthService {
           adminUser: user.adminUser,
           dcClose: user.dcClose,
           isActive: user.isActive,
-          concernIds: user.concernIds
+          concernIds: user.concernIds,
+          canAdd: user.canAdd,
+          canEdit: user.canEdit,
+          canDelete: user.canDelete
         },
         autoSelectTenant: tenant ? {
           id: tenant.id,
@@ -89,6 +98,13 @@ export class AuthService {
       };
     }
 
+    // For users with multiple concerns or admin users, return available tenants
+    const availableTenants = await this.prisma.tenant.findMany({
+      where: user.concernIds.length > 0 ? 
+        { concernId: { in: user.concernIds } } : {},
+      include: { concern: true }
+    });
+
     return {
       access_token: token,
       user: { 
@@ -97,12 +113,15 @@ export class AuthService {
         adminUser: user.adminUser,
         dcClose: user.dcClose,
         isActive: user.isActive,
-        concernIds: user.concernIds
+        concernIds: user.concernIds,
+        canAdd: user.canAdd,
+        canEdit: user.canEdit,
+        canDelete: user.canDelete
       },
-      tenants: user.userTenants.map(ut => ({
-        id: ut.tenant.id,
-        company: ut.tenant.concern.partyName,
-        financialYear: ut.tenant.financialYear
+      tenants: availableTenants.map(tenant => ({
+        id: tenant.id,
+        company: tenant.concern.partyName,
+        financialYear: tenant.financialYear
       }))
     };
   }
@@ -164,6 +183,9 @@ export class AuthService {
           dcClose: true,
           isActive: true,
           concernIds: true,
+          canAdd: true,
+          canEdit: true,
+          canDelete: true,
           createdAt: true
         },
         skip,
@@ -189,28 +211,48 @@ export class AuthService {
         dcClose: true,
         isActive: true,
         concernIds: true,
+        canAdd: true,
+        canEdit: true,
+        canDelete: true,
         createdAt: true
       }
     });
   }
 
   async updateUser(id: number, updateData: any) {
-    const { adminUser, dcClose, isActive, concernIds } = updateData;
+    const { username, password, adminUser, dcClose, isActive, concernIds, canAdd, canEdit, canDelete } = updateData;
+    
+    const updateFields: any = {
+      adminUser,
+      dcClose,
+      isActive,
+      concernIds,
+      canAdd,
+      canEdit,
+      canDelete
+    };
+    
+    if (username) {
+      updateFields.username = username;
+    }
+    
+    if (password && password !== '********') {
+      updateFields.password = await bcrypt.hash(password, 10);
+    }
+    
     return this.prisma.user.update({
       where: { id },
-      data: {
-        adminUser,
-        dcClose,
-        isActive,
-        concernIds
-      },
+      data: updateFields,
       select: {
         id: true,
         username: true,
         adminUser: true,
         dcClose: true,
         isActive: true,
-        concernIds: true
+        concernIds: true,
+        canAdd: true,
+        canEdit: true,
+        canDelete: true
       }
     });
   }

@@ -89,15 +89,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
-      children: [
-        ...(user?.adminUser === true ? [
-          {
-            key: ROUTES.MENU_PERMISSION,
-            icon: <SettingOutlined />,
-            label: 'Menu Permission'
-          }
-        ] : [])
-      ]
+      children: []
     }
   ];
 

@@ -88,7 +88,10 @@ const UserMaster = () => {
         adminUser: userData.adminUser,
         dcClose: userData.dcClose,
         isActive: userData.isActive,
-        concernIds: userData.concernIds || []
+        concernIds: userData.concernIds || [],
+        canAdd: userData.canAdd,
+        canEdit: userData.canEdit,
+        canDelete: userData.canDelete
       });
       setIsModalVisible(true);
     } catch (error) {
@@ -149,8 +152,8 @@ const UserMaster = () => {
       width: 120,
       render: (_, record) => (
         <Space size="small">
-          {canEdit('user_master') && <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />}
-          {canDelete('user_master') && <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />}
+          {canEdit() && <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />}
+          {canDelete() && <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />}
         </Space>
       ),
     },
@@ -173,7 +176,7 @@ const UserMaster = () => {
             type="primary" 
             icon={<PlusOutlined />} 
             onClick={() => setIsModalVisible(true)}
-            disabled={!canAdd('user_master')}
+            disabled={!canAdd()}
           >
             Add User
           </Button>
@@ -219,7 +222,7 @@ const UserMaster = () => {
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          initialValues={{ isActive: true }}
+          initialValues={{ isActive: true, canAdd: false, canEdit: false, canDelete: false }}
           style={{ marginTop: '8px' }}
         >
           <Form.Item
@@ -228,7 +231,7 @@ const UserMaster = () => {
             rules={[{ required: true, message: 'Please input user name!' }]}
             style={{ marginBottom: '16px' }}
           >
-            <Input placeholder="Enter user name" disabled={editingUser} />
+            <Input placeholder="Enter user name" />
           </Form.Item>
           
           <Form.Item
@@ -237,7 +240,7 @@ const UserMaster = () => {
             rules={[{ required: !editingUser, message: 'Please input password!' }]}
             style={{ marginBottom: '16px' }}
           >
-            <Input.Password placeholder="Enter password" disabled={editingUser} />
+            <Input.Password placeholder="Enter password" />
           </Form.Item>
 
           {!isAdminUser && (
@@ -289,6 +292,20 @@ const UserMaster = () => {
             
             <Form.Item name="isActive" valuePropName="checked">
               <Checkbox>Active</Checkbox>
+            </Form.Item>
+          </div>
+
+          <div style={{ display: 'flex', gap: 16, marginBottom: '0px' }}>
+            <Form.Item name="canAdd" valuePropName="checked">
+              <Checkbox>Add</Checkbox>
+            </Form.Item>
+            
+            <Form.Item name="canEdit" valuePropName="checked">
+              <Checkbox>Edit</Checkbox>
+            </Form.Item>
+            
+            <Form.Item name="canDelete" valuePropName="checked">
+              <Checkbox>Delete</Checkbox>
             </Form.Item>
           </div>
         </Form>
