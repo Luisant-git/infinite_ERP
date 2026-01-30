@@ -88,9 +88,9 @@ const Login = () => {
           )}
 
           <Form
-            name="login"
+            name="login-form"
             onFinish={onFinish}
-            autoComplete="off"
+            autoComplete="new-password"
             layout="vertical"
           >
             <Form.Item
@@ -102,7 +102,7 @@ const Login = () => {
                 prefix={<UserOutlined />} 
                 placeholder="Enter username"
                 size="large"
-                autoComplete="off"
+                autoComplete="new-password"
               />
             </Form.Item>
 
@@ -115,7 +115,7 @@ const Login = () => {
                 prefix={<LockOutlined />}
                 placeholder="Enter password"
                 size="large"
-                autoComplete="off"
+                autoComplete="new-password"
               />
             </Form.Item>
 
