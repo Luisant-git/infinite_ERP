@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Query, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Patch, Param, Delete, Headers } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -22,6 +22,14 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Login successful' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto.username, loginDto.password);
+  }
+
+  @Post('validate-token')
+  @ApiOperation({ summary: 'Validate JWT token' })
+  @ApiResponse({ status: 200, description: 'Token validation successful' })
+  async validateToken(@Headers('authorization') authorization: string) {
+    const token = authorization?.replace('Bearer ', '');
+    return this.authService.validateToken(token);
   }
 
   @Post('tenant')

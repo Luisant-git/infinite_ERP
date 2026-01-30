@@ -1,7 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  user: null,
   tenants: [],
   isAuthenticated: false,
   loading: false,
@@ -17,20 +16,16 @@ const loadPersistedState = () => {
   try {
     const token = localStorage.getItem('token');
     const tenantId = localStorage.getItem('tenantId');
-    const userData = localStorage.getItem('userData');
     const selectedCompany = localStorage.getItem('selectedCompany');
     const selectedYear = localStorage.getItem('selectedYear');
     
     if (token) {
-      const user = userData ? JSON.parse(userData) : null;
       return {
         ...initialState,
         isAuthenticated: true,
         selectedTenantId: tenantId,
         selectedCompany: selectedCompany,
-        selectedYear: selectedYear,
-        user: user,
-        showCompanySelection: user?.concernId ? false : false
+        selectedYear: selectedYear
       };
     }
   } catch (error) {
@@ -50,7 +45,6 @@ const authSlice = createSlice({
     loginSuccess: (state, action) => {
       state.loading = false;
       state.isAuthenticated = true;
-      state.user = action.payload.user;
       
       // Auto-select tenant for users with concern mapping
       if (action.payload.autoSelectTenant) {
@@ -61,11 +55,9 @@ const authSlice = createSlice({
         localStorage.setItem('tenantId', action.payload.autoSelectTenant.id);
         localStorage.setItem('selectedCompany', action.payload.autoSelectTenant.company);
         localStorage.setItem('selectedYear', action.payload.autoSelectTenant.financialYear);
-        localStorage.setItem('userData', JSON.stringify(action.payload.user));
       } else {
         state.tenants = action.payload.tenants || [];
         state.showCompanySelection = true;
-        localStorage.setItem('userData', JSON.stringify(action.payload.user));
       }
     },
     loginFailure: (state, action) => {
@@ -73,7 +65,6 @@ const authSlice = createSlice({
       state.error = action.payload;
     },
     logout: (state) => {
-      state.user = null;
       state.tenants = [];
       state.isAuthenticated = false;
       state.error = null;
@@ -83,7 +74,6 @@ const authSlice = createSlice({
       state.selectedTenantId = null;
       localStorage.removeItem('token');
       localStorage.removeItem('tenantId');
-      localStorage.removeItem('userData');
       localStorage.removeItem('selectedCompany');
       localStorage.removeItem('selectedYear');
     },

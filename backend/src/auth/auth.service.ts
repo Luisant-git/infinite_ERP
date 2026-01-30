@@ -68,10 +68,21 @@ export class AuthService {
       throw new UnauthorizedException('Account is inactive');
     }
 
-    const payload = { sub: user.id, username: user.username };
+    const payload = { 
+      sub: user.id, 
+      username: user.username,
+      adminUser: user.adminUser,
+      dcClose: user.dcClose,
+      isActive: user.isActive,
+      concernIds: user.concernIds,
+      canAdd: user.canAdd,
+      canEdit: user.canEdit,
+      canDelete: user.canDelete
+    };
     const token = this.jwtService.sign(payload);
 
-    if (user.concernIds.length === 1) {
+    // Auto-select for users with exactly one concern
+    if (!user.adminUser && user.concernIds.length === 1) {
       const tenant = await this.prisma.tenant.findFirst({
         where: { concernId: { in: user.concernIds } },
         include: { concern: true }
@@ -79,17 +90,6 @@ export class AuthService {
       
       return {
         access_token: token,
-        user: { 
-          id: user.id, 
-          username: user.username,
-          adminUser: user.adminUser,
-          dcClose: user.dcClose,
-          isActive: user.isActive,
-          concernIds: user.concernIds,
-          canAdd: user.canAdd,
-          canEdit: user.canEdit,
-          canDelete: user.canDelete
-        },
         autoSelectTenant: tenant ? {
           id: tenant.id,
           company: tenant.concern.partyName,
@@ -98,26 +98,15 @@ export class AuthService {
       };
     }
 
-    // For users with multiple concerns or admin users, return available tenants
+    // For admin users or users with multiple concerns, return available tenants
     const availableTenants = await this.prisma.tenant.findMany({
-      where: user.concernIds.length > 0 ? 
-        { concernId: { in: user.concernIds } } : {},
+      where: user.adminUser || user.concernIds.length === 0 ? 
+        {} : { concernId: { in: user.concernIds } },
       include: { concern: true }
     });
 
     return {
       access_token: token,
-      user: { 
-        id: user.id, 
-        username: user.username,
-        adminUser: user.adminUser,
-        dcClose: user.dcClose,
-        isActive: user.isActive,
-        concernIds: user.concernIds,
-        canAdd: user.canAdd,
-        canEdit: user.canEdit,
-        canDelete: user.canDelete
-      },
       tenants: availableTenants.map(tenant => ({
         id: tenant.id,
         company: tenant.concern.partyName,
@@ -266,5 +255,24 @@ export class AuthService {
         deletedBy
       }
     });
+  }
+
+  async validateToken(token: string) {
+    try {
+      const payload = this.jwtService.verify(token);
+      return {
+        id: payload.sub,
+        username: payload.username,
+        adminUser: payload.adminUser,
+        dcClose: payload.dcClose,
+        isActive: payload.isActive,
+        concernIds: payload.concernIds,
+        canAdd: payload.canAdd,
+        canEdit: payload.canEdit,
+        canDelete: payload.canDelete
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
   }
 }

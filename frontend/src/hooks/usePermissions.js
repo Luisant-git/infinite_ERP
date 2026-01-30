@@ -1,7 +1,28 @@
-import { useSelector } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { validateToken } from '../api/token';
+import { ROUTES } from '../constants/permissions';
 
 export const usePermissions = () => {
-  const { user } = useSelector(state => state.auth);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    const loadUserFromToken = async () => {
+      try {
+        const userData = await validateToken();
+        setUser(userData);
+      } catch (error) {
+        console.error('Token validation failed:', error);
+        localStorage.clear();
+        navigate(ROUTES.LOGIN);
+      }
+    };
+    
+    if (localStorage.getItem('token')) {
+      loadUserFromToken();
+    }
+  }, [navigate]);
   
   const canAdd = () => user?.adminUser || user?.canAdd || false;
   const canEdit = () => user?.adminUser || user?.canEdit || false;
@@ -10,6 +31,7 @@ export const usePermissions = () => {
   const isAdmin = () => user?.adminUser || false;
 
   return {
+    user,
     canAdd,
     canEdit,
     canDelete,

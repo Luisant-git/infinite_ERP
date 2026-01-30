@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout, Menu } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -23,11 +23,8 @@ const AppSidebar = ({ collapsed, isMobile }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { canDCClose } = usePermissions();
+  const { canDCClose, user } = usePermissions();
   const { canView } = useMenuPermissions();
-  const { user } = useSelector(state => state.auth);
-  console.log('AppSidebar - user:', user);
-
   const menuItems = [
     ...(canView('dashboard') ? [{
       key: ROUTES.DASHBOARD,

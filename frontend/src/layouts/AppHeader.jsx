@@ -2,8 +2,11 @@ import React from 'react';
 import { Layout, Button, Space, Typography, Dropdown } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { toggleSidebar } from '../store/slices/uiSlice';
 import { logout } from '../store/slices/authSlice';
+import { usePermissions } from '../hooks/usePermissions';
+import { ROUTES } from '../constants/permissions';
 import logo from '../assets/infinite.png';
 
 const { Header } = Layout;
@@ -11,14 +14,14 @@ const { Text } = Typography;
 
 const AppHeader = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { sidebarCollapsed } = useSelector(state => state.ui);
-  const { user, selectedCompany, selectedYear } = useSelector(state => state.auth);
-  console.log('AppHeader - selectedCompany:', selectedCompany, 'selectedYear:', selectedYear);
-  console.log('AppHeader - user:', user);
+  const { selectedCompany, selectedYear } = useSelector(state => state.auth);
+  const { user } = usePermissions();
 
   const handleLogout = () => {
     dispatch(logout());
-    localStorage.removeItem('token');
+    navigate(ROUTES.LOGIN);
   };
 
   const userMenuItems = [
