@@ -49,10 +49,17 @@ export class ConcernService {
   async create(data: any) {
     const { contacts, ...concernData } = data;
     
-    // Truncate fields to match database constraints
+    const trimmedPartyName = concernData.partyName?.trim();
+    const existingConcern = await this.prisma.concern.findFirst({
+      where: { partyName: trimmedPartyName, isDeleted: false }
+    });
+    if (existingConcern) {
+      throw new Error('Concern name already exists');
+    }
+    
     const processedConcernData = {
       ...concernData,
-      partyName: concernData.partyName?.substring(0, 50),
+      partyName: trimmedPartyName,
       vendorCode: concernData.vendorCode?.substring(0, 50),
       address1: concernData.address1?.substring(0, 50),
       address2: concernData.address2?.substring(0, 50),
@@ -63,7 +70,7 @@ export class ConcernService {
       state: concernData.state?.substring(0, 50),
       mobileNo: concernData.mobileNo?.substring(0, 10),
       phoneNo: concernData.phoneNo?.substring(0, 10),
-      email: concernData.email?.substring(0, 20),
+      email: concernData.email?.substring(0, 100),
       panNo: concernData.panNo?.substring(0, 20),
       tallyAccName: concernData.tallyAccName?.substring(0, 50),
       gstNo: concernData.gstNo?.substring(0, 50),
@@ -73,11 +80,10 @@ export class ConcernService {
       branch: concernData.branch?.substring(0, 30)
     };
     
-    // Convert boolean to int for contacts
     const processedContacts = contacts?.map(contact => ({
       name: contact.name?.substring(0, 50),
       mobileNo: contact.mobileNo?.substring(0, 10),
-      email: contact.email?.substring(0, 20),
+      email: contact.email?.substring(0, 100),
       whatsappRequired: contact.whatsappRequired ? 1 : 0,
       mailRequired: contact.mailRequired ? 1 : 0
     }));
@@ -92,7 +98,6 @@ export class ConcernService {
       include: { contacts: true }
     });
 
-    // Create tenant for current financial year
     const currentYear = new Date().getFullYear();
     const financialYear = `${currentYear}-${currentYear + 1}`;
     
@@ -109,15 +114,25 @@ export class ConcernService {
   async update(id: number, data: any) {
     const { contacts, ...concernData } = data;
     
+    if (concernData.partyName) {
+      const trimmedPartyName = concernData.partyName.trim();
+      const existingConcern = await this.prisma.concern.findFirst({
+        where: { partyName: trimmedPartyName, isDeleted: false, NOT: { id } }
+      });
+      if (existingConcern) {
+        throw new Error('Concern name already exists');
+      }
+      concernData.partyName = trimmedPartyName;
+    }
+    
     await this.prisma.concernContact.deleteMany({
       where: { concernId: id }
     });
 
-    // Convert boolean to int for contacts
     const processedContacts = contacts?.map(contact => ({
       name: contact.name?.substring(0, 50),
       mobileNo: contact.mobileNo?.substring(0, 10),
-      email: contact.email?.substring(0, 20),
+      email: contact.email?.substring(0, 100),
       whatsappRequired: contact.whatsappRequired ? 1 : 0,
       mailRequired: contact.mailRequired ? 1 : 0
     }));

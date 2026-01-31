@@ -272,48 +272,37 @@ const UserMaster = () => {
             <Input.Password placeholder="Enter password" autoComplete="new-password" />
           </Form.Item>
 
-          {!isAdminUser && (
-            <Form.Item
-              label="Concern"
-              name="concernIds"
-              style={{ marginBottom: '16px' }}
+          <Form.Item
+            label="Concern"
+            name="concernIds"
+            style={{ marginBottom: '16px' }}
+          >
+            <Select 
+              mode="multiple"
+              placeholder="Select concerns" 
+              allowClear
+              onChange={(value) => {
+                setSelectedConcern(value && value.length > 0 ? value : null);
+              }}
             >
-              <Select 
-                mode="multiple"
-                placeholder="Select concerns" 
-                allowClear
-                onChange={(value) => {
-                  setSelectedConcern(value && value.length > 0 ? value : null);
-                  if (value && value.length > 0) {
-                    form.setFieldsValue({ adminUser: false });
-                  }
-                }}
-              >
-                {concerns.map(concern => (
-                  <Option key={concern.id} value={concern.id}>
-                    {concern.partyName}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          )}
+              {concerns.map(concern => (
+                <Option key={concern.id} value={concern.id}>
+                  {concern.partyName}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
 
           <div style={{ display: 'flex', gap: 16, marginBottom: '0px' }}>
-            {!selectedConcern && (
-              <Form.Item name="adminUser" valuePropName="checked">
-                <Checkbox 
-                  onChange={(e) => {
-                    setIsAdminUser(e.target.checked);
-                    if (e.target.checked) {
-                      form.setFieldsValue({ concernIds: [] });
-                      setSelectedConcern(null);
-                    }
-                  }}
-                >
-                  Admin User
-                </Checkbox>
-              </Form.Item>
-            )}
+            <Form.Item name="adminUser" valuePropName="checked">
+              <Checkbox 
+                onChange={(e) => {
+                  setIsAdminUser(e.target.checked);
+                }}
+              >
+                Admin User
+              </Checkbox>
+            </Form.Item>
             
             <Form.Item name="isActive" valuePropName="checked">
               <Checkbox>Active</Checkbox>

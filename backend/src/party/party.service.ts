@@ -56,7 +56,14 @@ export class PartyService {
   async create(data: any) {
     const { contacts, partyTypeIds, ...partyData } = data;
     
-    // Convert boolean to int for contacts
+    const trimmedPartyName = partyData.partyName?.trim();
+    const existingParty = await this.prisma.party.findFirst({
+      where: { partyName: trimmedPartyName, isDeleted: false }
+    });
+    if (existingParty) {
+      throw new Error('Party name already exists');
+    }
+    
     const processedContacts = contacts?.map(contact => ({
       ...contact,
       whatsappRequired: contact.whatsappRequired ? 1 : 0,
@@ -66,6 +73,7 @@ export class PartyService {
     return this.prisma.party.create({
       data: {
         ...partyData,
+        partyName: trimmedPartyName,
         contacts: processedContacts ? {
           create: processedContacts
         } : undefined,
@@ -87,6 +95,17 @@ export class PartyService {
   async update(id: number, data: any) {
     const { contacts, partyTypeIds, ...partyData } = data;
     
+    if (partyData.partyName) {
+      const trimmedPartyName = partyData.partyName.trim();
+      const existingParty = await this.prisma.party.findFirst({
+        where: { partyName: trimmedPartyName, isDeleted: false, NOT: { id } }
+      });
+      if (existingParty) {
+        throw new Error('Party name already exists');
+      }
+      partyData.partyName = trimmedPartyName;
+    }
+    
     await this.prisma.partyContact.deleteMany({
       where: { partyId: id }
     });
@@ -95,7 +114,6 @@ export class PartyService {
       where: { partyId: id }
     });
 
-    // Convert boolean to int for contacts
     const processedContacts = contacts?.map(contact => ({
       ...contact,
       whatsappRequired: contact.whatsappRequired ? 1 : 0,

@@ -18,7 +18,11 @@ const UserForm = ({ visible, onCancel, onSubmit, initialValues }) => {
 
   const handleSubmit = () => {
     form.validateFields().then(values => {
-      onSubmit(values);
+      const trimmedValues = {
+        ...values,
+        userName: values.userName?.trim()
+      };
+      onSubmit(trimmedValues);
       form.resetFields();
     });
   };

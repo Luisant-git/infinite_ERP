@@ -12,10 +12,19 @@ export class AuthService {
 
   async register(registerDto: any) {
     const { username, password, adminUser, dcClose, isActive, concernIds, canAdd, canEdit, canDelete } = registerDto;
+    const trimmedUsername = username.trim();
+    
+    const existingUser = await this.prisma.user.findFirst({
+      where: { username: trimmedUsername, isDeleted: false }
+    });
+    if (existingUser) {
+      throw new UnauthorizedException('Username already exists');
+    }
+    
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const userData: any = {
-      username,
+      username: trimmedUsername,
       password: hashedPassword,
       adminUser: adminUser || false,
       dcClose: dcClose || false,
@@ -46,7 +55,7 @@ export class AuthService {
 
   async login(username: string, password: string) {
     const user = await this.prisma.user.findUnique({
-      where: { username },
+      where: { username: username.trim() },
       include: {
         userTenants: {
           include: {
@@ -82,7 +91,7 @@ export class AuthService {
     const token = this.jwtService.sign(payload);
 
     // Auto-select for users with exactly one concern
-    if (!user.adminUser && user.concernIds.length === 1) {
+    if (user.concernIds.length === 1) {
       const tenant = await this.prisma.tenant.findFirst({
         where: { concernId: { in: user.concernIds } },
         include: { concern: true }
@@ -98,9 +107,9 @@ export class AuthService {
       };
     }
 
-    // For admin users or users with multiple concerns, return available tenants
+    // For users with multiple concerns or admin with concerns, return available tenants
     const availableTenants = await this.prisma.tenant.findMany({
-      where: user.adminUser || user.concernIds.length === 0 ? 
+      where: user.concernIds.length === 0 ? 
         {} : { concernId: { in: user.concernIds } },
       include: { concern: true }
     });
@@ -222,7 +231,14 @@ export class AuthService {
     };
     
     if (username) {
-      updateFields.username = username;
+      const trimmedUsername = username.trim();
+      const existingUser = await this.prisma.user.findFirst({
+        where: { username: trimmedUsername, isDeleted: false, NOT: { id } }
+      });
+      if (existingUser) {
+        throw new UnauthorizedException('Username already exists');
+      }
+      updateFields.username = trimmedUsername;
     }
     
     if (password && password !== '********') {

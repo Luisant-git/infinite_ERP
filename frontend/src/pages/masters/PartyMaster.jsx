@@ -71,9 +71,9 @@ const PartyMaster = () => {
     try {
       console.log('Form values:', values);
       
-      // Check for duplicate party name or code
       if (!editingParty) {
-        const duplicateName = parties.find(p => p.partyName.toLowerCase() === values.partyName.toLowerCase());
+        const trimmedName = values.partyName?.trim();
+        const duplicateName = parties.find(p => p.partyName.trim().toLowerCase() === trimmedName.toLowerCase());
         if (duplicateName) {
           Modal.error({
             title: 'Duplicate Party',
@@ -83,7 +83,8 @@ const PartyMaster = () => {
           return;
         }
         if (values.partyCode) {
-          const duplicateCode = parties.find(p => p.partyCode?.toLowerCase() === values.partyCode.toLowerCase());
+          const trimmedCode = values.partyCode.trim();
+          const duplicateCode = parties.find(p => p.partyCode?.trim().toLowerCase() === trimmedCode.toLowerCase());
           if (duplicateCode) {
             Modal.error({
               title: 'Duplicate Party Code',
@@ -501,7 +502,7 @@ const PartyMaster = () => {
                     name="email"
                     rules={[{ type: 'email', message: 'Please enter valid email!' }]}
                   >
-                    <Input placeholder="Enter email" maxLength={50} autoComplete="new-email" />
+                    <Input placeholder="Enter email" autoComplete="new-email" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -618,7 +619,7 @@ const PartyMaster = () => {
                             label="Email"
                             rules={[{ type: 'email', message: 'Enter valid email!' }]}
                           >
-                            <Input placeholder="Email" maxLength={50} autoComplete="off" />
+                            <Input placeholder="Email" autoComplete="off" />
                           </Form.Item>
                         </Col>
                         <Col span={3}>
