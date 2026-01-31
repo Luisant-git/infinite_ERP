@@ -66,6 +66,7 @@ export class PartyService {
     
     const processedContacts = contacts?.map(contact => ({
       ...contact,
+      email: contact.email?.toLowerCase(),
       whatsappRequired: contact.whatsappRequired ? 1 : 0,
       mailRequired: contact.mailRequired ? 1 : 0
     }));
@@ -74,7 +75,8 @@ export class PartyService {
       data: {
         ...partyData,
         partyName: trimmedPartyName,
-        contacts: processedContacts ? {
+        email: partyData.email?.toLowerCase(),
+        contacts: processedContacts && processedContacts.length > 0 ? {
           create: processedContacts
         } : undefined,
         partyTypes: partyTypeIds ? {
@@ -116,6 +118,7 @@ export class PartyService {
 
     const processedContacts = contacts?.map(contact => ({
       ...contact,
+      email: contact.email?.toLowerCase(),
       whatsappRequired: contact.whatsappRequired ? 1 : 0,
       mailRequired: contact.mailRequired ? 1 : 0
     }));
@@ -124,7 +127,8 @@ export class PartyService {
       where: { id },
       data: {
         ...partyData,
-        contacts: processedContacts ? {
+        email: partyData.email?.toLowerCase(),
+        contacts: processedContacts && processedContacts.length > 0 ? {
           create: processedContacts
         } : undefined,
         partyTypes: partyTypeIds ? {

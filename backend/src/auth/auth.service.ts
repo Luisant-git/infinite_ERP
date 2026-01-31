@@ -15,7 +15,7 @@ export class AuthService {
     const trimmedUsername = username.trim();
     
     const existingUser = await this.prisma.user.findFirst({
-      where: { username: trimmedUsername, isDeleted: false }
+      where: { username: trimmedUsername }
     });
     if (existingUser) {
       throw new UnauthorizedException('Username already exists');

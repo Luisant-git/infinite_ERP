@@ -94,7 +94,7 @@ model Party {
 model PartyContact {
   id               Int     @id @default(autoincrement())
   partyId          Int
-  name             String  @db.VarChar(50)
+  name             String? @db.VarChar(50)
   mobileNo         String? @db.VarChar(10)
   email            String? @db.VarChar(100)
   whatsappRequired Int     @default(0)
@@ -143,7 +143,7 @@ model Concern {
 model ConcernContact {
   id               Int     @id @default(autoincrement())
   concernId        Int
-  name             String  @db.VarChar(50)
+  name             String? @db.VarChar(50)
   mobileNo         String? @db.VarChar(10)
   email            String? @db.VarChar(100)
   whatsappRequired Int     @default(0)

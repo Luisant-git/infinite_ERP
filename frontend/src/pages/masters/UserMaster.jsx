@@ -84,9 +84,10 @@ const UserMaster = () => {
       loadUsers();
     } catch (error) {
       console.error('Error saving user:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to save user';
       Modal.error({
-        title: 'Error',
-        content: error.response?.data?.message || 'Failed to save user',
+        title: errorMessage.includes('already exists') ? 'Duplicate User' : 'Error',
+        content: errorMessage.includes('already exists') ? 'A user with this username already exists!' : errorMessage,
       });
     } finally {
       setLoading(false);

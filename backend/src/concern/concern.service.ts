@@ -70,7 +70,7 @@ export class ConcernService {
       state: concernData.state?.substring(0, 50),
       mobileNo: concernData.mobileNo?.substring(0, 10),
       phoneNo: concernData.phoneNo?.substring(0, 10),
-      email: concernData.email?.substring(0, 100),
+      email: concernData.email?.toLowerCase().substring(0, 100),
       panNo: concernData.panNo?.substring(0, 20),
       tallyAccName: concernData.tallyAccName?.substring(0, 50),
       gstNo: concernData.gstNo?.substring(0, 50),
@@ -83,7 +83,7 @@ export class ConcernService {
     const processedContacts = contacts?.map(contact => ({
       name: contact.name?.substring(0, 50),
       mobileNo: contact.mobileNo?.substring(0, 10),
-      email: contact.email?.substring(0, 100),
+      email: contact.email?.toLowerCase().substring(0, 100),
       whatsappRequired: contact.whatsappRequired ? 1 : 0,
       mailRequired: contact.mailRequired ? 1 : 0
     }));
@@ -91,7 +91,7 @@ export class ConcernService {
     const concern = await this.prisma.concern.create({
       data: {
         ...processedConcernData,
-        contacts: processedContacts ? {
+        contacts: processedContacts && processedContacts.length > 0 ? {
           create: processedContacts
         } : undefined
       },
@@ -132,7 +132,7 @@ export class ConcernService {
     const processedContacts = contacts?.map(contact => ({
       name: contact.name?.substring(0, 50),
       mobileNo: contact.mobileNo?.substring(0, 10),
-      email: contact.email?.substring(0, 100),
+      email: contact.email?.toLowerCase().substring(0, 100),
       whatsappRequired: contact.whatsappRequired ? 1 : 0,
       mailRequired: contact.mailRequired ? 1 : 0
     }));
@@ -141,7 +141,7 @@ export class ConcernService {
       where: { id },
       data: {
         ...concernData,
-        contacts: processedContacts ? {
+        contacts: processedContacts && processedContacts.length > 0 ? {
           create: processedContacts
         } : undefined
       },
