@@ -87,6 +87,7 @@ model Party {
   
   contacts   PartyContact[]
   partyTypes PartyPartyType[]
+  designs    Design[]
   
   @@map("parties")
 }
@@ -197,4 +198,28 @@ model Process {
   updatedAt          DateTime @updatedAt
   
   @@map("processes")
+model Design {
+  id              Int      @id @default(autoincrement())
+  refNo           String?  @db.VarChar(50)
+  date            DateTime @default(now())
+  customerId      Int?
+  designNo        String   @db.VarChar(50)
+  designName      String   @db.VarChar(100)
+  typeOfPrint     String?  @db.VarChar(50)
+  noOfColor       Int      @default(1)
+  noOfPrint       Int      @default(1)
+  commercialRate  Decimal  @default(0) @db.Decimal(10, 2)
+  description     String?  @db.Text
+  remarks         String?  @db.Text
+  imagePath       String?  @db.VarChar(255)
+  isActive        Boolean  @default(true)
+  isDeleted       Boolean  @default(false)
+  deletedAt       DateTime?
+  deletedBy       Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  customer Party? @relation(fields: [customerId], references: [id])
+  
+  @@map("designs")
 }
