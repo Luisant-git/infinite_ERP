@@ -194,13 +194,21 @@ const PartyMaster = () => {
     setIsModalVisible(true);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await deleteParty(id);
-      setParties(parties.filter(party => party.id !== id));
-    } catch (error) {
-      console.error('Error deleting party:', error);
-    }
+  const handleDelete = (id) => {
+    Modal.confirm({
+      title: 'Delete Party',
+      content: 'Are you sure you want to delete this party?',
+      okText: 'Yes',
+      cancelText: 'No',
+      onOk: async () => {
+        try {
+          await deleteParty(id);
+          setParties(parties.filter(party => party.id !== id));
+        } catch (error) {
+          console.error('Error deleting party:', error);
+        }
+      }
+    });
   };
 
   const handleCancel = () => {

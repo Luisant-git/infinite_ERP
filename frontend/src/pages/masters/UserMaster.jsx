@@ -116,13 +116,21 @@ const UserMaster = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await deleteUser(id);
-      loadUsers();
-    } catch (error) {
-      console.error('Error deleting user:', error);
-    }
+  const handleDelete = (id) => {
+    Modal.confirm({
+      title: 'Delete User',
+      content: 'Are you sure you want to delete this user?',
+      okText: 'Yes',
+      cancelText: 'No',
+      onOk: async () => {
+        try {
+          await deleteUser(id);
+          loadUsers();
+        } catch (error) {
+          console.error('Error deleting user:', error);
+        }
+      }
+    });
   };
 
   const handleCancel = () => {

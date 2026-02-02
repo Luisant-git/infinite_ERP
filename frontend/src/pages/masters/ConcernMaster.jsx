@@ -157,13 +157,21 @@ const ConcernMaster = () => {
     setIsModalVisible(true);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await deleteConcern(id);
-      setConcerns(concerns.filter(concern => concern.id !== id));
-    } catch (error) {
-      console.error('Error deleting concern:', error);
-    }
+  const handleDelete = (id) => {
+    Modal.confirm({
+      title: 'Delete Concern',
+      content: 'Are you sure you want to delete this concern?',
+      okText: 'Yes',
+      cancelText: 'No',
+      onOk: async () => {
+        try {
+          await deleteConcern(id);
+          setConcerns(concerns.filter(concern => concern.id !== id));
+        } catch (error) {
+          console.error('Error deleting concern:', error);
+        }
+      }
+    });
   };
 
   const handleCancel = () => {

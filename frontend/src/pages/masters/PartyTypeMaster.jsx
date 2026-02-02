@@ -87,13 +87,21 @@ const PartyTypeMaster = () => {
     setIsModalVisible(true);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await deletePartyType(id);
-      loadPartyTypes();
-    } catch (error) {
-      console.error('Error deleting party type:', error);
-    }
+  const handleDelete = (id) => {
+    Modal.confirm({
+      title: 'Delete Party Type',
+      content: 'Are you sure you want to delete this party type?',
+      okText: 'Yes',
+      cancelText: 'No',
+      onOk: async () => {
+        try {
+          await deletePartyType(id);
+          loadPartyTypes();
+        } catch (error) {
+          console.error('Error deleting party type:', error);
+        }
+      }
+    });
   };
 
   const handleCancel = () => {

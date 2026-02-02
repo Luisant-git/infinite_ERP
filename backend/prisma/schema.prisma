@@ -181,4 +181,20 @@ model PartyPartyType {
   @@map("party_party_types")
 }
 
-
+model Process {
+  id                 Int      @id @default(autoincrement())
+  processName        String   @unique @db.VarChar(100)
+  tallyName          String?  @db.VarChar(100)
+  category           String   @db.VarChar(50)
+  productionExcess   Decimal  @default(0) @db.Decimal(5, 2)
+  isActive           Boolean  @default(true)
+  notRequiredRate    Boolean  @default(false)
+  wetCondition       Boolean  @default(false)
+  isDeleted          Boolean  @default(false)
+  deletedAt          DateTime?
+  deletedBy          Int?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  
+  @@map("processes")
+}

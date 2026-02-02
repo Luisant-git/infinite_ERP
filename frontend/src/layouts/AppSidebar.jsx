@@ -12,6 +12,7 @@ import {
   BarChartOutlined,
   SettingOutlined
 } from '@ant-design/icons';
+import { LuSettings2 } from 'react-icons/lu';
 import { usePermissions } from '../hooks/usePermissions';
 import { useMenuPermissions } from '../hooks/useMenuPermissions';
 import { ROUTES } from '../constants/permissions';
@@ -57,6 +58,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           key: ROUTES.PARTY_TYPE_MASTER,
           icon: <TeamOutlined />,
           label: 'Party Type'
+        }] : []),
+        ...(canView('process_master') ? [{
+          key: ROUTES.PROCESS_MASTER,
+          icon: <LuSettings2 size={16} />,
+          label: 'Process Master'
         }] : [])
       ].filter(item => item)
     },
