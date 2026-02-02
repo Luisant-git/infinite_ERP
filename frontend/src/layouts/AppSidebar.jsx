@@ -69,11 +69,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           icon: <LuSettings2 size={16} />,
           label: 'Process Master'
         }] : []),
-        ...(canView('party_process_rate') ? [{
-          key: ROUTES.PARTY_PROCESS_RATE,
-          icon: <SettingOutlined />,
-          label: 'Party Process Rate'
-        }] : [])
+        // ...(canView('party_process_rate') ? [{
+        //   key: ROUTES.PARTY_PROCESS_RATE,
+        //   icon: <SettingOutlined />,
+        //   label: 'Party Process Rate'
+        // }] : [])
         
       ].filter(item => item)
     },
