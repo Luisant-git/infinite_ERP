@@ -12,6 +12,7 @@ import ConcernMaster from './pages/masters/ConcernMaster';
 import PartyMaster from './pages/masters/PartyMaster';
 import PartyTypeMaster from './pages/masters/PartyTypeMaster';
 import ProcessMaster from './pages/masters/ProcessMaster';
+import PartyProcessRateSetting from './pages/masters/PartyProcessRateSetting';
 import DesignMaster from './pages/masters/DesignMaster';
 import { ROUTES } from './constants/permissions';
 import './App.css';
@@ -41,6 +42,7 @@ function App() {
                     <Route path={ROUTES.PARTY_MASTER} element={<PartyMaster />} />
                     <Route path={ROUTES.PARTY_TYPE_MASTER} element={<PartyTypeMaster />} />
                     <Route path={ROUTES.PROCESS_MASTER} element={<ProcessMaster />} />
+                    <Route path={ROUTES.PARTY_PROCESS_RATE} element={<PartyProcessRateSetting />} />
                     <Route path={ROUTES.DESIGN_MASTER} element={<DesignMaster />} />
                     <Route path={ROUTES.DC_ENTRY} element={<div>DC Entry</div>} />
                     <Route path={ROUTES.DC_CLOSE} element={<div>DC Close</div>} />

@@ -9,9 +9,10 @@ import { PartyTypeModule } from './party-type/party-type.module';
 import { DesignModule } from './design/design.module';
 import { UploadModule } from './upload/upload.module';
 import { ProcessModule } from './process/process.module';
+import { PartyProcessRateModule } from './party-process-rate/party-process-rate.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule],
+  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule],
   controllers: [AppController],
   providers: [AppService],
 })

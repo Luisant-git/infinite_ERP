@@ -20,6 +20,7 @@ export const ROUTES = {
   PARTY_MASTER: '/masters/parties',
   PARTY_TYPE_MASTER: '/masters/party-types',
   PROCESS_MASTER: '/masters/processes',
+  PARTY_PROCESS_RATE: '/masters/party-process-rate',
   DESIGN_MASTER: '/masters/designs',
   DC_ENTRY: '/transactions/dc-entry',
   DC_CLOSE: '/transactions/dc-close',

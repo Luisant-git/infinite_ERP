@@ -226,3 +226,20 @@ model Design {
   
   @@map("designs")
 }
+
+model PartyProcessRateSetting {
+  id            Int      @id @default(autoincrement())
+  partyId       Int
+  processId     Int
+  ratePerKg     Decimal  @default(0) @db.Decimal(12, 2)
+  ratePerPiece  Decimal  @default(0) @db.Decimal(12, 2)
+  minAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  minKgsProcess Decimal  @default(0) @db.Decimal(12, 3)
+  isDeleted     Boolean  @default(false)
+  deletedAt     DateTime?
+  deletedBy     Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("party_process_rate_settings")
+}
