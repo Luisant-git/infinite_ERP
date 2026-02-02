@@ -101,7 +101,10 @@ export class AuthService {
     // Auto-select for users with exactly one concern
     if (user.concernIds.length === 1) {
       const tenant = await this.prisma.tenant.findFirst({
-        where: { concernId: { in: user.concernIds } },
+        where: { 
+          concernId: { in: user.concernIds },
+          concern: { isDeleted: false }
+        },
         include: { concern: true }
       });
       
@@ -117,8 +120,10 @@ export class AuthService {
 
     // For users with multiple concerns or admin with concerns, return available tenants
     const availableTenants = await this.prisma.tenant.findMany({
-      where: user.concernIds.length === 0 ? 
-        {} : { concernId: { in: user.concernIds } },
+      where: {
+        ...(user.concernIds.length === 0 ? {} : { concernId: { in: user.concernIds } }),
+        concern: { isDeleted: false }
+      },
       include: { concern: true }
     });
 

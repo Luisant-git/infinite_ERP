@@ -386,7 +386,7 @@ const DesignMaster = () => {
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item label="₹ Commercial Rate" name="commercialRate" rules={[{ type: 'number', message: 'Please enter a valid number!' }]}>
+                  <Form.Item label="₹ Commercial Rate" name="commercialRate">
                     <InputNumber 
                       min={0} 
                       style={{ width: '100%' }} 
@@ -401,7 +401,7 @@ const DesignMaster = () => {
 
               <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item label="No of Color" name="noOfColor" rules={[{ type: 'number', message: 'Please enter a valid number!' }]}>
+                  <Form.Item label="No of Color" name="noOfColor">
                     <InputNumber 
                       min={1} 
                       style={{ width: '100%' }} 
@@ -413,7 +413,7 @@ const DesignMaster = () => {
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item label="No of Print" name="noOfPrint" rules={[{ type: 'number', message: 'Please enter a valid number!' }]}>
+                  <Form.Item label="No of Print" name="noOfPrint">
                     <InputNumber 
                       min={1} 
                       style={{ width: '100%' }} 
