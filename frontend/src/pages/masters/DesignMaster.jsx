@@ -387,7 +387,14 @@ const DesignMaster = () => {
                 </Col>
                 <Col span={12}>
                   <Form.Item label="₹ Commercial Rate" name="commercialRate" rules={[{ type: 'number', message: 'Please enter a valid number!' }]}>
-                    <InputNumber min={0} style={{ width: '100%' }} precision={2} />
+                    <InputNumber 
+                      min={0} 
+                      style={{ width: '100%' }} 
+                      precision={2}
+                      keyboard={true}
+                      controls={false}
+                      parser={value => value.replace(/[^0-9.]/g, '')}
+                    />
                   </Form.Item>
                 </Col>
               </Row>
@@ -395,12 +402,26 @@ const DesignMaster = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item label="No of Color" name="noOfColor" rules={[{ type: 'number', message: 'Please enter a valid number!' }]}>
-                    <InputNumber min={1} style={{ width: '100%' }} precision={0} />
+                    <InputNumber 
+                      min={1} 
+                      style={{ width: '100%' }} 
+                      precision={0}
+                      keyboard={true}
+                      controls={false}
+                      parser={value => value.replace(/[^0-9]/g, '')}
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item label="No of Print" name="noOfPrint" rules={[{ type: 'number', message: 'Please enter a valid number!' }]}>
-                    <InputNumber min={1} style={{ width: '100%' }} precision={0} />
+                    <InputNumber 
+                      min={1} 
+                      style={{ width: '100%' }} 
+                      precision={0}
+                      keyboard={true}
+                      controls={false}
+                      parser={value => value.replace(/[^0-9]/g, '')}
+                    />
                   </Form.Item>
                 </Col>
               </Row>

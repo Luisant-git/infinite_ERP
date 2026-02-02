@@ -276,8 +276,16 @@ const ProcessMaster = () => {
           <Form.Item
             label="Production Excess (%)"
             name="productionExcess"
+            rules={[{ type: 'number', message: 'Please enter a valid number!' }]}
           >
-            <InputNumber placeholder="Enter production excess" min={0} max={100} style={{ width: '100%' }} />
+            <InputNumber 
+              placeholder="Enter production excess" 
+              style={{ width: '100%' }}
+              precision={2}
+              keyboard={true}
+              controls={false}
+              parser={value => value.replace(/[^0-9.]/g, '')}
+            />
           </Form.Item>
 
           <div style={{ display: 'flex', gap: 16, marginBottom: '0px' }}>
