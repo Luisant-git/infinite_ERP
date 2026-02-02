@@ -57,6 +57,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           key: ROUTES.PARTY_TYPE_MASTER,
           icon: <TeamOutlined />,
           label: 'Party Type'
+        }] : []),
+        ...(canView('design_master') ? [{
+          key: ROUTES.DESIGN_MASTER,
+          icon: <FileTextOutlined />,
+          label: 'Design Master'
         }] : [])
       ].filter(item => item)
     },
