@@ -198,6 +198,9 @@ model Process {
   updatedAt          DateTime @updatedAt
   
   @@map("processes")
+}
+
+
 model Design {
   id              Int      @id @default(autoincrement())
   refNo           String?  @db.VarChar(50)
