@@ -71,9 +71,10 @@ const PartyTypeMaster = () => {
       loadPartyTypes();
     } catch (error) {
       console.error('Error saving party type:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to save party type';
       Modal.error({
-        title: 'Error',
-        content: error.response?.data?.message || 'Failed to save party type',
+        title: errorMessage.includes('already exists') ? 'Duplicate Party Type' : 'Error',
+        content: errorMessage.includes('already exists') ? 'A party type with this name already exists!' : errorMessage,
       });
     } finally {
       setLoading(false);

@@ -13,12 +13,20 @@ export class AuthService {
   async register(registerDto: any) {
     const { username, password, adminUser, dcClose, isActive, concernIds, canAdd, canEdit, canDelete } = registerDto;
     const trimmedUsername = username.trim();
+    const normalizedUsername = trimmedUsername.replace(/\s+/g, '').toLowerCase();
     
     const existingUser = await this.prisma.user.findFirst({
-      where: { username: trimmedUsername }
+      where: { username: { not: '' } }
     });
+    
     if (existingUser) {
-      throw new UnauthorizedException('Username already exists');
+      const allUsers = await this.prisma.user.findMany();
+      const duplicate = allUsers.find(u => 
+        u.username.replace(/\s+/g, '').toLowerCase() === normalizedUsername
+      );
+      if (duplicate) {
+        throw new UnauthorizedException('Username already exists');
+      }
     }
     
     const hashedPassword = await bcrypt.hash(password, 10);

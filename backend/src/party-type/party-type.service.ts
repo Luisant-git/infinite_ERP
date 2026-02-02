@@ -10,12 +10,14 @@ export class PartyTypeService {
   async create(createPartyTypeDto: CreatePartyTypeDto) {
     console.log('Creating party type with data:', createPartyTypeDto);
     
-    const existing = await this.prisma.partyType.findFirst({
-      where: {
-        partyTypeName: { equals: createPartyTypeDto.partyTypeName, mode: 'insensitive' },
-        isDeleted: false
-      }
+    const normalizedName = createPartyTypeDto.partyTypeName.replace(/\s+/g, '').toLowerCase();
+    const allPartyTypes = await this.prisma.partyType.findMany({
+      where: { isDeleted: false }
     });
+    
+    const existing = allPartyTypes.find(pt => 
+      pt.partyTypeName.replace(/\s+/g, '').toLowerCase() === normalizedName
+    );
 
     if (existing) {
       throw new ConflictException('Party type name already exists');
@@ -59,13 +61,14 @@ export class PartyTypeService {
 
   async update(id: number, updatePartyTypeDto: UpdatePartyTypeDto) {
     if (updatePartyTypeDto.partyTypeName) {
-      const existing = await this.prisma.partyType.findFirst({
-        where: {
-          partyTypeName: { equals: updatePartyTypeDto.partyTypeName, mode: 'insensitive' },
-          isDeleted: false,
-          NOT: { id }
-        }
+      const normalizedName = updatePartyTypeDto.partyTypeName.replace(/\s+/g, '').toLowerCase();
+      const allPartyTypes = await this.prisma.partyType.findMany({
+        where: { isDeleted: false, NOT: { id } }
       });
+      
+      const existing = allPartyTypes.find(pt => 
+        pt.partyTypeName.replace(/\s+/g, '').toLowerCase() === normalizedName
+      );
 
       if (existing) {
         throw new ConflictException('Party type name already exists');
