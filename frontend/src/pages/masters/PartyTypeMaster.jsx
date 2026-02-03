@@ -114,24 +114,27 @@ const PartyTypeMaster = () => {
     {
       title: 'S.No',
       key: 'sno',
-      width: 60,
+      width: 50,
       render: (_, record, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
       title: 'Party Type Name',
       dataIndex: 'partyTypeName',
       key: 'partyTypeName',
+      width: 300,
     },
     {
       title: 'Status',
       dataIndex: 'isActive',
       key: 'isActive',
+      width: 100,
       render: (isActive) => isActive ? 'Active' : 'Inactive',
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 120,
+      width: 100,
+      fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           {canEdit('party_type_master') && <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />}
@@ -143,6 +146,29 @@ const PartyTypeMaster = () => {
 
   return (
     <Card>
+      <style>{`
+        .compact-table .ant-table-thead > tr > th {
+          padding: 6px 8px !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          // background: #fafafa !important;
+        }
+        .compact-table .ant-table-tbody > tr > td {
+          padding: 4px 8px !important;
+          font-size: 12px !important;
+          // font-weight: 600 !important;
+        }
+        .compact-table .ant-table-tbody > tr {
+          height: 32px !important;
+        }
+        .compact-table .ant-btn-link {
+          padding: 0 4px !important;
+          height: 24px !important;
+        }
+        .compact-table .ant-space-item {
+          line-height: 1 !important;
+        }
+      `}</style>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={3} style={{ margin: 0 }}>Party Type Master</Title>
         <Space style={{ width: 'auto' }}>
@@ -169,6 +195,7 @@ const PartyTypeMaster = () => {
         columns={columns} 
         dataSource={partyTypes} 
         rowKey="id"
+        size="small"
         pagination={{
           ...pagination,
           showSizeChanger: true,
@@ -178,6 +205,7 @@ const PartyTypeMaster = () => {
           onChange: (page, pageSize) => loadPartyTypes(page, pageSize),
           onShowSizeChange: (current, size) => loadPartyTypes(1, size)
         }}
+        className="compact-table"
       />
 
       <Modal

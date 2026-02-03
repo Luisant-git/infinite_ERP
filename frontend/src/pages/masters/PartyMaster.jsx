@@ -234,60 +234,64 @@ const PartyMaster = () => {
     {
       title: 'S.No',
       key: 'sno',
-      width: 60,
+      width: 50,
       render: (_, record, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
       title: 'Party Name',
       dataIndex: 'partyName',
       key: 'partyName',
+      width: 180,
     },
     {
       title: 'Party Types',
       dataIndex: 'partyTypes',
       key: 'partyTypes',
+      width: 150,
       render: (partyTypes) => partyTypes?.map(pt => pt.partyType.partyTypeName).join(', ') || 'N/A',
     },
-    // {
-    //   title: 'Party Code',
-    //   dataIndex: 'partyCode',
-    //   key: 'partyCode',
-    // },
     {
       title: 'Mobile No',
       dataIndex: 'mobileNo',
       key: 'mobileNo',
+      width: 110,
     },
     {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
+      width: 180,
     },
     {
       title: 'State',
       dataIndex: 'state',
       key: 'state',
+      width: 120,
     },
     {
       title: 'District',
       dataIndex: 'district',
       key: 'district',
+      width: 120,
     },
     {
       title: 'GST No',
       dataIndex: 'gstNo',
       key: 'gstNo',
+      width: 140,
     },
     {
       title: 'Status',
       dataIndex: 'active',
       key: 'active',
+      width: 80,
       render: (active) => active === 1 ? 'Active' : 'Inactive',
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 120,
+      width: 100,
+      fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} />
@@ -300,6 +304,29 @@ const PartyMaster = () => {
 
   return (
     <Card>
+      <style>{`
+        .compact-table .ant-table-thead > tr > th {
+          padding: 6px 8px !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          // background: #fafafa !important;
+        }
+        .compact-table .ant-table-tbody > tr > td {
+          padding: 4px 8px !important;
+          font-size: 12px !important;
+          // font-weight: 600 !important;
+        }
+        .compact-table .ant-table-tbody > tr {
+          height: 32px !important;
+        }
+        .compact-table .ant-btn-link {
+          padding: 0 4px !important;
+          height: 24px !important;
+        }
+        .compact-table .ant-space-item {
+          line-height: 1 !important;
+        }
+      `}</style>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={3} style={{ margin: 0 }}>Party Master</Title>
         <Space style={{ width: 'auto' }}>
@@ -326,6 +353,7 @@ const PartyMaster = () => {
         columns={columns} 
         dataSource={filteredParties} 
         rowKey="id"
+        size="small"
         pagination={{
           ...pagination,
           showSizeChanger: true,
@@ -335,6 +363,7 @@ const PartyMaster = () => {
           onChange: (page, pageSize) => loadParties(page, pageSize),
           onShowSizeChange: (current, size) => loadParties(1, size)
         }}
+        className="compact-table"
       />
 
       <Modal

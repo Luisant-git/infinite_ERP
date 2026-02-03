@@ -28,7 +28,7 @@ const AppLayout = ({ children }) => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh', width: '100%', maxWidth: '100vw' }}>
+    <Layout style={{ minHeight: '100vh', width: '100%', maxWidth: '100vw', overflow: 'hidden' }}>
       {isMobile && !sidebarCollapsed && (
         <div 
           onClick={handleSidebarClose}
@@ -44,7 +44,7 @@ const AppLayout = ({ children }) => {
         />
       )}
       <AppSidebar collapsed={sidebarCollapsed} isMobile={isMobile} />
-      <Layout style={{ width: '100%' }}>
+      <Layout style={{ width: '100%', height: '100vh', overflow: 'hidden' }}>
         <AppHeader />
         <Content style={{ 
           margin: '16px', 
@@ -52,7 +52,8 @@ const AppLayout = ({ children }) => {
           background: '#fff',
           width: '100%',
           maxWidth: '100%',
-          overflow: 'auto'
+          overflow: 'auto',
+          height: 'calc(100vh - 96px)'
         }}>
           {children}
         </Content>

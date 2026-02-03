@@ -15,7 +15,28 @@ export class PartyProcessRateService {
   }
 
   async update(id: number, data: any) {
-    return this.prisma.partyProcessRateSetting.update({ where: { id }, data });
+    const numericId = Number(id);
+    if (!id || isNaN(numericId) || String(id).includes('_')) {
+      const existing = await this.prisma.partyProcessRateSetting.findFirst({
+        where: { partyId: data.partyId, processId: data.processId }
+      });
+      if (existing) {
+        return this.prisma.partyProcessRateSetting.update({
+          where: { id: existing.id },
+          data: { ...data, isDeleted: false, deletedAt: null }
+        });
+      }
+      return this.create(data);
+    }
+    
+    const existing = await this.prisma.partyProcessRateSetting.findUnique({ where: { id: numericId } });
+    if (!existing) {
+      return this.create(data);
+    }
+    return this.prisma.partyProcessRateSetting.update({ 
+      where: { id: numericId }, 
+      data: { ...data, isDeleted: false, deletedAt: null } 
+    });
   }
 
   async delete(id: number) {
@@ -33,6 +54,16 @@ export class PartyProcessRateService {
       where: { partyId: fromPartyId, isDeleted: false },
     });
     
+    if (rates.length === 0) {
+      throw new NotFoundException('No rates found for the source party');
+    }
+
+    // Delete existing rates for target party
+    await this.prisma.partyProcessRateSetting.updateMany({
+      where: { partyId: toPartyId },
+      data: { isDeleted: true, deletedAt: new Date() },
+    });
+    
     const newRates = rates.map(rate => ({
       partyId: toPartyId,
       processId: rate.processId,
@@ -42,6 +73,6 @@ export class PartyProcessRateService {
       minKgsProcess: rate.minKgsProcess,
     }));
 
-    return this.prisma.partyProcessRateSetting.createMany({ data: newRates, skipDuplicates: true });
+    return this.prisma.partyProcessRateSetting.createMany({ data: newRates });
   }
 }

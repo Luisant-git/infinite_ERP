@@ -215,44 +215,51 @@ const DesignMaster = () => {
     {
       title: 'S.No',
       key: 'sno',
-      width: 60,
+      width: 50,
       render: (_, record, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
       title: 'Design No',
       dataIndex: 'designNo',
       key: 'designNo',
+      width: 140,
     },
     {
       title: 'Design Name',
       dataIndex: 'designName',
       key: 'designName',
+      width: 180,
     },
     {
       title: 'Customer',
       dataIndex: ['customer', 'partyName'],
       key: 'customer',
+      width: 180,
     },
     {
       title: 'Type of Print',
       dataIndex: 'typeOfPrint',
       key: 'typeOfPrint',
+      width: 130,
     },
     {
       title: 'Colors',
       dataIndex: 'noOfColor',
       key: 'noOfColor',
+      width: 80,
     },
     {
       title: 'Commercial Rate',
       dataIndex: 'commercialRate',
       key: 'commercialRate',
+      width: 130,
       render: (rate) => `₹${rate}`,
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 120,
+      width: 100,
+      fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} />
@@ -265,6 +272,29 @@ const DesignMaster = () => {
 
   return (
     <Card>
+      <style>{`
+        .compact-table .ant-table-thead > tr > th {
+          padding: 6px 8px !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          // background: #fafafa !important;
+        }
+        .compact-table .ant-table-tbody > tr > td {
+          padding: 4px 8px !important;
+          font-size: 12px !important;
+          // font-weight: 600 !important;
+        }
+        .compact-table .ant-table-tbody > tr {
+          height: 32px !important;
+        }
+        .compact-table .ant-btn-link {
+          padding: 0 4px !important;
+          height: 24px !important;
+        }
+        .compact-table .ant-space-item {
+          line-height: 1 !important;
+        }
+      `}</style>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={3} style={{ margin: 0 }}>Design Master</Title>
         <Space style={{ width: 'auto' }}>
@@ -291,6 +321,7 @@ const DesignMaster = () => {
         columns={columns} 
         dataSource={designs} 
         rowKey="id"
+        size="small"
         pagination={{
           ...pagination,
           showSizeChanger: true,
@@ -300,6 +331,7 @@ const DesignMaster = () => {
           onChange: (page, pageSize) => loadDesigns(page, pageSize),
           onShowSizeChange: (current, size) => loadDesigns(1, size)
         }}
+        className="compact-table"
       />
 
       <Modal

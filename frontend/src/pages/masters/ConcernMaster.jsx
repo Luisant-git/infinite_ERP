@@ -197,54 +197,63 @@ const ConcernMaster = () => {
     {
       title: 'S.No',
       key: 'sno',
-      width: 60,
+      width: 50,
       render: (_, record, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
       title: 'Party Name',
       dataIndex: 'partyName',
       key: 'partyName',
+      width: 180,
     },
     {
       title: 'Vendor Code',
       dataIndex: 'vendorCode',
       key: 'vendorCode',
+      width: 120,
     },
     {
       title: 'Mobile No',
       dataIndex: 'mobileNo',
       key: 'mobileNo',
+      width: 110,
     },
     {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
+      width: 180,
     },
     {
       title: 'State',
       dataIndex: 'state',
       key: 'state',
+      width: 120,
     },
     {
       title: 'District',
       dataIndex: 'district',
       key: 'district',
+      width: 120,
     },
     {
       title: 'GST No',
       dataIndex: 'gstNo',
       key: 'gstNo',
+      width: 140,
     },
     {
       title: 'Status',
       dataIndex: 'active',
       key: 'active',
+      width: 80,
       render: (active) => active === 1 ? 'Active' : 'Inactive',
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 120,
+      width: 100,
+      fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} />
@@ -257,6 +266,29 @@ const ConcernMaster = () => {
 
   return (
     <Card>
+      <style>{`
+        .compact-table .ant-table-thead > tr > th {
+          padding: 6px 8px !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          // background: #fafafa !important;
+        }
+        .compact-table .ant-table-tbody > tr > td {
+          padding: 4px 8px !important;
+          font-size: 12px !important;
+          // font-weight: 600 !important;
+        }
+        .compact-table .ant-table-tbody > tr {
+          height: 32px !important;
+        }
+        .compact-table .ant-btn-link {
+          padding: 0 4px !important;
+          height: 24px !important;
+        }
+        .compact-table .ant-space-item {
+          line-height: 1 !important;
+        }
+      `}</style>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={3} style={{ margin: 0 }}>Concern Master</Title>
         <Space style={{ width: 'auto' }}>
@@ -283,6 +315,7 @@ const ConcernMaster = () => {
         columns={columns} 
         dataSource={filteredConcerns} 
         rowKey="id"
+        size="small"
         pagination={{
           ...pagination,
           showSizeChanger: true,
@@ -292,6 +325,7 @@ const ConcernMaster = () => {
           onChange: (page, pageSize) => loadConcerns(page, pageSize),
           onShowSizeChange: (current, size) => loadConcerns(1, size)
         }}
+        className="compact-table"
       />
 
       <Modal

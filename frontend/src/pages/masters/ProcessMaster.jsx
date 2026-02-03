@@ -124,52 +124,60 @@ const ProcessMaster = () => {
     {
       title: 'S.No',
       key: 'sno',
-      width: 60,
+      width: 50,
       render: (_, record, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
       title: 'Process Name',
       dataIndex: 'processName',
       key: 'processName',
+      width: 200,
     },
     {
       title: 'Tally Name',
       dataIndex: 'tallyName',
       key: 'tallyName',
+      width: 180,
     },
     {
       title: 'Category',
       dataIndex: 'category',
       key: 'category',
+      width: 120,
     },
     {
       title: 'Production Excess (%)',
       dataIndex: 'productionExcess',
       key: 'productionExcess',
+      width: 140,
       render: (val) => val || 0,
     },
     {
       title: 'Not Required Rate',
       dataIndex: 'notRequiredRate',
       key: 'notRequiredRate',
+      width: 130,
       render: (val) => <Checkbox checked={val} disabled />,
     },
     {
       title: 'Wet Condition',
       dataIndex: 'wetCondition',
       key: 'wetCondition',
+      width: 110,
       render: (val) => <Checkbox checked={val} disabled />,
     },
     {
       title: 'Status',
       dataIndex: 'isActive',
       key: 'isActive',
+      width: 80,
       render: (val) => <Checkbox checked={val} disabled />,
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 120,
+      width: 100,
+      fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           {canEdit() && <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />}
@@ -181,6 +189,29 @@ const ProcessMaster = () => {
 
   return (
     <Card>
+      <style>{`
+        .compact-table .ant-table-thead > tr > th {
+          padding: 6px 8px !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          // background: #fafafa !important;
+        }
+        .compact-table .ant-table-tbody > tr > td {
+          padding: 4px 8px !important;
+          font-size: 12px !important;
+          // font-weight: 500 !important;
+        }
+        .compact-table .ant-table-tbody > tr {
+          height: 32px !important;
+        }
+        .compact-table .ant-btn-link {
+          padding: 0 4px !important;
+          height: 24px !important;
+        }
+        .compact-table .ant-space-item {
+          line-height: 1 !important;
+        }
+      `}</style>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={3} style={{ margin: 0 }}>Process Master</Title>
         <Space style={{ width: 'auto' }}>
@@ -207,6 +238,7 @@ const ProcessMaster = () => {
         columns={columns} 
         dataSource={processes} 
         rowKey="id"
+        size="small"
         pagination={{
           ...pagination,
           showSizeChanger: true,
@@ -216,6 +248,7 @@ const ProcessMaster = () => {
           onChange: (page, pageSize) => loadProcesses(page, pageSize),
           onShowSizeChange: (current, size) => loadProcesses(1, size)
         }}
+        className="compact-table"
       />
 
       <Modal

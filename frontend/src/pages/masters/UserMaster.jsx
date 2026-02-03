@@ -145,48 +145,55 @@ const UserMaster = () => {
     {
       title: 'S.No',
       key: 'sno',
-      width: 60,
+      width: 50,
       render: (_, record, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
       title: 'User Name',
       dataIndex: 'username',
       key: 'username',
+      width: 200,
     },
     {
       title: 'Admin',
       dataIndex: 'adminUser',
       key: 'adminUser',
+      width: 80,
       render: (adminUser) => <Checkbox checked={adminUser} disabled />,
     },
     {
       title: 'Add',
       dataIndex: 'canAdd',
       key: 'canAdd',
+      width: 80,
       render: (canAdd) => <Checkbox checked={canAdd} disabled />,
     },
     {
       title: 'Edit',
       dataIndex: 'canEdit',
       key: 'canEdit',
+      width: 80,
       render: (canEdit) => <Checkbox checked={canEdit} disabled />,
     },
     {
       title: 'Delete',
       dataIndex: 'canDelete',
       key: 'canDelete',
+      width: 80,
       render: (canDelete) => <Checkbox checked={canDelete} disabled />,
     },
     {
       title: 'Status',
       dataIndex: 'isActive',
       key: 'isActive',
+      width: 80,
       render: (isActive) => <Checkbox checked={isActive} disabled />,
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 120,
+      width: 100,
+      fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           {canEdit() && <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />}
@@ -198,6 +205,29 @@ const UserMaster = () => {
 
   return (
     <Card>
+      <style>{`
+        .compact-table .ant-table-thead > tr > th {
+          padding: 6px 8px !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          // background: #fafafa !important;
+        }
+        .compact-table .ant-table-tbody > tr > td {
+          padding: 4px 8px !important;
+          font-size: 12px !important;
+          // font-weight: 600 !important;
+        }
+        .compact-table .ant-table-tbody > tr {
+          height: 32px !important;
+        }
+        .compact-table .ant-btn-link {
+          padding: 0 4px !important;
+          height: 24px !important;
+        }
+        .compact-table .ant-space-item {
+          line-height: 1 !important;
+        }
+      `}</style>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={3} style={{ margin: 0 }}>User Master</Title>
         <Space style={{ width: 'auto' }}>
@@ -224,6 +254,7 @@ const UserMaster = () => {
         columns={columns} 
         dataSource={users} 
         rowKey="id"
+        size="small"
         pagination={{
           ...pagination,
           showSizeChanger: true,
@@ -233,6 +264,7 @@ const UserMaster = () => {
           onChange: (page, pageSize) => loadUsers(page, pageSize),
           onShowSizeChange: (current, size) => loadUsers(1, size)
         }}
+        className="compact-table"
       />
 
       <Modal
