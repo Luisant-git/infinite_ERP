@@ -378,6 +378,26 @@ const FabricInward = () => {
       )
     },
     {
+      title: 'Prod. Not Req.',
+      dataIndex: 'productionNotRequired',
+      width: 100,
+      render: (val, record) => (
+        <input 
+          type="checkbox" 
+          checked={val} 
+          onChange={(e) => handleDetailChange(record.key, 'productionNotRequired', e.target.checked)} 
+        />
+      )
+    },
+    {
+      title: 'Remarks',
+      dataIndex: 'remarks',
+      width: 150,
+      render: (val, record) => (
+        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'remarks', e.target.value)} />
+      )
+    },
+    {
       title: 'Action',
       width: 60,
       render: (_, record) => (
