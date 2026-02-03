@@ -113,8 +113,18 @@ const FabricInward = () => {
       pdcDate: record.pdcDate ? dayjs(record.pdcDate) : null,
       dyeingDcDate: record.dyeingDcDate ? dayjs(record.dyeingDcDate) : null
     });
-    setDetails(record.details || []);
-    setSelectedProcesses(record.processes || []);
+    setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
+    
+    const processesWithIds = record.processes?.map(p => {
+      const process = processes.find(pr => pr.processName === p.processName);
+      return {
+        ...p,
+        key: p.id,
+        processId: process?.id || null
+      };
+    }) || [];
+    
+    setSelectedProcesses(processesWithIds);
     setFabricType(record.fabricType);
     setDcType(record.dcType);
     setIsFormVisible(true);
