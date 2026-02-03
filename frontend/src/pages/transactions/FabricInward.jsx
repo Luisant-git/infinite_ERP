@@ -63,9 +63,11 @@ const FabricInward = () => {
       ]);
       
       const allParties = partiesRes.data || [];
-      setParties(allParties.filter(p => p.partyTypes?.some(pt => pt.partyType.partyTypeName === 'Customer')));
+      setParties(allParties.filter(p => p.partyTypes?.some(pt => 
+        pt.partyType.partyTypeName.toLowerCase() === 'customer'
+      )));
       setDyeingParties(allParties.filter(p => p.partyTypes?.some(pt => 
-        ['Dyeing', 'Compacting'].includes(pt.partyType.partyTypeName)
+        ['dyeing', 'compacting'].includes(pt.partyType.partyTypeName.toLowerCase())
       )));
       
       setFabrics(fabricsRes || []);
