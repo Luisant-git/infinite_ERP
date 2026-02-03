@@ -10,9 +10,11 @@ import { DesignModule } from './design/design.module';
 import { UploadModule } from './upload/upload.module';
 import { ProcessModule } from './process/process.module';
 import { PartyProcessRateModule } from './party-process-rate/party-process-rate.module';
+import { MasterModule } from './master/master.module';
+import { FabricInwardModule } from './fabric-inward/fabric-inward.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule],
+  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule, MasterModule, FabricInwardModule],
   controllers: [AppController],
   providers: [AppService],
 })

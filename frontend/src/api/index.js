@@ -12,9 +12,14 @@ const noTenantEndpoints = ['/concern', '/party', '/party-types', '/auth', '/desi
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   const tenantId = localStorage.getItem('tenantId');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
   
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  
+  if (user.username) {
+    config.headers.username = user.username;
   }
   
   // Only add tenant-id for endpoints that need it

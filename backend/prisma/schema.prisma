@@ -39,6 +39,8 @@ model Tenant {
   
   concern     Concern @relation(fields: [concernId], references: [id])
   userTenants UserTenant[]
+  masters     Master[]
+  fabricInwards FabricInwardHeader[]
   
   @@unique([concernId, financialYear])
   @@map("tenants")
@@ -137,6 +139,7 @@ model Concern {
  
   contacts ConcernContact[]
   tenants  Tenant[]
+  fabricInwards FabricInwardHeader[]
  
   @@map("concerns")
 }
@@ -223,6 +226,7 @@ model Design {
   updatedAt       DateTime @updatedAt
   
   customer Party? @relation(fields: [customerId], references: [id])
+  fabricInwardDetails FabricInwardDetail[]
   
   @@map("designs")
 }
@@ -242,4 +246,98 @@ model PartyProcessRateSetting {
   updatedAt     DateTime @updatedAt
   
   @@map("party_process_rate_settings")
+}
+
+model Master {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  masterType  String   @db.VarChar(50)
+  masterName  String   @db.VarChar(100)
+  isActive    Boolean  @default(true)
+  isDeleted   Boolean  @default(false)
+  deletedAt   DateTime?
+  deletedBy   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  
+  @@map("masters")
+}
+
+model FabricInwardHeader {
+  id              Int      @id @default(autoincrement())
+  tenantId        Int
+  grnNo           String   @db.VarChar(10)
+  grnDate         DateTime @default(now())
+  partyId         Int?
+  pdcNo           String?  @db.VarChar(50)
+  pdcDate         DateTime?
+  dyeingPartyId   Int?
+  dyeingDcNo      String?  @db.VarChar(50)
+  dyeingDcDate    DateTime?
+  orderNo         String?  @db.VarChar(50)
+  poNo            String?  @db.VarChar(50)
+  dcType          String   @default("Fresh") @db.VarChar(20)
+  fabricType      String   @default("Grey Lot") @db.VarChar(20)
+  remarks         String?  @db.VarChar(100)
+  vehicleNo       String?  @db.VarChar(20)
+  totalQty        Decimal  @default(0) @db.Decimal(12, 3)
+  totalRolls      Int      @default(0)
+  createdBy       String?  @db.VarChar(50)
+  createdDate     DateTime @default(now())
+  modifiedBy      String?  @db.VarChar(50)
+  modifiedDate    DateTime @updatedAt
+  deletedBy       String?  @db.VarChar(50)
+  deletedDate     DateTime?
+  deleteFlg       Int      @default(0)
+  yearId          Int?
+  concernId       Int?
+  sortOrder       Int?
+  isClosed        Int      @default(0)
+  
+  tenant    Tenant                 @relation(fields: [tenantId], references: [id])
+  concern   Concern?               @relation(fields: [concernId], references: [id])
+  details   FabricInwardDetail[]
+  processes FabricInwardProcess[]
+  
+  @@map("fabric_inward_headers")
+}
+
+model FabricInwardDetail {
+  id                    Int      @id @default(autoincrement())
+  headerId              Int
+  fabricId              Int?
+  colorId               Int?
+  diaId                 Int?
+  gsm                   String?  @db.VarChar(100)
+  designId              Int?
+  designName            String?  @db.VarChar(100)
+  noOfColor             Int?
+  productionNotRequired Int      @default(0)
+  weight                Decimal  @default(0) @db.Decimal(12, 3)
+  rolls                 Int      @default(0)
+  uomId                 Int?
+  remarks               String?  @db.VarChar(100)
+  deleteFlg             Int      @default(0)
+  
+  header FabricInwardHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
+  design Design?               @relation(fields: [designId], references: [id])
+  
+  @@map("fabric_inward_details")
+}
+
+model FabricInwardProcess {
+  id                    Int      @id @default(autoincrement())
+  headerId              Int
+  processName           String   @db.VarChar(100)
+  rate                  Decimal  @default(0) @db.Decimal(12, 2)
+  wetCondition          Int      @default(0)
+  productionNotRequired Int      @default(0)
+  productionClose       Int      @default(0)
+  deleteFlg             Int      @default(0)
+  
+  header FabricInwardHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
+  
+  @@map("fabric_inward_processes")
 }
