@@ -714,7 +714,19 @@ const FabricInward = () => {
         {printData && (
           <FabricInwardPrint 
             ref={printRef} 
-            data={printData} 
+            data={{
+              ...printData,
+              partyName: parties.find(p => p.id === printData.partyId)?.partyName,
+              partyAddress: (() => {
+                const party = parties.find(p => p.id === printData.partyId);
+                if (!party) return '';
+                const addressLine = party.address1 || party.address2 || party.address3 || party.address4 || '';
+                const locationParts = [party.district, party.state, party.pincode].filter(Boolean);
+                const locationLine = locationParts.join(', ');
+                return addressLine && locationLine ? `${addressLine}\n${locationLine}` : addressLine || locationLine;
+              })(),
+              dyeingPartyName: dyeingParties.find(p => p.id === printData.dyeingPartyId)?.partyName
+            }} 
             fabrics={fabrics}
             colors={colors}
             dias={dias}

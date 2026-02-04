@@ -12,6 +12,12 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
         @media print {
           @page { margin: 10mm; }
           body { margin: 0; }
+          @page { size: auto; margin: 0mm; }
+          html { margin: 0px; }
+        }
+        @media print {
+          body::before, body::after { display: none !important; }
+          @page { margin: 0; }
         }
         .print-container { width: 100%; border: 2px solid #000; }
         .print-header { display: flex; border-bottom: 2px solid #000; }
@@ -21,16 +27,19 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
         .company-details { font-size: 11px; line-height: 1.4; }
         .doc-title { font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 5px; }
         .doc-info { font-size: 11px; }
-        .party-section { border-bottom: 2px solid #000; padding: 10px; }
+        .party-section { border-bottom: 2px solid #000; display: flex; }
+        .party-section-left { width: calc(100% - 300px); padding: 10px; border-right: 2px solid #000; }
+        .party-section-right { width: 300px; padding: 10px; }
         .party-label { font-size: 11px; font-weight: bold; margin-bottom: 5px; }
         .party-details { font-size: 11px; line-height: 1.4; }
         .details-table { width: 100%; border-collapse: collapse; }
         .details-table th, .details-table td { border: 1px solid #000; padding: 5px; font-size: 11px; text-align: center; }
         .details-table th { font-weight: bold; background: #f0f0f0; }
         .footer-section { display: flex; border-top: 2px solid #000; }
+        .footer-section-no-border { display: flex; padding: 10px; font-size: 11px; }
         .footer-col { flex: 1; padding: 10px; border-right: 1px solid #000; font-size: 11px; }
         .footer-col:last-child { border-right: none; }
-        .signature-line { margin-top: 40px; border-top: 1px solid #000; padding-top: 5px; text-align: center; }
+        .signature-line { margin-top: 10px; padding-top: 0px; text-align: center; }
       `}</style>
 
       <div className="print-container">
@@ -53,12 +62,25 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
         </div>
 
         <div className="party-section">
-          <div className="party-label">To M/s.</div>
-          <div className="party-details">
-            <strong>Dy Name :</strong> {data.dyeingPartyName || '-'}<br />
-            <strong>Dyeing DC :</strong> {data.dyeingDcNo || '-'}<br />
-            <strong>Party DC :</strong> {data.pdcNo || '-'}<br />
-            <strong>Order No :</strong> {data.orderNo || '-'}
+          <div className="party-section-left">
+            <div className="party-label">To M/s.</div>
+            <div className="party-details">
+              <strong>M/s. {data.partyName || '-'}</strong><br />
+              {data.partyAddress?.split('\n').map((line, i) => (
+                <React.Fragment key={i}>
+                  {line}
+                  {i < data.partyAddress.split('\n').length - 1 && <br />}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+          <div className="party-section-right">
+            <div className="party-details">
+              <strong>Dy Name :</strong>{data.dyeingPartyName || 'FRIENDS COLOURS'}<br />
+              <strong>Dyeing DC :</strong>{data.dyeingDcNo || '2161'}<br />
+              <strong>Party DC :</strong>{data.pdcNo || ''}<br />
+              <strong>Order No :</strong>{data.orderNo || ''}
+            </div>
           </div>
         </div>
 
@@ -87,39 +109,35 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
               </tr>
             ))}
             <tr>
-              <td colSpan="4" style={{ textAlign: 'left', fontWeight: 'bold' }}>
+              <td colSpan="3" style={{ textAlign: 'left', fontWeight: 'bold' }}>
                 Process : {data.processes?.map(p => p.processName).join(', ') || '-'}
               </td>
-              <td style={{ fontWeight: 'bold' }}>Total</td>
-              <td style={{ fontWeight: 'bold' }}>{data.totalRolls || 0}</td>
-              <td style={{ fontWeight: 'bold' }}>{data.totalQty || 0}</td>
+              <td style={{ fontWeight: 'bold', textAlign: 'center' }}>Total</td>
+              <td style={{ fontWeight: 'bold', textAlign: 'center' }}>{data.totalRolls || 0}</td>
+              <td style={{ fontWeight: 'bold', textAlign: 'center' }}>{data.totalQty || 0}</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td colSpan="2" style={{ padding: '5px', verticalAlign: 'top', textAlign: 'left' }}>
+                <strong>Vehicle No :</strong> {data.vehicleNo || ''}
+                <div style={{ marginTop: '30px', textAlign: 'center' }}>
+                  <strong>Receiver's Signatory</strong>
+                </div>
+              </td>
+              <td colSpan="3" style={{ padding: '5px', verticalAlign: 'bottom', textAlign: 'center' }}>
+                <div style={{ marginTop: '30px' }}>
+                  <strong>Prepared By</strong>
+                </div>
+              </td>
+              <td colSpan="2" style={{ padding: '5px', verticalAlign: 'top', textAlign: 'right' }}>
+                <strong>For ARUVIE PROCESSING MILLS</strong>
+                <div style={{ marginTop: '30px', textAlign: 'center' }}>
+                  <strong>Authorised Signatory</strong>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
-
-        <div className="footer-section">
-          <div className="footer-col">
-            <strong>Vehicle No :</strong> {data.vehicleNo || ''}
-          </div>
-          <div className="footer-col" style={{ textAlign: 'right' }}>
-            <strong>For ARUVIE PROCESSING MILLS</strong>
-          </div>
-        </div>
-
-        <div className="footer-section">
-          <div className="footer-col">
-            <strong>Receiver's Signatory</strong>
-            <div className="signature-line"></div>
-          </div>
-          <div className="footer-col">
-            <strong>Prepared By</strong>
-            <div className="signature-line"></div>
-          </div>
-          <div className="footer-col">
-            <strong>Authorised Signatory</strong>
-            <div className="signature-line"></div>
-          </div>
-        </div>
       </div>
     </div>
   );
