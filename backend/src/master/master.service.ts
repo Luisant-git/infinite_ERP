@@ -9,6 +9,16 @@ export class MasterService {
     return this.prisma.master.findMany({
       where: { 
         masterType,
+        isDeleted: false
+      },
+      orderBy: { masterName: 'asc' }
+    });
+  }
+
+  async findActiveByType(masterType: string) {
+    return this.prisma.master.findMany({
+      where: { 
+        masterType,
         isActive: true,
         isDeleted: false
       },
@@ -16,16 +26,16 @@ export class MasterService {
     });
   }
 
-  async create(masterType: string, masterName: string) {
+  async create(masterType: string, masterName: string, isActive: boolean = true) {
     return this.prisma.master.create({
-      data: { masterType, masterName }
+      data: { masterType, masterName, isActive }
     });
   }
 
-  async update(id: number, masterName: string) {
+  async update(id: number, masterName: string, isActive: boolean) {
     return this.prisma.master.update({
       where: { id },
-      data: { masterName }
+      data: { masterName, isActive }
     });
   }
 

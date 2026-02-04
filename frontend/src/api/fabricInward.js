@@ -30,8 +30,9 @@ export const deleteFabricInward = async (id) => {
   return response.data;
 };
 
-export const getMastersByType = async (type) => {
-  const response = await api.get(`/master/${type}`);
+export const getMastersByType = async (type, activeOnly = false) => {
+  const params = activeOnly ? { activeOnly: 'true' } : {};
+  const response = await api.get(`/master/${type}`, { params });
   return response.data;
 };
 

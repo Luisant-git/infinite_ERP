@@ -51,7 +51,8 @@ const MasterData = () => {
     setCurrentType(type);
     setEditingMaster(record);
     form.setFieldsValue({
-      masterName: record.masterName
+      masterName: record.masterName,
+      isActive: record.isActive
     });
     setIsModalVisible(true);
   };
@@ -79,13 +80,15 @@ const MasterData = () => {
 
       if (editingMaster) {
         await updateMaster(editingMaster.id, {
-          masterName: values.masterName
+          masterName: values.masterName,
+          isActive: values.isActive
         });
         message.success('Updated successfully');
       } else {
         await createMaster({
           masterType: currentType,
-          masterName: values.masterName
+          masterName: values.masterName,
+          isActive: values.isActive
         });
         message.success('Created successfully');
       }
@@ -184,13 +187,17 @@ const MasterData = () => {
           <Button key="submit" type="primary" loading={loading} onClick={handleSubmit}>Save</Button>
         ]}
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" initialValues={{ isActive: true }}>
           <Form.Item
             label={`${currentType} Name`}
             name="masterName"
             rules={[{ required: true, message: 'Please input name!' }]}
           >
             <Input placeholder={`Enter ${currentType.toLowerCase()} name`} />
+          </Form.Item>
+          
+          <Form.Item name="isActive" valuePropName="checked">
+            <Checkbox>Active</Checkbox>
           </Form.Item>
         </Form>
       </Modal>

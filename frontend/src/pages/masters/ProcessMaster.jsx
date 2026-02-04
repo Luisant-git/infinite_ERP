@@ -17,7 +17,7 @@ const ProcessMaster = () => {
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const { canAdd, canEdit, canDelete } = useMenuPermissions();
 
-  const categories = ['COMPACTING', 'WASHING', 'PRINTING'];
+  const categories = ['PREPARATION', 'SHEARING', 'WASHING', 'STENTER', 'COMPACTING', 'PRINTING'];
 
   useEffect(() => {
     loadProcesses();

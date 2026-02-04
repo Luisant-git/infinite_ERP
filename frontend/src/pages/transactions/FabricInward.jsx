@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Form, Input, Button, Row, Col, Typography, Select, DatePicker, Table, Modal, InputNumber, message, Space } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, PrinterOutlined } from '@ant-design/icons';
+import { useReactToPrint } from 'react-to-print';
 import dayjs from 'dayjs';
 import { 
   getNextGrnNo, getFabricInwards, createFabricInward, updateFabricInward, deleteFabricInward,
@@ -10,6 +11,7 @@ import { getParties } from '../../api/party';
 import { getDesigns } from '../../api/design';
 import { getProcesses } from '../../api/process';
 import { getPartyProcessRates } from '../../api/partyProcessRate';
+import FabricInwardPrint from '../../components/prints/FabricInwardPrint';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -35,6 +37,12 @@ const FabricInward = () => {
   const [fabricType, setFabricType] = useState('Grey Lot');
   const [dcType, setDcType] = useState('Fresh');
   const [selectedDyeingParty, setSelectedDyeingParty] = useState(null);
+  const [printData, setPrintData] = useState(null);
+  const printRef = useRef();
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+  });
 
   useEffect(() => {
     loadData();
@@ -54,10 +62,10 @@ const FabricInward = () => {
     try {
       const [partiesRes, fabricsRes, colorsRes, diasRes, uomsRes, designsRes, processesRes] = await Promise.all([
         getParties('', 1, 1000),
-        getMastersByType('Fabric'),
-        getMastersByType('Color'),
-        getMastersByType('Dia'),
-        getMastersByType('UOM'),
+        getMastersByType('Fabric', true),
+        getMastersByType('Color', true),
+        getMastersByType('Dia', true),
+        getMastersByType('UOM', true),
         getDesigns('', 1, 1000),
         getProcesses('', 1, 1000)
       ]);
@@ -146,7 +154,12 @@ const FabricInward = () => {
     });
   };
 
-  const handleSubmit = async () => {
+  const handlePrintRecord = (record) => {
+    setPrintData(record);
+    setTimeout(() => handlePrint(), 100);
+  };
+
+  const handleSubmit = async (shouldPrint = false) => {
     try {
       const values = await form.validateFields();
       setLoading(true);
@@ -186,16 +199,22 @@ const FabricInward = () => {
 
       console.log('Payload data:', data);
 
+      let savedRecord;
       if (editingId) {
-        await updateFabricInward(editingId, data);
+        savedRecord = await updateFabricInward(editingId, data);
         message.success('Updated successfully');
       } else {
-        await createFabricInward(data);
+        savedRecord = await createFabricInward(data);
         message.success('Created successfully');
       }
       
       setIsFormVisible(false);
       loadData();
+      
+      if (shouldPrint && savedRecord) {
+        setPrintData(savedRecord);
+        setTimeout(() => handlePrint(), 500);
+      }
     } catch (error) {
       console.error('Error saving:', error);
       message.error('Failed to save');
@@ -514,6 +533,7 @@ const FabricInward = () => {
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
+          {/* <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRecord(record)} style={{ color: '#1890ff' }} /> */}
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
           <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
         </Space>
@@ -683,11 +703,24 @@ const FabricInward = () => {
           <div style={{ marginTop: 16, textAlign: 'right' }}>
             <Space>
               <Button icon={<CloseOutlined />} onClick={() => setIsFormVisible(false)}>Cancel</Button>
-              <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={handleSubmit}>Save</Button>
+              <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={() => handleSubmit(false)}>Save</Button>
+              {/* <Button type="primary" icon={<PrinterOutlined />} loading={loading} onClick={() => handleSubmit(true)}>Save & Print</Button> */}
             </Space>
           </div>
         </Form>
       )}
+      
+      <div style={{ display: 'none' }}>
+        {printData && (
+          <FabricInwardPrint 
+            ref={printRef} 
+            data={printData} 
+            fabrics={fabrics}
+            colors={colors}
+            dias={dias}
+          />
+        )}
+      </div>
     </Card>
   );
 };

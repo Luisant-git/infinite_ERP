@@ -9,18 +9,21 @@ export class MasterController {
   constructor(private service: MasterService) {}
 
   @Get(':type')
-  async findByType(@Param('type') type: string) {
+  async findByType(@Param('type') type: string, @Query('activeOnly') activeOnly?: string) {
+    if (activeOnly === 'true') {
+      return this.service.findActiveByType(type);
+    }
     return this.service.findByType(type);
   }
 
   @Post()
-  async create(@Body() body: { masterType: string; masterName: string }) {
-    return this.service.create(body.masterType, body.masterName);
+  async create(@Body() body: { masterType: string; masterName: string; isActive?: boolean }) {
+    return this.service.create(body.masterType, body.masterName, body.isActive);
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() body: { masterName: string }) {
-    return this.service.update(parseInt(id), body.masterName);
+  async update(@Param('id') id: string, @Body() body: { masterName: string; isActive?: boolean }) {
+    return this.service.update(parseInt(id), body.masterName, body.isActive ?? true);
   }
 
   @Delete(':id')
