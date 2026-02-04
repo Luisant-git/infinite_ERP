@@ -39,7 +39,6 @@ model Tenant {
   
   concern     Concern @relation(fields: [concernId], references: [id])
   userTenants UserTenant[]
-  masters     Master[]
   fabricInwards FabricInwardHeader[]
   
   @@unique([concernId, financialYear])
@@ -250,7 +249,6 @@ model PartyProcessRateSetting {
 
 model Master {
   id          Int      @id @default(autoincrement())
-  tenantId    Int
   masterType  String   @db.VarChar(50)
   masterName  String   @db.VarChar(100)
   isActive    Boolean  @default(true)
@@ -260,7 +258,6 @@ model Master {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-  tenant Tenant @relation(fields: [tenantId], references: [id])
   fabricDetails FabricInwardDetail[] @relation("FabricMaster")
   colorDetails FabricInwardDetail[] @relation("ColorMaster")
   diaDetails FabricInwardDetail[] @relation("DiaMaster")

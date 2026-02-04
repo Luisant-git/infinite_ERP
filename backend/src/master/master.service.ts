@@ -5,11 +5,10 @@ import { PrismaService } from '../prisma/prisma.service';
 export class MasterService {
   constructor(private prisma: PrismaService) {}
 
-  async findByType(masterType: string, tenantId: number) {
+  async findByType(masterType: string) {
     return this.prisma.master.findMany({
       where: { 
         masterType,
-        tenantId,
         isActive: true,
         isDeleted: false
       },
@@ -17,22 +16,22 @@ export class MasterService {
     });
   }
 
-  async create(masterType: string, masterName: string, tenantId: number) {
+  async create(masterType: string, masterName: string) {
     return this.prisma.master.create({
-      data: { masterType, masterName, tenantId }
+      data: { masterType, masterName }
     });
   }
 
-  async update(id: number, masterName: string, tenantId: number) {
+  async update(id: number, masterName: string) {
     return this.prisma.master.update({
-      where: { id, tenantId },
+      where: { id },
       data: { masterName }
     });
   }
 
-  async delete(id: number, tenantId: number) {
+  async delete(id: number) {
     return this.prisma.master.update({
-      where: { id, tenantId },
+      where: { id },
       data: { isDeleted: true, deletedAt: new Date() }
     });
   }
