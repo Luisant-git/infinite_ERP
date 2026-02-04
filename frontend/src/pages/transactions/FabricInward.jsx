@@ -154,6 +154,8 @@ const FabricInward = () => {
       const totalQty = details.reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
       const totalRolls = details.reduce((sum, d) => sum + (d.rolls || 0), 0);
 
+      console.log('Details before mapping:', details);
+
       const data = {
         ...values,
         grnDate: values.grnDate?.toISOString(),
@@ -183,6 +185,8 @@ const FabricInward = () => {
           productionClose: p.productionClose ? 1 : 0
         }))
       };
+
+      console.log('Payload data:', data);
 
       if (editingId) {
         await updateFabricInward(editingId, data);
@@ -225,7 +229,13 @@ const FabricInward = () => {
   };
 
   const handleDetailChange = (key, field, value) => {
-    setDetails(details.map(d => d.key === key ? { ...d, [field]: value } : d));
+    setDetails(details.map(d => {
+      if (d.key === key) {
+        console.log(`Updating ${field}:`, value);
+        return { ...d, [field]: value };
+      }
+      return d;
+    }));
   };
 
   const handleProcessSelect = async (processIds) => {

@@ -119,6 +119,14 @@ export class CreateFabricInwardDto {
   grnDate?: Date;
 
   @IsOptional()
+  @IsInt()
+  yearId?: number;
+
+  @IsOptional()
+  @IsInt()
+  concernId?: number;
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => FabricInwardDetailDto)
