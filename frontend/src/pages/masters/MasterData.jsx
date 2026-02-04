@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, Button, Table, Modal, message, Space, Tabs, Checkbox } from 'antd';
+import { Card, Form, Input, Button, Table, Modal, message, Space, Tabs, Checkbox, Typography } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getMastersByType, createMaster, updateMaster, deleteMaster } from '../../api/fabricInward';
 
 const { TabPane } = Tabs;
+const { Title } = Typography;
 
 const MasterData = () => {
   const [form] = Form.useForm();
@@ -99,47 +100,78 @@ const MasterData = () => {
   };
 
   const columns = (type) => [
-    { title: 'Name', dataIndex: 'masterName', key: 'masterName' },
-    { title: 'Status', dataIndex: 'isActive', key: 'isActive', render: (val) => val ? 'Active' : 'Inactive' },
+    {
+      title: 'S.No',
+      key: 'sno',
+      width: 50,
+      render: (_, record, index) => index + 1,
+    },
+    { title: 'Name', dataIndex: 'masterName', key: 'masterName', width: 300 },
+    { title: 'Status', dataIndex: 'isActive', key: 'isActive', width: 100, render: (val) => val ? 'Active' : 'Inactive' },
     {
       title: 'Actions',
       key: 'actions',
-      width: 120,
+      width: 100,
+      fixed: 'right',
       render: (_, record) => (
-        <Space>
-          <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record, type)} />
-          <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+        <Space size="small">
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record, type)} style={{ color: '#52c41a' }} />
+          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
         </Space>
       )
     }
   ];
 
   return (
-    <Card title="Master Data Management">
+    <Card>
+      <style>{`
+        .compact-table .ant-table-thead > tr > th {
+          padding: 6px 8px !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+        }
+        .compact-table .ant-table-tbody > tr > td {
+          padding: 4px 8px !important;
+          font-size: 12px !important;
+        }
+        .compact-table .ant-table-tbody > tr {
+          height: 32px !important;
+        }
+        .compact-table .ant-btn-link {
+          padding: 0 4px !important;
+          height: 24px !important;
+        }
+        .compact-table .ant-space-item {
+          line-height: 1 !important;
+        }
+      `}</style>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <Title level={3} style={{ margin: 0 }}>Master Data Management</Title>
+      </div>
       <Tabs defaultActiveKey="Fabric">
         <TabPane tab="Fabric" key="Fabric">
           <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Fabric')} style={{ marginBottom: 16 }}>
             Add Fabric
           </Button>
-          <Table columns={columns('Fabric')} dataSource={fabrics} rowKey="id" />
+          <Table columns={columns('Fabric')} dataSource={fabrics} rowKey="id" size="small" className="compact-table" />
         </TabPane>
         <TabPane tab="Color" key="Color">
           <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Color')} style={{ marginBottom: 16 }}>
             Add Color
           </Button>
-          <Table columns={columns('Color')} dataSource={colors} rowKey="id" />
+          <Table columns={columns('Color')} dataSource={colors} rowKey="id" size="small" className="compact-table" />
         </TabPane>
         <TabPane tab="Dia" key="Dia">
           <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Dia')} style={{ marginBottom: 16 }}>
             Add Dia
           </Button>
-          <Table columns={columns('Dia')} dataSource={dias} rowKey="id" />
+          <Table columns={columns('Dia')} dataSource={dias} rowKey="id" size="small" className="compact-table" />
         </TabPane>
         <TabPane tab="UOM" key="UOM">
           <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('UOM')} style={{ marginBottom: 16 }}>
             Add UOM
           </Button>
-          <Table columns={columns('UOM')} dataSource={uoms} rowKey="id" />
+          <Table columns={columns('UOM')} dataSource={uoms} rowKey="id" size="small" className="compact-table" />
         </TabPane>
       </Tabs>
 

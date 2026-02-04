@@ -336,7 +336,21 @@ const FabricInward = () => {
       dataIndex: 'designName',
       width: 150,
       render: (val, record) => (
-        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'designName', e.target.value)} />
+        <Select
+          value={val}
+          onChange={(v) => {
+            const design = designs.find(d => d.designName === v);
+            handleDetailChange(record.key, 'designName', v);
+            if (design) {
+              handleDetailChange(record.key, 'designId', design.id);
+            }
+          }}
+          style={{ width: '100%' }}
+          showSearch
+          filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+        >
+          {designs.map(d => <Option key={d.id} value={d.designName}>{d.designName}</Option>)}
+        </Select>
       )
     },
     {
@@ -464,6 +478,12 @@ const FabricInward = () => {
   ];
 
   const listColumns = [
+    {
+      title: 'S.No',
+      key: 'sno',
+      width: 50,
+      render: (_, record, index) => index + 1,
+    },
     { title: 'GRN No', dataIndex: 'grnNo', width: 120 },
     { title: 'GRN Date', dataIndex: 'grnDate', width: 120, render: (val) => dayjs(val).format('DD-MM-YYYY') },
     { title: 'DC Type', dataIndex: 'dcType', width: 120 },
@@ -472,11 +492,12 @@ const FabricInward = () => {
     { title: 'Total Rolls', dataIndex: 'totalRolls', width: 100 },
     {
       title: 'Actions',
-      width: 120,
+      width: 100,
+      fixed: 'right',
       render: (_, record) => (
-        <Space>
-          <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-          <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+        <Space size="small">
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
+          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
         </Space>
       )
     }
@@ -487,13 +508,34 @@ const FabricInward = () => {
 
   return (
     <Card>
+      <style>{`
+        .compact-table .ant-table-thead > tr > th {
+          padding: 6px 8px !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+        }
+        .compact-table .ant-table-tbody > tr > td {
+          padding: 4px 8px !important;
+          font-size: 12px !important;
+        }
+        .compact-table .ant-table-tbody > tr {
+          height: 32px !important;
+        }
+        .compact-table .ant-btn-link {
+          padding: 0 4px !important;
+          height: 24px !important;
+        }
+        .compact-table .ant-space-item {
+          line-height: 1 !important;
+        }
+      `}</style>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
         <Title level={3}>Fabric Inward</Title>
         <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
       </div>
 
       {!isFormVisible ? (
-        <Table columns={listColumns} dataSource={fabricInwards} rowKey="id" />
+        <Table columns={listColumns} dataSource={fabricInwards} rowKey="id" size="small" className="compact-table" />
       ) : (
         <Form form={form} layout="vertical">
           <Row gutter={16}>
@@ -591,7 +633,7 @@ const FabricInward = () => {
               columns={detailColumns} 
               dataSource={details} 
               pagination={false} 
-              scroll={{ x: 1200 }}
+              scroll={{ x: 1800, y: 400 }}
               size="small"
               footer={() => (
                 <div style={{ textAlign: 'right', fontWeight: 'bold' }}>
