@@ -161,8 +161,6 @@ const FabricInward = () => {
         grnDate: values.grnDate?.toISOString(),
         pdcDate: values.pdcDate?.toISOString(),
         dyeingDcDate: values.dyeingDcDate?.toISOString(),
-        yearId: values.yearId || null,
-        concernId: values.concernId || null,
         details: details.map(d => ({
           fabricId: d.fabricId,
           colorId: d.colorId,
@@ -352,9 +350,14 @@ const FabricInward = () => {
           value={val || undefined}
           onChange={(v) => {
             const design = designs.find(d => d.designName === v);
-            handleDetailChange(record.key, 'designName', v);
             if (design) {
-              handleDetailChange(record.key, 'designId', design.id);
+              setDetails(details.map(d => 
+                d.key === record.key 
+                  ? { ...d, designName: v, designId: design.id } 
+                  : d
+              ));
+            } else {
+              handleDetailChange(record.key, 'designName', v);
             }
           }}
           style={{ width: '100%' }}

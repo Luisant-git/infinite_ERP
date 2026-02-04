@@ -44,6 +44,16 @@ const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
         tenant = await createTenant(values.company, values.year);
       }
       
+      console.log('Selected Tenant:', tenant);
+      
+      // Store concernId in localStorage
+      if (tenant.concernId) {
+        localStorage.setItem('concernId', tenant.concernId.toString());
+        console.log('Stored concernId:', tenant.concernId);
+      } else {
+        console.log('No concernId found in tenant object');
+      }
+      
       onSelect({
         company: values.company,
         year: values.year,

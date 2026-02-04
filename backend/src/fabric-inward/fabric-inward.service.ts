@@ -65,6 +65,12 @@ export class FabricInwardService {
     const totalQty = createDto.details?.reduce((sum, d) => sum + (Number(d.weight) || 0), 0) || 0;
     const totalRolls = createDto.details?.reduce((sum, d) => sum + (d.rolls || 0), 0) || 0;
 
+    // Get tenant info to populate yearId and concernId
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { concernId: true }
+    });
+
     return this.prisma.fabricInwardHeader.create({
       data: {
         tenantId,
@@ -84,7 +90,7 @@ export class FabricInwardService {
         remarks: createDto.remarks,
         vehicleNo: createDto.vehicleNo,
         yearId: createDto.yearId,
-        concernId: createDto.concernId,
+        concernId: tenant?.concernId || createDto.concernId,
         totalQty,
         totalRolls,
         createdBy: username,
@@ -125,6 +131,12 @@ export class FabricInwardService {
     const totalQty = updateDto.details?.reduce((sum, d) => sum + (Number(d.weight) || 0), 0) || 0;
     const totalRolls = updateDto.details?.reduce((sum, d) => sum + (d.rolls || 0), 0) || 0;
 
+    // Get tenant info to populate yearId and concernId
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { concernId: true }
+    });
+
     await this.prisma.fabricInwardDetail.updateMany({
       where: { headerId: id },
       data: { deleteFlg: 1 }
@@ -151,7 +163,7 @@ export class FabricInwardService {
         remarks: updateDto.remarks,
         vehicleNo: updateDto.vehicleNo,
         yearId: updateDto.yearId,
-        concernId: updateDto.concernId,
+        concernId: tenant?.concernId || updateDto.concernId,
         totalQty,
         totalRolls,
         modifiedBy: username,
