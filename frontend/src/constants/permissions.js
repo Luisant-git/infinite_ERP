@@ -22,6 +22,7 @@ export const ROUTES = {
   PROCESS_MASTER: '/masters/processes',
   PARTY_PROCESS_RATE: '/masters/party-process-rate',
   DESIGN_MASTER: '/masters/designs',
+  MASTER_DATA: '/masters/master-data',
   FABRIC_INWARD: '/transactions/fabric-inward',
   DC_ENTRY: '/transactions/dc-entry',
   DC_CLOSE: '/transactions/dc-close',

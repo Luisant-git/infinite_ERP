@@ -10,7 +10,9 @@ import {
   FileTextOutlined,
   CloseOutlined,
   BarChartOutlined,
-  SettingOutlined
+  SettingOutlined,
+  DatabaseTwoTone,
+  DatabaseOutlined
 } from '@ant-design/icons';
 import { LuSettings2 } from 'react-icons/lu';
 import { usePermissions } from '../hooks/usePermissions';
@@ -73,6 +75,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           key: ROUTES.PARTY_PROCESS_RATE,
           icon: <SettingOutlined />,
           label: 'Party Process Rate'
+        }] : []),
+        ...(canView('master_data') ? [{
+          key: ROUTES.MASTER_DATA,
+          icon: <DatabaseOutlined />,
+          label: 'Master Data'
         }] : [])
         
       ].filter(item => item)

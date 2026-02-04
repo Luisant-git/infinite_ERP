@@ -261,6 +261,10 @@ model Master {
   updatedAt   DateTime @updatedAt
   
   tenant Tenant @relation(fields: [tenantId], references: [id])
+  fabricDetails FabricInwardDetail[] @relation("FabricMaster")
+  colorDetails FabricInwardDetail[] @relation("ColorMaster")
+  diaDetails FabricInwardDetail[] @relation("DiaMaster")
+  uomDetails FabricInwardDetail[] @relation("UOMMaster")
   
   @@map("masters")
 }
@@ -323,6 +327,10 @@ model FabricInwardDetail {
   
   header FabricInwardHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
   design Design?               @relation(fields: [designId], references: [id])
+  fabric Master?               @relation("FabricMaster", fields: [fabricId], references: [id])
+  color  Master?               @relation("ColorMaster", fields: [colorId], references: [id])
+  dia    Master?               @relation("DiaMaster", fields: [diaId], references: [id])
+  uom    Master?               @relation("UOMMaster", fields: [uomId], references: [id])
   
   @@map("fabric_inward_details")
 }

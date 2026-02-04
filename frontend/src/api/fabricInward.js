@@ -39,3 +39,13 @@ export const createMaster = async (data) => {
   const response = await api.post('/master', data);
   return response.data;
 };
+
+export const updateMaster = async (id, data) => {
+  const response = await api.put(`/master/${id}`, data);
+  return response.data;
+};
+
+export const deleteMaster = async (id) => {
+  const response = await api.delete(`/master/${id}`);
+  return response.data;
+};
