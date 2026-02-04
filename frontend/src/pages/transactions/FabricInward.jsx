@@ -159,13 +159,15 @@ const FabricInward = () => {
         grnDate: values.grnDate?.toISOString(),
         pdcDate: values.pdcDate?.toISOString(),
         dyeingDcDate: values.dyeingDcDate?.toISOString(),
+        yearId: values.yearId || null,
+        concernId: values.concernId || null,
         details: details.map(d => ({
           fabricId: d.fabricId,
           colorId: d.colorId,
           diaId: d.diaId,
           gsm: d.gsm,
           designId: d.designId,
-          designName: d.designName,
+          designName: d.designName || '',
           noOfColor: d.noOfColor,
           productionNotRequired: d.productionNotRequired ? 1 : 0,
           weight: Number(d.weight) || 0,
@@ -337,7 +339,7 @@ const FabricInward = () => {
       width: 150,
       render: (val, record) => (
         <Select
-          value={val}
+          value={val || undefined}
           onChange={(v) => {
             const design = designs.find(d => d.designName === v);
             handleDetailChange(record.key, 'designName', v);
@@ -347,7 +349,10 @@ const FabricInward = () => {
           }}
           style={{ width: '100%' }}
           showSearch
+          allowClear
+          placeholder="Select design"
           filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+          getPopupContainer={trigger => trigger.parentNode}
         >
           {designs.map(d => <Option key={d.id} value={d.designName}>{d.designName}</Option>)}
         </Select>
