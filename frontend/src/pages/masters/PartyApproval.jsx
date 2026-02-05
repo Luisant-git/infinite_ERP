@@ -37,7 +37,40 @@ const PartyApproval = () => {
   const handleApprove = async (record) => {
     setLoading(true);
     try {
-      await updateParty(record.id, { ...record, isApproval: 1 });
+      const updateData = {
+        partyName: record.partyName,
+        partyCode: record.partyCode,
+        address1: record.address1,
+        address2: record.address2,
+        address3: record.address3,
+        address4: record.address4,
+        pincode: record.pincode,
+        district: record.district,
+        state: record.state,
+        mobileNo: record.mobileNo,
+        phoneNo: record.phoneNo,
+        email: record.email,
+        panNo: record.panNo,
+        tallyAccName: record.tallyAccName,
+        gstNo: record.gstNo,
+        creditDays: record.creditDays,
+        isApproval: 1,
+        creditAmount: record.creditAmount,
+        accountNo: record.accountNo,
+        bank: record.bank,
+        ifscCode: record.ifscCode,
+        branch: record.branch,
+        active: record.active,
+        partyTypeIds: record.partyTypes?.map(pt => pt.partyTypeId) || [],
+        contacts: record.contacts?.map(c => ({
+          name: c.name,
+          mobileNo: c.mobileNo,
+          email: c.email,
+          whatsappRequired: c.whatsappRequired,
+          mailRequired: c.mailRequired
+        })) || []
+      };
+      await updateParty(record.id, updateData);
       message.success('Party approved successfully');
       loadParties();
     } catch (error) {
