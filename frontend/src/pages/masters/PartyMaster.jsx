@@ -99,7 +99,9 @@ const PartyMaster = () => {
       const formData = {
         ...values,
         active: values.active ? 1 : 0,
-        creditDays: values.creditDays || 0
+        creditDays: values.creditDays || 0,
+        isApproval: 0,
+        creditAmount: values.creditAmount || 0
       };
       
       console.log('Sending data:', formData);
@@ -409,7 +411,7 @@ const PartyMaster = () => {
             }
             message.error('Please fill all required fields correctly!');
           }}
-          initialValues={{ active: true, creditDays: 0, state: 'Tamil Nadu' }}
+          initialValues={{ active: true, creditDays: 0, creditAmount: 0, state: 'Tamil Nadu' }}
           scrollToFirstError
           autoComplete="off"
         >
@@ -576,6 +578,14 @@ const PartyMaster = () => {
                     name="creditDays"
                   >
                     <InputNumber placeholder="Enter credit days" min={0} style={{ width: '100%' }} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Credit Amount"
+                    name="creditAmount"
+                  >
+                    <InputNumber placeholder="Enter credit amount" min={0} max={9999999999.99} precision={2} style={{ width: '100%' }} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>

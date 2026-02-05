@@ -82,9 +82,18 @@ const ProcessMaster = () => {
       loadProcesses();
     } catch (error) {
       console.error('Error saving process:', error);
+      let errorMessage = 'Failed to save process';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+        if (errorMessage.includes('numeric field overflow')) {
+          errorMessage = 'Production Excess value is too large. Maximum allowed is 999.99';
+        }
+      }
+      
       Modal.error({
         title: 'Error',
-        content: error.response?.data?.message || 'Failed to save process',
+        content: errorMessage,
       });
     } finally {
       setLoading(false);
@@ -309,12 +318,24 @@ const ProcessMaster = () => {
           <Form.Item
             label="Production Excess (%)"
             name="productionExcess"
-            rules={[{ type: 'number', message: 'Please enter a valid number!' }]}
+            rules={[
+              { type: 'number', message: 'Please enter a valid number!' },
+              { 
+                validator: (_, value) => {
+                  if (value !== null && value !== undefined && (value < 0 || value > 999.99)) {
+                    return Promise.reject('Value must be between 0 and 999.99');
+                  }
+                  return Promise.resolve();
+                }
+              }
+            ]}
           >
             <InputNumber 
               placeholder="Enter production excess" 
               style={{ width: '100%' }}
               precision={2}
+              min={0}
+              max={999.99}
               keyboard={true}
               controls={false}
               parser={value => value.replace(/[^0-9.]/g, '')}

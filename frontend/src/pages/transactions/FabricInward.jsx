@@ -345,59 +345,61 @@ const FabricInward = () => {
         <Input value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} />
       )
     },
-    ...(fabricType === 'Print Lot' ? [{
-      title: 'Design No',
-      dataIndex: 'designId',
-      width: 150,
-      render: (val, record) => (
-        <Select
-          value={val}
-          onChange={(v) => handleDetailChange(record.key, 'designId', v)}
-          style={{ width: '100%' }}
-          showSearch
-        >
-          {designs.map(d => <Option key={d.id} value={d.id}>{d.designNo}</Option>)}
-        </Select>
-      )
-    }] : []),
-    {
-      title: 'Design Name',
-      dataIndex: 'designName',
-      width: 150,
-      render: (val, record) => (
-        <Select
-          value={val || undefined}
-          onChange={(v) => {
-            const design = designs.find(d => d.designName === v);
-            if (design) {
-              setDetails(details.map(d => 
-                d.key === record.key 
-                  ? { ...d, designName: v, designId: design.id } 
-                  : d
-              ));
-            } else {
-              handleDetailChange(record.key, 'designName', v);
-            }
-          }}
-          style={{ width: '100%' }}
-          showSearch
-          allowClear
-          placeholder="Select design"
-          filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-          getPopupContainer={trigger => trigger.parentNode}
-        >
-          {designs.map(d => <Option key={d.id} value={d.designName}>{d.designName}</Option>)}
-        </Select>
-      )
-    },
-    {
-      title: 'No of Color',
-      dataIndex: 'noOfColor',
-      width: 100,
-      render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'noOfColor', v)} style={{ width: '100%' }} />
-      )
-    },
+    ...(fabricType === 'Print Lot' ? [
+      {
+        title: 'Design No',
+        dataIndex: 'designId',
+        width: 150,
+        render: (val, record) => (
+          <Select
+            value={val}
+            onChange={(v) => handleDetailChange(record.key, 'designId', v)}
+            style={{ width: '100%' }}
+            showSearch
+          >
+            {designs.map(d => <Option key={d.id} value={d.id}>{d.designNo}</Option>)}
+          </Select>
+        )
+      },
+      {
+        title: 'Design Name',
+        dataIndex: 'designName',
+        width: 150,
+        render: (val, record) => (
+          <Select
+            value={val || undefined}
+            onChange={(v) => {
+              const design = designs.find(d => d.designName === v);
+              if (design) {
+                setDetails(details.map(d => 
+                  d.key === record.key 
+                    ? { ...d, designName: v, designId: design.id } 
+                    : d
+                ));
+              } else {
+                handleDetailChange(record.key, 'designName', v);
+              }
+            }}
+            style={{ width: '100%' }}
+            showSearch
+            allowClear
+            placeholder="Select design"
+            filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+            getPopupContainer={trigger => trigger.parentNode}
+          >
+            {designs.map(d => <Option key={d.id} value={d.designName}>{d.designName}</Option>)}
+          </Select>
+        )
+      },
+      {
+        title: 'No of Color',
+        dataIndex: 'noOfColor',
+        width: 100,
+        render: (val, record) => (
+          <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'noOfColor', v)} style={{ width: '100%' }} />
+        )
+      }
+    ] : []),
     {
       title: 'Weight',
       dataIndex: 'weight',

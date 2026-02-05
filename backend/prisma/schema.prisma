@@ -75,6 +75,8 @@ model Party {
   tallyAccName  String?  @db.VarChar(50)
   gstNo         String?  @db.VarChar(15)
   creditDays    Int      @default(0)
+  isApproval    Int      @default(0)
+  creditAmount  Decimal  @default(0) @db.Decimal(12, 2)
   accountNo     String?  @db.VarChar(30)
   bank          String?  @db.VarChar(30)
   ifscCode      String?  @db.VarChar(12)
