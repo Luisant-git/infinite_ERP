@@ -498,6 +498,10 @@ const DesignMaster = () => {
                     onRemove={handleRemove}
                     maxCount={1}
                     accept="image/*"
+                    showUploadList={{
+                      showPreviewIcon: true,
+                      showRemoveIcon: true
+                    }}
                     style={{ width: '100%' }}
                   >
                     {fileList.length === 0 && (
