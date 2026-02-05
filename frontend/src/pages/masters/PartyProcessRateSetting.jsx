@@ -13,10 +13,11 @@ const PartyProcessRateSetting = () => {
   const [savingId, setSavingId] = useState(null);
   const [selectedParty, setSelectedParty] = useState(null);
   const [copyFromParty, setCopyFromParty] = useState(null);
-  const [rates, setRates] = useState([]);
-  const [allRates, setAllRates] = useState([]);
+  const [copyToParty, setCopyToParty] = useState(null);
   const [parties, setParties] = useState([]);
   const [processes, setProcesses] = useState([]);
+  const [rates, setRates] = useState([]);
+  const [loading, setLoading] = useState(false);
   const { canEdit } = useMenuPermissions();
 
   useEffect(() => {
@@ -25,10 +26,18 @@ const PartyProcessRateSetting = () => {
   }, []);
 
   useEffect(() => {
-    if (processes.length > 0 && parties.length > 0) {
-      loadAllRates();
+    if (processes.length > 0) {
+      setRates(processes.map(process => ({
+        id: `new_${process.id}`,
+        processId: process.id,
+        processName: process.processName,
+        ratePerKg: 0,
+        ratePerPiece: 0,
+        minAmount: 0,
+        minKgsProcess: 0,
+      })));
     }
-  }, [processes, parties]);
+  }, [processes]);
 
   const loadParties = async () => {
     try {
@@ -48,85 +57,79 @@ const PartyProcessRateSetting = () => {
     }
   };
 
-  const loadAllRates = async () => {
+  const handlePartyChange = async (partyId) => {
+    setSelectedParty(partyId);
+    if (!partyId || processes.length === 0) return;
+    
     try {
-      const allPartiesRates = [];
-      for (const party of parties) {
-        const response = await getPartyProcessRates(party.id);
-        const partyRates = Array.isArray(response) ? response : [];
-        
-        for (const process of processes) {
-          const existingRate = partyRates.find(r => r.processId === process.id);
-          allPartiesRates.push({
-            id: existingRate?.id || `${party.id}_${process.id}`,
-            partyId: party.id,
-            partyName: party.partyName,
-            processId: process.id,
-            processName: process.processName,
-            ratePerKg: existingRate?.ratePerKg || 0,
-            ratePerPiece: existingRate?.ratePerPiece || 0,
-            minAmount: existingRate?.minAmount || 0,
-            minKgsProcess: existingRate?.minKgsProcess || 0,
-            isExisting: !!existingRate,
-          });
-        }
-      }
-      setAllRates(allPartiesRates);
-      setRates(allPartiesRates);
+      setLoading(true);
+      const response = await getPartyProcessRates(partyId);
+      const partyRates = Array.isArray(response) ? response : [];
+      
+      setRates(processes.map(process => {
+        const existingRate = partyRates.find(r => r.processId === process.id);
+        return {
+          id: existingRate?.id || `${partyId}_${process.id}`,
+          processId: process.id,
+          processName: process.processName,
+          ratePerKg: existingRate?.ratePerKg || 0,
+          ratePerPiece: existingRate?.ratePerPiece || 0,
+          minAmount: existingRate?.minAmount || 0,
+          minKgsProcess: existingRate?.minKgsProcess || 0,
+        };
+      }));
     } catch (error) {
       console.error('Error loading rates:', error);
-      setAllRates([]);
-      setRates([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePartyChange = (partyId) => {
-    setSelectedParty(partyId);
-    if (partyId) {
-      setRates(allRates.filter(r => r.partyId === partyId));
-    } else {
-      setRates(allRates);
+  const handleSaveAll = async () => {
+    if (!selectedParty) {
+      Modal.warning({ title: 'Warning', content: 'Please select a party!' });
+      return;
     }
-  };
-
-  const handleSave = async (record) => {
     try {
-      setSavingId(record.id);
-      const data = {
-        partyId: record.partyId,
-        processId: record.processId,
-        ratePerKg: record.ratePerKg || 0,
-        ratePerPiece: record.ratePerPiece || 0,
-        minAmount: record.minAmount || 0,
-        minKgsProcess: record.minKgsProcess || 0,
-      };
-
-      await updatePartyProcessRate(record.id, data);
-      
-      Modal.success({ title: 'Success', content: 'Rate saved successfully!' });
-      await loadAllRates();
+      setSavingId('saving');
+      for (const rate of rates) {
+        const data = {
+          partyId: selectedParty,
+          processId: rate.processId,
+          ratePerKg: rate.ratePerKg || 0,
+          ratePerPiece: rate.ratePerPiece || 0,
+          minAmount: rate.minAmount || 0,
+          minKgsProcess: rate.minKgsProcess || 0,
+        };
+        await updatePartyProcessRate(rate.id, data);
+      }
+      Modal.success({ title: 'Success', content: 'All rates saved successfully!' });
+      await handlePartyChange(selectedParty);
     } catch (error) {
-      Modal.error({ title: 'Error', content: error.response?.data?.message || 'Failed to save rate' });
+      Modal.error({ title: 'Error', content: error.response?.data?.message || 'Failed to save rates' });
     } finally {
       setSavingId(null);
     }
   };
 
   const handleCopy = async () => {
-    if (!copyFromParty || !selectedParty) {
+    if (!copyFromParty || !copyToParty) {
       Modal.warning({ title: 'Warning', content: 'Please select both parties!' });
       return;
     }
-    if (copyFromParty === selectedParty) {
+    if (copyFromParty === copyToParty) {
       Modal.warning({ title: 'Warning', content: 'Cannot copy to the same party!' });
       return;
     }
     try {
       setSavingId('copying');
-      await copyPartyProcessRates(copyFromParty, selectedParty);
+      await copyPartyProcessRates(copyFromParty, copyToParty);
       Modal.success({ title: 'Success', content: 'Rates copied successfully!' });
-      await loadAllRates();
+      if (selectedParty === copyToParty) {
+        await handlePartyChange(selectedParty);
+      }
       setCopyFromParty(null);
+      setCopyToParty(null);
     } catch (error) {
       Modal.error({ title: 'Error', content: error.response?.data?.message || 'Failed to copy rates' });
     } finally {
@@ -136,19 +139,13 @@ const PartyProcessRateSetting = () => {
 
   const handleFieldChange = (id, field, value) => {
     setRates(rates.map(r => r.id === id ? { ...r, [field]: value } : r));
-    setAllRates(allRates.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
 
   const columns = [
     {
-      title: 'Party',
-      dataIndex: 'partyName',
-      width: 200,
-    },
-    {
       title: 'Process',
       dataIndex: 'processName',
-      width: 180,
+      width: 200,
     },
     {
       title: 'Rate / Kg',
@@ -210,24 +207,6 @@ const PartyProcessRateSetting = () => {
         />
       ),
     },
-    {
-      title: 'Action',
-      key: 'actions',
-      width: 100,
-      render: (_, record) => (
-        canEdit() && (
-          <Button 
-            type="link" 
-            size="small" 
-            icon={<SaveOutlined />} 
-            onClick={() => handleSave(record)} 
-            loading={savingId === record.id}
-          >
-            Save
-          </Button>
-        )
-      ),
-    },
   ];
 
   return (
@@ -256,12 +235,12 @@ const PartyProcessRateSetting = () => {
         <Title level={3}>Party Process Rate Setting</Title>
         <Space style={{ marginTop: 16, width: '100%', justifyContent: 'space-between' }}>
           <Space>
-            <span>Filter Party:</span>
+            <span>Select Party:</span>
             <Select
               value={selectedParty}
               onChange={handlePartyChange}
-              style={{ width: 300 }}
-              placeholder="All Parties"
+              style={{ width: 250 }}
+              placeholder="Select Party"
               allowClear
               showSearch
               filterOption={(input, option) =>
@@ -272,6 +251,16 @@ const PartyProcessRateSetting = () => {
                 <Option key={p.id} value={p.id}>{p.partyName}</Option>
               ))}
             </Select>
+            {canEdit() && selectedParty && (
+              <Button 
+                type="primary" 
+                icon={<SaveOutlined />} 
+                onClick={handleSaveAll}
+                loading={savingId === 'saving'}
+              >
+                Save All
+              </Button>
+            )}
           </Space>
           <Space>
             <span>Copy From:</span>
@@ -280,6 +269,7 @@ const PartyProcessRateSetting = () => {
               onChange={setCopyFromParty}
               style={{ width: 200 }}
               placeholder="Select party"
+              allowClear
               showSearch
               filterOption={(input, option) =>
                 option.children.toLowerCase().includes(input.toLowerCase())
@@ -291,10 +281,11 @@ const PartyProcessRateSetting = () => {
             </Select>
             <span>To:</span>
             <Select
-              value={selectedParty}
-              onChange={setSelectedParty}
+              value={copyToParty}
+              onChange={setCopyToParty}
               style={{ width: 200 }}
               placeholder="Select party"
+              allowClear
               showSearch
               filterOption={(input, option) =>
                 option.children.toLowerCase().includes(input.toLowerCase())
@@ -304,7 +295,7 @@ const PartyProcessRateSetting = () => {
                 <Option key={p.id} value={p.id}>{p.partyName}</Option>
               ))}
             </Select>
-            <Button icon={<CopyOutlined />} onClick={handleCopy}>Copy</Button>
+            <Button icon={<CopyOutlined />} onClick={handleCopy} loading={savingId === 'copying'}>Copy</Button>
           </Space>
         </Space>
       </div>
@@ -313,10 +304,11 @@ const PartyProcessRateSetting = () => {
         columns={columns}
         dataSource={rates}
         rowKey="id"
-        pagination={{ pageSize: 20, showSizeChanger: true, pageSizeOptions: ['20', '50', '100'] }}
+        pagination={false}
         bordered
         size="small"
         className="compact-table"
+        loading={loading}
       />
     </Card>
   );
