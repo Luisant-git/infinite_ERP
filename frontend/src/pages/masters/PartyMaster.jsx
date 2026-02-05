@@ -100,7 +100,7 @@ const PartyMaster = () => {
         ...values,
         active: values.active ? 1 : 0,
         creditDays: values.creditDays || 0,
-        isApproval: 0,
+        isApproval: editingParty?.isApproval || 0,
         creditAmount: values.creditAmount || 0
       };
       

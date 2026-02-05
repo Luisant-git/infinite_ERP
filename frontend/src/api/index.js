@@ -20,6 +20,11 @@ apiClient.interceptors.request.use((config) => {
   
   if (user.username) {
     config.headers.username = user.username;
+    config.headers['user-id'] = user.id;
+  }
+  
+  if (user.concernId) {
+    config.headers['concern-id'] = user.concernId;
   }
   
   // Only add tenant-id for endpoints that need it

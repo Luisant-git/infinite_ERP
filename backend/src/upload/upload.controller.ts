@@ -20,8 +20,8 @@ export class UploadController {
       fileSize: 5 * 1024 * 1024, // 5MB
     },
     fileFilter: (req, file, cb) => {
-      if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-        return cb(new Error('Only image files are allowed!'), false);
+      if (!file.originalname.match(/\.(jpg|jpeg|png|gif|pdf)$/)) {
+        return cb(new Error('Only image and PDF files are allowed!'), false);
       }
       cb(null, true);
     },

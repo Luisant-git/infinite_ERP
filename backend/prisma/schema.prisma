@@ -40,6 +40,7 @@ model Tenant {
   concern     Concern @relation(fields: [concernId], references: [id])
   userTenants UserTenant[]
   fabricInwards FabricInwardHeader[]
+  rateQuotations RateQuotationHeader[]
   
   @@unique([concernId, financialYear])
   @@map("tenants")
@@ -91,6 +92,7 @@ model Party {
   contacts   PartyContact[]
   partyTypes PartyPartyType[]
   designs    Design[]
+  rateQuotations RateQuotationHeader[]
   
   @@map("parties")
 }
@@ -141,6 +143,7 @@ model Concern {
   contacts ConcernContact[]
   tenants  Tenant[]
   fabricInwards FabricInwardHeader[]
+  rateQuotations RateQuotationHeader[]
  
   @@map("concerns")
 }
@@ -201,6 +204,8 @@ model Process {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   
+  rateQuotationDetails RateQuotationDetail[]
+  
   @@map("processes")
 }
 
@@ -220,6 +225,7 @@ model Design {
   remarks         String?  @db.Text
   imagePath       String?  @db.VarChar(255)
   isActive        Boolean  @default(true)
+  isApproval      Int      @default(0)
   isDeleted       Boolean  @default(false)
   deletedAt       DateTime?
   deletedBy       Int?
@@ -347,4 +353,48 @@ model FabricInwardProcess {
   header FabricInwardHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
   
   @@map("fabric_inward_processes")
+}
+
+model RateQuotationHeader {
+  id              Int      @id @default(autoincrement())
+  tenantId        Int
+  quotNo          String   @db.VarChar(10)
+  quotDate        DateTime @default(now())
+  partyId         Int?
+  remarks         String?  @db.VarChar(100)
+  paymentTerms    String?  @db.VarChar(20)
+  createdBy       String?  @db.VarChar(50)
+  createdDate     DateTime @default(now())
+  modifiedBy      String?  @db.VarChar(50)
+  modifiedDate    DateTime @updatedAt
+  deletedBy       String?  @db.VarChar(50)
+  deletedDate     DateTime?
+  deleteFlg       Int      @default(0)
+  yearId          Int?
+  concernId       Int?
+  sortOrder       Int?
+  isApproval      Int      @default(0)
+  attachFile      String?  @db.VarChar(100)
+  
+  tenant  Tenant                   @relation(fields: [tenantId], references: [id])
+  concern Concern?                 @relation(fields: [concernId], references: [id])
+  party   Party?                   @relation(fields: [partyId], references: [id])
+  details RateQuotationDetail[]
+  
+  @@map("rate_quotation_headers")
+}
+
+model RateQuotationDetail {
+  id           Int      @id @default(autoincrement())
+  headerId     Int
+  processId    Int?
+  rate         Decimal  @default(0) @db.Decimal(12, 2)
+  confirmRate  Decimal  @default(0) @db.Decimal(12, 2)
+  remarks      String?  @db.VarChar(100)
+  deleteFlg    Int      @default(0)
+  
+  header  RateQuotationHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
+  process Process?            @relation(fields: [processId], references: [id])
+  
+  @@map("rate_quotation_details")
 }

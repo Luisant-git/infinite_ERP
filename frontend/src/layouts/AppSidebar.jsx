@@ -56,6 +56,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           icon: <TeamOutlined />,
           label: 'Party Master'
         }] : []),
+        ...(user?.adminUser === true ? [{
+          key: ROUTES.PARTY_APPROVAL,
+          icon: <TeamOutlined />,
+          label: 'Party Approval'
+        }] : []),
         ...(canView('party_type_master') ? [{
           key: ROUTES.PARTY_TYPE_MASTER,
           icon: <TeamOutlined />,
@@ -65,6 +70,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           key: ROUTES.DESIGN_MASTER,
           icon: <FileTextOutlined />,
           label: 'Design Master'
+        }] : []),
+        ...(user?.adminUser === true ? [{
+          key: ROUTES.DESIGN_APPROVAL,
+          icon: <FileTextOutlined />,
+          label: 'Design Approval'
         }] : []),
         ...(canView('process_master') ? [{
           key: ROUTES.PROCESS_MASTER,
@@ -93,7 +103,17 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           key: ROUTES.FABRIC_INWARD,
           icon: <FileTextOutlined />,
           label: 'Fabric Inward'
-        }
+        },
+        {
+          key: ROUTES.RATE_QUOTATION,
+          icon: <FileTextOutlined />,
+          label: 'Rate Quotation'
+        },
+        ...(user?.adminUser === true ? [{
+          key: ROUTES.RATE_QUOTATION_APPROVAL,
+          icon: <FileTextOutlined />,
+          label: 'Rate Quotation Approval'
+        }] : [])
         // {
         //   key: ROUTES.DC_ENTRY,
         //   icon: <FileTextOutlined />,

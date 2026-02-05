@@ -76,12 +76,14 @@ export class DesignService {
   }
 
   async update(id: number, updateDesignDto: UpdateDesignDto) {
+    const { id: _, customer, createdAt, updatedAt, deletedAt, deletedBy, isDeleted, ...cleanData } = updateDesignDto as any;
+    
     const allDesigns = await this.prisma.design.findMany({
       where: { isDeleted: false, NOT: { id } }
     });
 
-    if (updateDesignDto.designNo) {
-      const normalizedDesignNo = updateDesignDto.designNo.replace(/\s+/g, '').toLowerCase();
+    if (cleanData.designNo) {
+      const normalizedDesignNo = cleanData.designNo.replace(/\s+/g, '').toLowerCase();
       const existingNo = allDesigns.find(d => 
         d.designNo.replace(/\s+/g, '').toLowerCase() === normalizedDesignNo
       );
@@ -90,22 +92,22 @@ export class DesignService {
       }
     }
 
-    if (updateDesignDto.designName) {
-      const normalizedDesignName = updateDesignDto.designName.trim().replace(/\s+/g, '').toLowerCase();
+    if (cleanData.designName) {
+      const normalizedDesignName = cleanData.designName.trim().replace(/\s+/g, '').toLowerCase();
       const existingName = allDesigns.find(d => 
         d.designName.trim().replace(/\s+/g, '').toLowerCase() === normalizedDesignName
       );
       if (existingName) {
         throw new Error('Design name already exists');
       }
-      updateDesignDto.designName = updateDesignDto.designName.trim();
+      cleanData.designName = cleanData.designName.trim();
     }
 
     return this.prisma.design.update({
       where: { id },
       data: {
-        ...updateDesignDto,
-        date: updateDesignDto.date ? new Date(updateDesignDto.date) : undefined,
+        ...cleanData,
+        date: cleanData.date ? new Date(cleanData.date) : undefined,
       },
       include: { customer: true }
     });
