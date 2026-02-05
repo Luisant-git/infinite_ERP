@@ -77,10 +77,27 @@ const RateQuotationApproval = () => {
 
   const columns = [
     { title: 'S.No', key: 'sno', width: 50, render: (_, record, index) => index + 1 },
-    { title: 'Quot No', dataIndex: 'quotNo', width: 120 },
-    { title: 'Quot Date', dataIndex: 'quotDate', width: 120, render: (val) => dayjs(val).format('DD-MM-YYYY') },
-    { title: 'Party', dataIndex: ['party', 'partyName'], width: 180 },
-    { title: 'Payment Terms', dataIndex: 'paymentTerms', width: 120 },
+    { title: 'Quot No', dataIndex: 'quotNo', width: 100 },
+    { title: 'Date', dataIndex: 'quotDate', width: 100, render: (val) => dayjs(val).format('DD-MM-YYYY') },
+    { title: 'Customer', dataIndex: ['party', 'partyName'], width: 180 },
+    { 
+      title: 'Process', 
+      key: 'process', 
+      width: 200,
+      render: (_, record) => record.details?.map(d => d.process?.processName).filter(Boolean).join(', ') || 'N/A'
+    },
+    { 
+      title: 'Rate', 
+      key: 'rate', 
+      width: 100,
+      render: (_, record) => record.details?.[0]?.rate || 0
+    },
+    { 
+      title: 'Confirm Rate', 
+      key: 'confirmRate', 
+      width: 120,
+      render: (_, record) => record.details?.[0]?.confirmRate || 0
+    },
     {
       title: 'Approval',
       key: 'approval',
@@ -98,20 +115,18 @@ const RateQuotationApproval = () => {
       ),
     },
     {
-      title: 'Actions',
-      width: 100,
-      fixed: 'right',
+      title: 'View Attachment',
+      key: 'attachment',
+      width: 120,
+      align: 'center',
       render: (_, record) => (
-        <Space size="small">
-          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} />
-          <Button
-            type="link"
-            size="small"
-            icon={<FileOutlined />}
-            onClick={() => handleViewAttachment(record.attachFile)}
-            disabled={!record.attachFile}
-          />
-        </Space>
+        <Button
+          type="link"
+          size="small"
+          icon={<FileOutlined />}
+          onClick={() => handleViewAttachment(record.attachFile)}
+          disabled={!record.attachFile}
+        />
       ),
     },
   ];

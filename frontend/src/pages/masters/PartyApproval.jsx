@@ -83,7 +83,10 @@ const PartyApproval = () => {
       title: 'Address',
       key: 'address',
       width: 200,
-      render: (_, record) => [record.address1, record.address2, record.address3, record.address4].filter(Boolean).join(', ') || 'N/A',
+      render: (_, record) => {
+        const address = record.address1 || record.address2 || record.address3 || record.address4 || 'N/A';
+        return address;
+      },
     },
     {
       title: 'District',
