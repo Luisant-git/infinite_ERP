@@ -17,7 +17,7 @@ const RateQuotationApproval = () => {
   const loadQuotations = async () => {
     try {
       const response = await getRateQuotations('', 1, 1000);
-      const unapproved = (response.data || []).filter(q => q.isApproval === 0);
+      const unapproved = (response.data || []).filter(q => q.isApproval === 0 && q.details?.some(d => d.confirmRate > 0));
       setQuotations(unapproved);
     } catch (error) {
       console.error('Error loading quotations:', error);
