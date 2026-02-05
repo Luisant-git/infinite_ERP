@@ -157,6 +157,7 @@ const PartyMaster = () => {
               <p><strong>Tally Acc Name:</strong> {record.tallyAccName || 'N/A'}</p>
               <p><strong>GST No:</strong> {record.gstNo || 'N/A'}</p>
               <p><strong>Credit Days:</strong> {record.creditDays || 'N/A'}</p>
+              <p><strong>Credit Amount:</strong> {record.creditAmount || 0}</p>
               <p><strong>Account No:</strong> {record.accountNo || 'N/A'}</p>
               <p><strong>Bank:</strong> {record.bank || 'N/A'}</p>
               <p><strong>IFSC Code:</strong> {record.ifscCode || 'N/A'}</p>
