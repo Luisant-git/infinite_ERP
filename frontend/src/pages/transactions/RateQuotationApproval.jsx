@@ -3,12 +3,15 @@ import { Card, Table, Typography, Button, Checkbox, message, Space, Modal } from
 import { EyeOutlined, FileOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getRateQuotations, updateRateQuotation } from '../../api/rateQuotation';
+import { useSelector } from 'react-redux';
 
 const { Title } = Typography;
 
 const RateQuotationApproval = () => {
   const [loading, setLoading] = useState(false);
   const [quotations, setQuotations] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const { IsMD } = useSelector(state => state.auth);
 
   useEffect(() => {
     loadQuotations();
@@ -25,16 +28,23 @@ const RateQuotationApproval = () => {
   };
 
   const handleApprove = async (record) => {
-    setLoading(true);
-    try {
-      await updateRateQuotation(record.id, { ...record, isApproval: 1 });
-      message.success('Quotation approved successfully');
-      loadQuotations();
-    } catch (error) {
-      message.error('Failed to approve quotation');
-    } finally {
-      setLoading(false);
-    }
+    Modal.confirm({
+      title: 'Confirm Approval',
+      content: `Are you sure you want to approve quotation ${record.quotNo}?`,
+      onOk: async () => {
+        setLoading(true);
+        try {
+          await updateRateQuotation(record.id, { ...record, isApproval: 1 });
+          message.success('Quotation approved successfully');
+          setSelectedRows([]);
+          loadQuotations();
+        } catch (error) {
+          message.error('Failed to approve quotation');
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   const handleViewAttachment = (url) => {
@@ -77,56 +87,69 @@ const RateQuotationApproval = () => {
 
   const columns = [
     { title: 'S.No', key: 'sno', width: 50, render: (_, record, index) => index + 1 },
+    { title: 'Concern', dataIndex: ['concern', 'partyName'], width: 120 },
     { title: 'Quot No', dataIndex: 'quotNo', width: 100 },
     { title: 'Date', dataIndex: 'quotDate', width: 100, render: (val) => dayjs(val).format('DD-MM-YYYY') },
-    { title: 'Customer', dataIndex: ['party', 'partyName'], width: 180 },
+    { title: 'Customer', dataIndex: ['party', 'partyName'], width: 150 },
     { 
       title: 'Process', 
       key: 'process', 
-      width: 200,
+      width: 150,
       render: (_, record) => record.details?.map(d => d.process?.processName).filter(Boolean).join(', ') || 'N/A'
     },
     { 
       title: 'Rate', 
       key: 'rate', 
-      width: 100,
+      width: 80,
       render: (_, record) => record.details?.[0]?.rate || 0
     },
     { 
       title: 'Confirm Rate', 
       key: 'confirmRate', 
-      width: 120,
+      width: 100,
       render: (_, record) => record.details?.[0]?.confirmRate || 0
     },
     {
       title: 'Approval',
       key: 'approval',
-      width: 100,
+      width: 80,
       align: 'center',
       render: (_, record) => (
         <Checkbox
-          checked={false}
+          checked={selectedRows.includes(record.id)}
           onChange={(e) => {
             if (e.target.checked) {
-              handleApprove(record);
+              setSelectedRows([...selectedRows, record.id]);
+            } else {
+              setSelectedRows(selectedRows.filter(id => id !== record.id));
             }
           }}
         />
       ),
     },
     {
-      title: 'View Attachment',
-      key: 'attachment',
+      title: 'Actions',
+      key: 'actions',
       width: 120,
       align: 'center',
       render: (_, record) => (
-        <Button
-          type="link"
-          size="small"
-          icon={<FileOutlined />}
-          onClick={() => handleViewAttachment(record.attachFile)}
-          disabled={!record.attachFile}
-        />
+        <Space size="small">
+          <Button
+            type="link"
+            size="small"
+            icon={<FileOutlined />}
+            onClick={() => handleViewAttachment(record.attachFile)}
+            disabled={!record.attachFile}
+          />
+          <Button 
+            type="primary" 
+            size="small" 
+            onClick={() => handleApprove(record)}
+            disabled={!selectedRows.includes(record.id)}
+          >
+            Update
+          </Button>
+        </Space>
       ),
     },
   ];

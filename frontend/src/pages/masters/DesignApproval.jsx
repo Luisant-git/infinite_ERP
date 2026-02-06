@@ -3,12 +3,15 @@ import { Card, Table, Typography, Button, Checkbox, message, Space, Modal } from
 import { EyeOutlined, FileImageOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getDesigns, updateDesign } from '../../api/design';
+import { useSelector } from 'react-redux';
 
 const { Title } = Typography;
 
 const DesignApproval = () => {
   const [loading, setLoading] = useState(false);
   const [designs, setDesigns] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const { IsMD } = useSelector(state => state.auth);
 
   useEffect(() => {
     loadDesigns();
@@ -25,16 +28,23 @@ const DesignApproval = () => {
   };
 
   const handleApprove = async (record) => {
-    setLoading(true);
-    try {
-      await updateDesign(record.id, { ...record, isApproval: 1 });
-      message.success('Design approved successfully');
-      loadDesigns();
-    } catch (error) {
-      message.error('Failed to approve design');
-    } finally {
-      setLoading(false);
-    }
+    Modal.confirm({
+      title: 'Confirm Approval',
+      content: `Are you sure you want to approve ${record.designName}?`,
+      onOk: async () => {
+        setLoading(true);
+        try {
+          await updateDesign(record.id, { ...record, isApproval: 1 });
+          message.success('Design approved successfully');
+          setSelectedRows([]);
+          loadDesigns();
+        } catch (error) {
+          message.error('Failed to approve design');
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   const handleViewImage = (url) => {
@@ -75,28 +85,30 @@ const DesignApproval = () => {
 
   const columns = [
     { title: 'S.No', key: 'sno', width: 50, render: (_, record, index) => index + 1 },
-    { title: 'Design No', dataIndex: 'designNo', width: 140 },
-    { title: 'Design Name', dataIndex: 'designName', width: 180 },
-    { title: 'Customer', dataIndex: ['customer', 'partyName'], width: 180 },
-    { title: 'Print Type', dataIndex: 'typeOfPrint', width: 130 },
+    { title: 'Design No', dataIndex: 'designNo', width: 120 },
+    { title: 'Design Name', dataIndex: 'designName', width: 150 },
+    { title: 'Customer', dataIndex: ['customer', 'partyName'], width: 150 },
+    { title: 'Print Type', dataIndex: 'typeOfPrint', width: 120 },
     { 
       title: 'NoofColor/NoofPrint', 
       key: 'colorPrint', 
-      width: 150,
+      width: 130,
       render: (_, record) => `${record.noOfColor} / ${record.noOfPrint}`
     },
-    { title: 'Rate', dataIndex: 'commercialRate', width: 100, render: (val) => `₹${val}` },
+    { title: 'Rate', dataIndex: 'commercialRate', width: 80, render: (val) => `₹${val}` },
     {
       title: 'Approval',
       key: 'approval',
-      width: 100,
+      width: 80,
       align: 'center',
       render: (_, record) => (
         <Checkbox
-          checked={false}
+          checked={selectedRows.includes(record.id)}
           onChange={(e) => {
             if (e.target.checked) {
-              handleApprove(record);
+              setSelectedRows([...selectedRows, record.id]);
+            } else {
+              setSelectedRows(selectedRows.filter(id => id !== record.id));
             }
           }}
         />
@@ -104,7 +116,7 @@ const DesignApproval = () => {
     },
     {
       title: 'Actions',
-      width: 100,
+      width: 140,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
@@ -116,6 +128,14 @@ const DesignApproval = () => {
             onClick={() => handleViewImage(record.imagePath)}
             disabled={!record.imagePath}
           />
+          <Button 
+            type="primary" 
+            size="small" 
+            onClick={() => handleApprove(record)}
+            disabled={!selectedRows.includes(record.id)}
+          >
+            Update
+          </Button>
         </Space>
       ),
     },

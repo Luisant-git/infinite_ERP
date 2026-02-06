@@ -21,6 +21,7 @@ model User {
   canAdd     Boolean  @default(false)
   canEdit    Boolean  @default(false)
   canDelete  Boolean  @default(false)
+  IsMD       Int      @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   

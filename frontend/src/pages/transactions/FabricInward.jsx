@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Form, Input, Button, Row, Col, Typography, Select, DatePicker, Table, Modal, InputNumber, message, Space } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, PrinterOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, PrinterOutlined, EyeOutlined } from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
 import dayjs from 'dayjs';
 import { 
@@ -12,6 +12,8 @@ import { getDesigns } from '../../api/design';
 import { getProcesses } from '../../api/process';
 import { getPartyProcessRates } from '../../api/partyProcessRate';
 import FabricInwardPrint from '../../components/prints/FabricInwardPrint';
+import { useMenuPermissions } from '../../hooks/useMenuPermissions';
+import { useSelector } from 'react-redux';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -22,6 +24,8 @@ const FabricInward = () => {
   const [fabricInwards, setFabricInwards] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const { adminUser: isAdmin } = useMenuPermissions();
+  const { selectedCompany, selectedYear } = useSelector(state => state.auth);
   
   const [parties, setParties] = useState([]);
   const [dyeingParties, setDyeingParties] = useState([]);
@@ -39,6 +43,8 @@ const FabricInward = () => {
   const [selectedDyeingParty, setSelectedDyeingParty] = useState(null);
   const [printData, setPrintData] = useState(null);
   const printRef = useRef();
+  const [searchText, setSearchText] = useState('');
+  const [isViewMode, setIsViewMode] = useState(false);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -107,10 +113,37 @@ const FabricInward = () => {
       setDcType('Fresh');
       setEditingId(null);
       setIsFormVisible(true);
+      setIsViewMode(false);
     } catch (error) {
       console.error('Error:', error);
       message.error('Failed to generate GRN number');
     }
+  };
+
+  const handleView = (record) => {
+    setEditingId(record.id);
+    form.setFieldsValue({
+      ...record,
+      grnDate: dayjs(record.grnDate),
+      pdcDate: record.pdcDate ? dayjs(record.pdcDate) : null,
+      dyeingDcDate: record.dyeingDcDate ? dayjs(record.dyeingDcDate) : null
+    });
+    setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
+    
+    const processesWithIds = record.processes?.map(p => {
+      const process = processes.find(pr => pr.processName === p.processName);
+      return {
+        ...p,
+        key: p.id,
+        processId: process?.id || null
+      };
+    }) || [];
+    
+    setSelectedProcesses(processesWithIds);
+    setFabricType(record.fabricType);
+    setDcType(record.dcType);
+    setIsFormVisible(true);
+    setIsViewMode(true);
   };
 
   const handleEdit = (record) => {
@@ -136,6 +169,7 @@ const FabricInward = () => {
     setFabricType(record.fabricType);
     setDcType(record.dcType);
     setIsFormVisible(true);
+    setIsViewMode(false);
   };
 
   const handleDelete = (id) => {
@@ -161,7 +195,37 @@ const FabricInward = () => {
 
   const handleSubmit = async (shouldPrint = false) => {
     try {
-      const values = await form.validateFields();
+      const values = await form.validateFields(['grnNo', 'grnDate', 'pdcNo', 'dyeingPartyId']);
+      
+      if (selectedProcesses.length === 0) {
+        message.error('Please select at least one process');
+        return;
+      }
+      
+      if (!editingId) {
+        const duplicate = fabricInwards.find(f => f.grnNo === values.grnNo);
+        if (duplicate) {
+          message.error('GRN number already exists!');
+          return;
+        }
+      }
+      
+      const duplicateDetail = details.find((d, index) => 
+        details.findIndex((d2, i2) => i2 !== index && 
+          d.fabricId === d2.fabricId && 
+          d.diaId === d2.diaId && 
+          d.colorId === d2.colorId && 
+          d.gsm === d2.gsm && 
+          d.designId === d2.designId && 
+          d.uomId === d2.uomId
+        ) !== -1
+      );
+      
+      if (duplicateDetail) {
+        message.error('Duplicate row found in details. Please check Fabric/Dia/Color/GSM/Design/UOM combination.');
+        return;
+      }
+      
       setLoading(true);
 
       const totalQty = details.reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
@@ -217,7 +281,11 @@ const FabricInward = () => {
       }
     } catch (error) {
       console.error('Error saving:', error);
-      message.error('Failed to save');
+      if (error.errorFields) {
+        message.error('Please fill all required fields');
+      } else {
+        message.error('Failed to save');
+      }
     } finally {
       setLoading(false);
     }
@@ -249,6 +317,12 @@ const FabricInward = () => {
     setDetails(details.map(d => {
       if (d.key === key) {
         console.log(`Updating ${field}:`, value);
+        if (field === 'designId' && fabricType === 'Print Lot') {
+          const design = designs.find(des => des.id === value);
+          if (design) {
+            return { ...d, designId: value, designName: design.designName, noOfColor: design.noOfColor };
+          }
+        }
         return { ...d, [field]: value };
       }
       return d;
@@ -346,8 +420,7 @@ const FabricInward = () => {
       )
     },
     ...(fabricType === 'Print Lot' ? [
-      {
-        title: 'Design No',
+      {title: 'Design No',
         dataIndex: 'designId',
         width: 150,
         render: (val, record) => (
@@ -356,8 +429,9 @@ const FabricInward = () => {
             onChange={(v) => handleDetailChange(record.key, 'designId', v)}
             style={{ width: '100%' }}
             showSearch
+            filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
           >
-            {designs.map(d => <Option key={d.id} value={d.id}>{d.designNo}</Option>)}
+            {designs.map(d => <Option key={d.id} value={d.id}>{`${d.designNo} / ${d.designName}`}</Option>)}
           </Select>
         )
       },
@@ -365,39 +439,13 @@ const FabricInward = () => {
         title: 'Design Name',
         dataIndex: 'designName',
         width: 150,
-        render: (val, record) => (
-          <Select
-            value={val || undefined}
-            onChange={(v) => {
-              const design = designs.find(d => d.designName === v);
-              if (design) {
-                setDetails(details.map(d => 
-                  d.key === record.key 
-                    ? { ...d, designName: v, designId: design.id } 
-                    : d
-                ));
-              } else {
-                handleDetailChange(record.key, 'designName', v);
-              }
-            }}
-            style={{ width: '100%' }}
-            showSearch
-            allowClear
-            placeholder="Select design"
-            filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-            getPopupContainer={trigger => trigger.parentNode}
-          >
-            {designs.map(d => <Option key={d.id} value={d.designName}>{d.designName}</Option>)}
-          </Select>
-        )
+        render: (val) => <Input value={val} disabled style={{ width: '100%' }} />
       },
       {
         title: 'No of Color',
         dataIndex: 'noOfColor',
         width: 100,
-        render: (val, record) => (
-          <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'noOfColor', v)} style={{ width: '100%' }} />
-        )
+        render: (val) => <InputNumber value={val} disabled style={{ width: '100%' }} />
       }
     ] : []),
     {
@@ -531,11 +579,12 @@ const FabricInward = () => {
     { title: 'Total Rolls', dataIndex: 'totalRolls', width: 100 },
     {
       title: 'Actions',
-      width: 100,
+      width: 120,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRecord(record)} style={{ color: '#1890ff' }} />
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} style={{ color: '#1890ff' }} />
+          <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRecord(record)} style={{ color: '#722ed1' }} />
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
           <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
         </Space>
@@ -545,6 +594,33 @@ const FabricInward = () => {
 
   const totalQty = details.reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
   const totalRolls = details.reduce((sum, d) => sum + (d.rolls || 0), 0);
+
+  const filteredFabricInwards = fabricInwards.filter(item => {
+    if (!searchText) return true;
+    const search = searchText.toLowerCase();
+    const party = parties.find(p => p.id === item.partyId);
+    const dyeParty = dyeingParties.find(p => p.id === item.dyeingPartyId);
+    const itemDetails = item.details || [];
+    
+    return (
+      item.grnNo?.toLowerCase().includes(search) ||
+      dayjs(item.grnDate).format('DD-MM-YYYY').includes(search) ||
+      item.fabricType?.toLowerCase().includes(search) ||
+      party?.partyName?.toLowerCase().includes(search) ||
+      item.pdcNo?.toLowerCase().includes(search) ||
+      dyeParty?.partyName?.toLowerCase().includes(search) ||
+      item.dyeingDcNo?.toLowerCase().includes(search) ||
+      itemDetails.some(d => 
+        fabrics.find(f => f.id === d.fabricId)?.masterName?.toLowerCase().includes(search) ||
+        colors.find(c => c.id === d.colorId)?.masterName?.toLowerCase().includes(search) ||
+        dias.find(dia => dia.id === d.diaId)?.masterName?.toLowerCase().includes(search) ||
+        designs.find(des => des.id === d.designId)?.designName?.toLowerCase().includes(search) ||
+        d.rolls?.toString().includes(search) ||
+        d.weight?.toString().includes(search)
+      ) ||
+      item.processes?.some(p => processes.find(pr => pr.id === p.processId || pr.processName === p.processName)?.processName?.toLowerCase().includes(search))
+    );
+  });
 
   return (
     <Card>
@@ -569,72 +645,86 @@ const FabricInward = () => {
           line-height: 1 !important;
         }
       `}</style>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-        <Title level={3}>Fabric Inward</Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
+      <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Title level={4} style={{ margin: 0 }}>Fabric Inward</Title>
+        {!isFormVisible && (
+          <Space style={{ width: 'auto' }}>
+            <Input 
+              placeholder="Search fabric inwards" 
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{ width: 280, height: 32 }}
+              size="small"
+              allowClear
+            />
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
+          </Space>
+        )}
       </div>
 
       {!isFormVisible ? (
-        <Table columns={listColumns} dataSource={fabricInwards} rowKey="id" size="small" className="compact-table" />
+        <Table columns={listColumns} dataSource={filteredFabricInwards} rowKey="id" size="small" className="compact-table" />
       ) : (
-        <Form form={form} layout="vertical">
-          <Row gutter={16}>
-            <Col span={4}>
-              <Form.Item label="GRN No" name="grnNo">
-                <Input disabled />
+        <Form form={form} layout="vertical" size="small">
+          <Row gutter={8}>
+            <Col span={6}>
+              <Form.Item label="GRN No" name="grnNo" rules={[{ required: true }]} style={{ marginBottom: 8 }}>
+                <Input disabled={!isAdmin} />
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="GRN Date" name="grnDate">
-                <DatePicker style={{ width: '100%' }} format="DD-MM-YYYY" />
+            <Col span={6}>
+              <Form.Item label="GRN Date" name="grnDate" rules={[{ required: true }]} style={{ marginBottom: 8 }}>
+                <DatePicker style={{ width: '100%', height: '40px' }} format="DD-MM-YYYY" size="large" />
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="Party" name="partyId">
-                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}>
+            <Col span={6}>
+              <Form.Item label="Party" name="partyId" style={{ marginBottom: 8 }}>
+                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '40px' }} size="large">
                   {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="PDC No" name="pdcNo">
+            <Col span={6}>
+              <Form.Item label="PDC No" name="pdcNo" rules={[{ required: true, message: 'PDC No is required' }]} style={{ marginBottom: 8 }}>
                 <Input />
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="PDC Date" name="pdcDate">
-                <DatePicker style={{ width: '100%' }} format="DD-MM-YYYY" />
+            <Col span={6}>
+              <Form.Item label="PDC Date" name="pdcDate" style={{ marginBottom: 8 }}>
+                <DatePicker style={{ width: '100%', height: '40px' }} format="DD-MM-YYYY" size="large" />
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="Dyeing Party" name="dyeingPartyId">
+            <Col span={6}>
+              <Form.Item label="Dyeing Party" name="dyeingPartyId" rules={[{ required: true, message: 'Dyeing Party is required' }]} style={{ marginBottom: 8 }}>
                 <Select 
                   showSearch 
                   onChange={setSelectedDyeingParty}
                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                  style={{ height: '40px' }}
+                  size="large"
                 >
                   {dyeingParties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="Dyeing DC No" name="dyeingDcNo">
+            <Col span={6}>
+              <Form.Item label="Dyeing DC No" name="dyeingDcNo" style={{ marginBottom: 8 }}>
                 <Input />
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="Dyeing DC Date" name="dyeingDcDate">
-                <DatePicker style={{ width: '100%' }} format="DD-MM-YYYY" />
+            <Col span={6}>
+              <Form.Item label="Dyeing DC Date" name="dyeingDcDate" style={{ marginBottom: 8 }}>
+                <DatePicker style={{ width: '100%', height: '40px' }} format="DD-MM-YYYY" size="large" />
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="Order No" name="orderNo">
+            <Col span={6}>
+              <Form.Item label="Order No" name="orderNo" style={{ marginBottom: 8 }}>
                 <Input />
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="DC Type" name="dcType">
-                <Select onChange={setDcType}>
+            <Col span={6}>
+              <Form.Item label="DC Type" name="dcType" style={{ marginBottom: 8 }}>
+                <Select onChange={setDcType} style={{ height: '40px' }} size="large">
                   <Option value="Fresh">Fresh</Option>
                   <Option value="Re-Process(Free)">Re-Process(Free)</Option>
                   <Option value="Re-Process(Charge)">Re-Process(Charge)</Option>
@@ -642,9 +732,9 @@ const FabricInward = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="Fabric Type" name="fabricType">
-                <Select onChange={setFabricType}>
+            <Col span={6}>
+              <Form.Item label="Fabric Type" name="fabricType" style={{ marginBottom: 8 }}>
+                <Select onChange={setFabricType} style={{ height: '40px' }} size="large">
                   <Option value="Wet Lot">Wet Lot</Option>
                   <Option value="Dry Lot">Dry Lot</Option>
                   <Option value="Grey Lot">Grey Lot</Option>
@@ -652,29 +742,31 @@ const FabricInward = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="Vehicle No" name="vehicleNo">
+            <Col span={6}>
+              <Form.Item label="Vehicle No" name="vehicleNo" style={{ marginBottom: 8 }}>
                 <Input />
               </Form.Item>
             </Col>
-            <Col span={8}>
-              <Form.Item label="Remarks" name="remarks">
+            <Col span={12}>
+              <Form.Item label="Remarks" name="remarks" style={{ marginBottom: 8 }}>
                 <Input />
               </Form.Item>
             </Col>
           </Row>
 
-          <div style={{ marginTop: 16 }}>
+          <div style={{ marginTop: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
               <Title level={5}>Details</Title>
-              <Button type="dashed" icon={<PlusOutlined />} onClick={handleAddDetail}>Add Row</Button>
+              <Button type="dashed" icon={<PlusOutlined />} onClick={handleAddDetail} style={{ backgroundColor: '#031d38', color: '#fff', borderColor: '#031d38' }}>Add Row</Button>
             </div>
             <Table 
               columns={detailColumns} 
               dataSource={details} 
               pagination={false} 
-              scroll={{ x: 1800, y: 400 }}
+              scroll={details.length > 0 ? { x: 1800, y: 300 } : { x: 1800 }}
               size="small"
+              bordered
+              locale={{ emptyText: 'Click Add Row to add details' }}
               footer={() => (
                 <div style={{ textAlign: 'right', fontWeight: 'bold' }}>
                   Total Qty: {totalQty.toFixed(3)} | Total Rolls: {totalRolls}
@@ -683,8 +775,8 @@ const FabricInward = () => {
             />
           </div>
 
-          <div style={{ marginTop: 16 }}>
-            <Title level={5}>Process Selection</Title>
+          <div style={{ marginTop: 8 }}>
+            <Title level={5} style={{ margin: 0, marginBottom: 8 }}>Process Selection</Title>
             <Select
               mode="multiple"
               style={{ width: '100%', marginBottom: 8 }}
@@ -702,7 +794,7 @@ const FabricInward = () => {
             />
           </div>
 
-          <div style={{ marginTop: 16, textAlign: 'right' }}>
+          <div style={{ marginTop: 8, textAlign: 'right' }}>
             <Space>
               <Button icon={<CloseOutlined />} onClick={() => setIsFormVisible(false)}>Cancel</Button>
               <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={() => handleSubmit(false)}>Save</Button>

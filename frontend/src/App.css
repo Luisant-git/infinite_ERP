@@ -142,7 +142,8 @@
   background: var(--gray-100) !important;
   border-bottom: 2px solid var(--border-color) !important;
   font-weight: 600 !important;
-  color: var(--text-primary) !important;
+  color: #ffff !important;
+  /* color: var(--text-primary) !important; */
   font-size: var(--font-size-sm) !important;
   padding: var(--spacing-md) !important;
 }

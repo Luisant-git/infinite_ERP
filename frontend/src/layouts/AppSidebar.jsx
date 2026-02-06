@@ -25,7 +25,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { canDCClose, user } = usePermissions();
+  const { canDCClose, user, isMD } = usePermissions();
   const { canView } = useMenuPermissions();
   const menuItems = [
     ...(canView('dashboard') ? [{
@@ -110,7 +110,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
         // }] : [])
       ]
     },
-    ...(user?.adminUser === true ? [{
+    ...(user?.adminUser === true || isMD === 1 ? [{
       key: 'approval',
       icon: <FileTextOutlined />,
       label: 'Approval',

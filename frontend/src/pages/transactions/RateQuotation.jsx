@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Button, Row, Col, Typography, Select, DatePicker, Table, Modal, InputNumber, message, Space, Upload } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, UploadOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, UploadOutlined, EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getNextQuotNo, getRateQuotations, createRateQuotation, updateRateQuotation, deleteRateQuotation } from '../../api/rateQuotation';
 import { getParties } from '../../api/party';
 import { getProcesses } from '../../api/process';
 import { uploadImage } from '../../api/upload';
+import { useSelector } from 'react-redux';
+import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -21,6 +23,9 @@ const RateQuotation = () => {
   const [processes, setProcesses] = useState([]);
   const [details, setDetails] = useState([]);
   const [fileList, setFileList] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  const { selectedCompany, selectedYear } = useSelector(state => state.auth);
+  const { adminUser: isAdmin } = useMenuPermissions();
 
   useEffect(() => {
     loadData();
@@ -80,6 +85,36 @@ const RateQuotation = () => {
     setIsFormVisible(true);
   };
 
+  const handleView = (record) => {
+    Modal.info({
+      title: 'Rate Quotation Details',
+      width: 700,
+      content: (
+        <div>
+          <p><strong>Quot No:</strong> {record.quotNo}</p>
+          <p><strong>Date:</strong> {dayjs(record.quotDate).format('DD-MM-YYYY')}</p>
+          <p><strong>Party:</strong> {record.party?.partyName || 'N/A'}</p>
+          <p><strong>Payment Terms:</strong> {record.paymentTerms || 'N/A'}</p>
+          <p><strong>Remarks:</strong> {record.remarks || 'N/A'}</p>
+          <div style={{ marginTop: 16 }}>
+            <strong>Process Details:</strong>
+            <Table
+              size="small"
+              dataSource={record.details || []}
+              pagination={false}
+              columns={[
+                { title: 'Process', dataIndex: ['process', 'processName'], key: 'process' },
+                { title: 'Rate', dataIndex: 'rate', key: 'rate' },
+                { title: 'Confirm Rate', dataIndex: 'confirmRate', key: 'confirmRate' },
+                { title: 'Remarks', dataIndex: 'remarks', key: 'remarks' }
+              ]}
+            />
+          </div>
+        </div>
+      ),
+    });
+  };
+
   const handleDelete = (id) => {
     Modal.confirm({
       title: 'Delete Rate Quotation',
@@ -99,12 +134,22 @@ const RateQuotation = () => {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      
+      if (!editingId) {
+        const duplicate = quotations.find(q => q.quotNo === values.quotNo);
+        if (duplicate) {
+          message.error('Quotation number already exists!');
+          return;
+        }
+      }
+      
       setLoading(true);
 
       const data = {
         ...values,
         quotDate: values.quotDate?.toISOString(),
         attachFile: fileList.length > 0 ? fileList[0].url : null,
+        isApproval: editingId ? 0 : undefined,
         details: details.map(d => ({
           processId: d.processId,
           rate: Number(d.rate) || 0,
@@ -115,7 +160,7 @@ const RateQuotation = () => {
 
       if (editingId) {
         await updateRateQuotation(editingId, data);
-        message.success('Updated successfully');
+        message.success('Updated successfully - Sent for approval');
       } else {
         await createRateQuotation(data);
         message.success('Created successfully');
@@ -210,18 +255,47 @@ const RateQuotation = () => {
     }
   ];
 
+  const filteredQuotations = quotations.filter(q => {
+    if (!searchText) return true;
+    const search = searchText.toLowerCase();
+    return (
+      q.quotNo?.toLowerCase().includes(search) ||
+      dayjs(q.quotDate).format('DD-MM-YYYY').includes(search) ||
+      q.party?.partyName?.toLowerCase().includes(search) ||
+      q.paymentTerms?.toLowerCase().includes(search) ||
+      q.details?.some(d => 
+        d.process?.processName?.toLowerCase().includes(search) ||
+        d.rate?.toString().includes(search) ||
+        d.confirmRate?.toString().includes(search)
+      )
+    );
+  });
+
   const listColumns = [
     { title: 'S.No', key: 'sno', width: 50, render: (_, record, index) => index + 1 },
-    { title: 'Quot No', dataIndex: 'quotNo', width: 120 },
-    { title: 'Quot Date', dataIndex: 'quotDate', width: 120, render: (val) => dayjs(val).format('DD-MM-YYYY') },
-    { title: 'Party', dataIndex: ['party', 'partyName'], width: 180 },
+    { title: 'Quot No', dataIndex: 'quotNo', width: 100 },
+    { title: 'Date', dataIndex: 'quotDate', width: 100, render: (val) => dayjs(val).format('DD-MM-YYYY') },
+    { title: 'Party', dataIndex: ['party', 'partyName'], width: 150 },
     { title: 'Payment Terms', dataIndex: 'paymentTerms', width: 120 },
+    { 
+      title: 'Process', 
+      key: 'process', 
+      width: 150,
+      render: (_, record) => record.details?.map(d => d.process?.processName).filter(Boolean).join(', ') || 'N/A'
+    },
+    { 
+      title: 'Rate', 
+      key: 'rate', 
+      width: 80,
+      render: (_, record) => record.details?.[0]?.rate || 0
+    },
     {
       title: 'Actions',
       width: 100,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} />
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
           <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
         </Space>
@@ -252,71 +326,88 @@ const RateQuotation = () => {
           line-height: 1 !important;
         }
       `}</style>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-        <Title level={3}>Rate Quotation</Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
+      <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Title level={4} style={{ margin: 0 }}>Rate Quotation</Title>
+        {!isFormVisible && (
+          <Space style={{ width: 'auto' }}>
+          <Input 
+            placeholder="Search quotations" 
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 280, height: 32 }}
+            size="small"
+            allowClear
+          />
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
+        </Space>
+        )}
       </div>
 
       {!isFormVisible ? (
-        <Table columns={listColumns} dataSource={quotations} rowKey="id" size="small" className="compact-table" />
+        <Table columns={listColumns} dataSource={filteredQuotations} rowKey="id" size="small" className="compact-table" />
       ) : (
-        <Form form={form} layout="vertical">
-          <Row gutter={16}>
-            <Col span={4}>
-              <Form.Item label="Quot No" name="quotNo">
-                <Input disabled />
+        <Form form={form} layout="vertical" size="small">
+          <Row gutter={8}>
+            <Col span={12}>
+              <Form.Item label="Quot No" name="quotNo" style={{ marginBottom: 12 }}>
+                <Input disabled={!isAdmin} style={{ width: '60%' }} />
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="Quot Date" name="quotDate">
-                <DatePicker style={{ width: '100%' }} format="DD-MM-YYYY" />
-              </Form.Item>
+            <Col span={12}>
+              <div style={{ marginLeft: '-35%' }}>
+                <Form.Item label="Quot Date" name="quotDate" style={{ marginBottom: 12 }}>
+                  <DatePicker style={{ width: '60%', height: '40px' }} format="DD-MM-YYYY" size="large" />
+                </Form.Item>
+              </div>
             </Col>
-            <Col span={6}>
-              <Form.Item label="Party" name="partyId">
-                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}>
+            <Col span={12}>
+              <Form.Item label="Party" name="partyId" style={{ marginBottom: 12 }}>
+                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ width: '60%', height: '40px' }} size="large">
                   {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="Payment Terms" name="paymentTerms">
-                <Input />
-              </Form.Item>
+            <Col span={12}>
+              <div style={{ marginLeft: '-35%' }}>
+                <Form.Item label="Payment Terms" name="paymentTerms" style={{ marginBottom: 12 }}>
+                  <Input style={{ width: '60%' }} />
+                </Form.Item>
+              </div>
             </Col>
-            <Col span={6}>
-              <Form.Item label="Attach File">
+            <Col span={12}>
+              <Form.Item label="Attach File" style={{ marginBottom: 12 }}>
                 <Upload customRequest={handleUpload} fileList={fileList} onRemove={() => setFileList([])} accept="image/*,.pdf">
-                  <Button icon={<UploadOutlined />}>Upload</Button>
+                  <Button icon={<UploadOutlined />} size="small">Upload</Button>
                 </Upload>
-                <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>Accepted: JPG, PNG, PDF (Max 5MB)</div>
               </Form.Item>
             </Col>
           </Row>
 
-          <div style={{ marginTop: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Title level={5}>Process Details</Title>
-              <Button type="dashed" icon={<PlusOutlined />} onClick={handleAddDetail}>Add Row</Button>
+          <div style={{ marginTop: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <Title level={5} style={{ margin: 0 }}>Process Details</Title>
+              <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAddDetail} style={{ backgroundColor: '#031d38', color: '#fff', borderColor: '#031d38' }}>Add Row</Button>
             </div>
             <Table 
               columns={detailColumns} 
               dataSource={details} 
               pagination={false} 
-              scroll={{ x: 800, y: 400 }}
+              scroll={details.length > 0 ? { x: 800, y: 300 } : { x: 800 }}
               size="small"
+              bordered
+              locale={{ emptyText: 'Click Add Row to add process details' }}
             />
           </div>
 
-          <Row gutter={16} style={{ marginTop: 16 }}>
+          <Row gutter={8} style={{ marginTop: 8 }}>
             <Col span={24}>
-              <Form.Item label="Remarks / Terms" name="remarks">
-                <TextArea rows={4} />
+              <Form.Item label="Remarks / Terms" name="remarks" style={{ marginBottom: 12 }}>
+                <TextArea rows={2} />
               </Form.Item>
             </Col>
           </Row>
 
-          <div style={{ marginTop: 16, textAlign: 'right' }}>
+          <div style={{ marginTop: 8, textAlign: 'right' }}>
             <Space>
               <Button icon={<CloseOutlined />} onClick={() => setIsFormVisible(false)}>Cancel</Button>
               <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={handleSubmit}>Save</Button>

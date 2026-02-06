@@ -29,6 +29,7 @@ export const usePermissions = () => {
   const canDelete = () => user?.adminUser || user?.canDelete || false;
   const canDCClose = () => user?.adminUser || user?.dcClose || false;
   const isAdmin = () => user?.adminUser || false;
+  const isMD = user?.IsMD || 0;
 
   return {
     user,
@@ -36,6 +37,7 @@ export const usePermissions = () => {
     canEdit,
     canDelete,
     canDCClose,
-    isAdmin
+    isAdmin,
+    isMD
   };
 };

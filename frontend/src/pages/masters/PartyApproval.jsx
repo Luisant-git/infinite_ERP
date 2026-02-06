@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Table, Typography, Space, Button, Checkbox, message, Modal } from 'antd';
 import { EyeOutlined, CheckOutlined } from '@ant-design/icons';
 import { getParties, updateParty } from '../../api/party';
+import { useSelector } from 'react-redux';
 
 const { Title } = Typography;
 
@@ -9,6 +10,8 @@ const PartyApproval = () => {
   const [loading, setLoading] = useState(false);
   const [parties, setParties] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const [selectedRows, setSelectedRows] = useState([]);
+  const { IsMD } = useSelector(state => state.auth);
 
   useEffect(() => {
     loadParties();
@@ -35,49 +38,56 @@ const PartyApproval = () => {
   };
 
   const handleApprove = async (record) => {
-    setLoading(true);
-    try {
-      const updateData = {
-        partyName: record.partyName,
-        partyCode: record.partyCode,
-        address1: record.address1,
-        address2: record.address2,
-        address3: record.address3,
-        address4: record.address4,
-        pincode: record.pincode,
-        district: record.district,
-        state: record.state,
-        mobileNo: record.mobileNo,
-        phoneNo: record.phoneNo,
-        email: record.email,
-        panNo: record.panNo,
-        tallyAccName: record.tallyAccName,
-        gstNo: record.gstNo,
-        creditDays: record.creditDays,
-        isApproval: 1,
-        creditAmount: record.creditAmount,
-        accountNo: record.accountNo,
-        bank: record.bank,
-        ifscCode: record.ifscCode,
-        branch: record.branch,
-        active: record.active,
-        partyTypeIds: record.partyTypes?.map(pt => pt.partyTypeId) || [],
-        contacts: record.contacts?.map(c => ({
-          name: c.name,
-          mobileNo: c.mobileNo,
-          email: c.email,
-          whatsappRequired: c.whatsappRequired,
-          mailRequired: c.mailRequired
-        })) || []
-      };
-      await updateParty(record.id, updateData);
-      message.success('Party approved successfully');
-      loadParties();
-    } catch (error) {
-      message.error('Failed to approve party');
-    } finally {
-      setLoading(false);
-    }
+    Modal.confirm({
+      title: 'Confirm Approval',
+      content: `Are you sure you want to approve ${record.partyName}?`,
+      onOk: async () => {
+        setLoading(true);
+        try {
+          const updateData = {
+            partyName: record.partyName,
+            partyCode: record.partyCode,
+            address1: record.address1,
+            address2: record.address2,
+            address3: record.address3,
+            address4: record.address4,
+            pincode: record.pincode,
+            district: record.district,
+            state: record.state,
+            mobileNo: record.mobileNo,
+            phoneNo: record.phoneNo,
+            email: record.email,
+            panNo: record.panNo,
+            tallyAccName: record.tallyAccName,
+            gstNo: record.gstNo,
+            creditDays: record.creditDays,
+            isApproval: 1,
+            creditAmount: record.creditAmount,
+            accountNo: record.accountNo,
+            bank: record.bank,
+            ifscCode: record.ifscCode,
+            branch: record.branch,
+            active: record.active,
+            partyTypeIds: record.partyTypes?.map(pt => pt.partyTypeId) || [],
+            contacts: record.contacts?.map(c => ({
+              name: c.name,
+              mobileNo: c.mobileNo,
+              email: c.email,
+              whatsappRequired: c.whatsappRequired,
+              mailRequired: c.mailRequired
+            })) || []
+          };
+          await updateParty(record.id, updateData);
+          message.success('Party approved successfully');
+          setSelectedRows([]);
+          loadParties();
+        } catch (error) {
+          message.error('Failed to approve party');
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   const handleView = (record) => {
@@ -117,8 +127,8 @@ const PartyApproval = () => {
       key: 'address',
       width: 200,
       render: (_, record) => {
-        const address = record.address1 || record.address2 || record.address3 || record.address4 || 'N/A';
-        return address;
+        const parts = [record.address1, record.address2, record.address3, record.address4].filter(Boolean);
+        return parts.length > 0 ? parts.join(', ') : 'N/A';
       },
     },
     {
@@ -153,17 +163,19 @@ const PartyApproval = () => {
       render: (val) => val || 0,
     },
     {
-      title: 'Approval Check Box',
+      title: 'Approval',
       dataIndex: 'approval',
       key: 'approval',
       width: 100,
       align: 'center',
       render: (_, record) => (
         <Checkbox 
-          checked={false}
+          checked={selectedRows.includes(record.id)}
           onChange={(e) => {
             if (e.target.checked) {
-              handleApprove(record);
+              setSelectedRows([...selectedRows, record.id]);
+            } else {
+              setSelectedRows(selectedRows.filter(id => id !== record.id));
             }
           }}
         />
@@ -172,11 +184,19 @@ const PartyApproval = () => {
     {
       title: 'Actions',
       key: 'actions',
-      width: 80,
+      width: 120,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} />
+          <Button 
+            type="primary" 
+            size="small" 
+            onClick={() => handleApprove(record)}
+            disabled={!selectedRows.includes(record.id)}
+          >
+            Update
+          </Button>
         </Space>
       ),
     },
@@ -203,7 +223,7 @@ const PartyApproval = () => {
         }
       `}</style>
       <div style={{ marginBottom: 16 }}>
-        <Title level={3} style={{ margin: 0 }}>Party Master Approval</Title>
+        <Title level={3} style={{ margin: 0 }}>Party Approval</Title>
       </div>
 
       <Table 

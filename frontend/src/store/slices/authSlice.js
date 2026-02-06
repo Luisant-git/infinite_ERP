@@ -8,7 +8,8 @@ const initialState = {
   showCompanySelection: false,
   selectedCompany: null,
   selectedYear: null,
-  selectedTenantId: null
+  selectedTenantId: null,
+  IsMD: 0
 };
 
 // Load persisted state from localStorage
@@ -18,6 +19,7 @@ const loadPersistedState = () => {
     const tenantId = localStorage.getItem('tenantId');
     const selectedCompany = localStorage.getItem('selectedCompany');
     const selectedYear = localStorage.getItem('selectedYear');
+    const IsMD = localStorage.getItem('IsMD');
     
     if (token) {
       return {
@@ -25,7 +27,8 @@ const loadPersistedState = () => {
         isAuthenticated: true,
         selectedTenantId: tenantId,
         selectedCompany: selectedCompany,
-        selectedYear: selectedYear
+        selectedYear: selectedYear,
+        IsMD: IsMD ? parseInt(IsMD) : 0
       };
     }
   } catch (error) {
@@ -45,6 +48,8 @@ const authSlice = createSlice({
     loginSuccess: (state, action) => {
       state.loading = false;
       state.isAuthenticated = true;
+      state.IsMD = action.payload.user?.IsMD || 0;
+      localStorage.setItem('IsMD', state.IsMD);
       
       // Auto-select tenant for users with concern mapping
       if (action.payload.autoSelectTenant) {
@@ -72,10 +77,12 @@ const authSlice = createSlice({
       state.selectedCompany = null;
       state.selectedYear = null;
       state.selectedTenantId = null;
+      state.IsMD = 0;
       localStorage.removeItem('token');
       localStorage.removeItem('tenantId');
       localStorage.removeItem('selectedCompany');
       localStorage.removeItem('selectedYear');
+      localStorage.removeItem('IsMD');
     },
     clearError: (state) => {
       state.error = null;

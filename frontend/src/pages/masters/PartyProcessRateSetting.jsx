@@ -42,7 +42,11 @@ const PartyProcessRateSetting = () => {
   const loadParties = async () => {
     try {
       const response = await getParties('', 1, 1000);
-      setParties(response.data || response);
+      const allParties = response.data || response;
+      const customerParties = allParties.filter(p => 
+        p.partyTypes?.some(pt => pt.partyType.partyTypeName.toLowerCase() === 'customer')
+      );
+      setParties(customerParties);
     } catch (error) {
       console.error('Error loading parties:', error);
     }

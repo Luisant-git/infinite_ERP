@@ -17,6 +17,7 @@ const UserMaster = () => {
   const [users, setUsers] = useState([]);
   const [concerns, setConcerns] = useState([]);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [isMDUser, setIsMDUser] = useState(false);
   const [selectedConcern, setSelectedConcern] = useState(null);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const { canAdd, canEdit, canDelete } = useMenuPermissions();
@@ -73,10 +74,15 @@ const UserMaster = () => {
         }
       }
       
+      const submitData = {
+        ...values,
+        IsMD: values.IsMD ? 1 : 0
+      };
+      
       if (editingUser) {
-        await updateUser(editingUser.id, values);
+        await updateUser(editingUser.id, submitData);
       } else {
-        await createUser(values);
+        await createUser(submitData);
       }
       setIsModalVisible(false);
       form.resetFields();
@@ -99,11 +105,13 @@ const UserMaster = () => {
       const userData = await getUserById(record.id);
       setEditingUser(userData);
       setIsAdminUser(userData.adminUser);
+      setIsMDUser(userData.IsMD === 1);
       setSelectedConcern(userData.concernIds || []);
       form.setFieldsValue({
         username: userData.username,
         password: '********',
         adminUser: userData.adminUser,
+        IsMD: userData.IsMD === 1,
         isActive: userData.isActive,
         concernIds: userData.concernIds || [],
         canAdd: userData.canAdd,
@@ -138,6 +146,7 @@ const UserMaster = () => {
     form.resetFields();
     setEditingUser(null);
     setIsAdminUser(false);
+    setIsMDUser(false);
     setSelectedConcern(null);
   };
 
@@ -160,6 +169,13 @@ const UserMaster = () => {
       key: 'adminUser',
       width: 80,
       render: (adminUser) => <Checkbox checked={adminUser} disabled />,
+    },
+    {
+      title: 'MD',
+      dataIndex: 'IsMD',
+      key: 'IsMD',
+      width: 80,
+      render: (IsMD) => <Checkbox checked={IsMD === 1} disabled />,
     },
     {
       title: 'Add',
@@ -291,7 +307,7 @@ const UserMaster = () => {
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          initialValues={{ isActive: true, canAdd: false, canEdit: false, canDelete: false }}
+          initialValues={{ isActive: true, canAdd: false, canEdit: false, canDelete: false, IsMD: 0 }}
           style={{ marginTop: '8px' }}
           autoComplete="off"
         >
@@ -342,6 +358,17 @@ const UserMaster = () => {
                 }}
               >
                 Admin User
+              </Checkbox>
+            </Form.Item>
+            
+            <Form.Item name="IsMD" valuePropName="checked">
+              <Checkbox
+                onChange={(e) => {
+                  setIsMDUser(e.target.checked);
+                  form.setFieldsValue({ IsMD: e.target.checked ? 1 : 0 });
+                }}
+              >
+                MD User
               </Checkbox>
             </Form.Item>
             
