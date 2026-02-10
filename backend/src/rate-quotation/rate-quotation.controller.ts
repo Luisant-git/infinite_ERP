@@ -26,10 +26,11 @@ export class RateQuotationController {
     @Headers('tenant-id') tenantId: string,
     @Query('search') search?: string,
     @Query('page') page?: string,
-    @Query('limit') limit?: string
+    @Query('limit') limit?: string,
+    @Query('allConcerns') allConcerns?: string
   ) {
     return this.rateQuotationService.findAll(
-      parseInt(tenantId),
+      allConcerns === 'true' ? null : parseInt(tenantId),
       search,
       page ? parseInt(page) : 1,
       limit ? parseInt(limit) : 10
@@ -39,14 +40,13 @@ export class RateQuotationController {
   @Post()
   async create(
     @Headers('tenant-id') tenantId: string,
-    @Headers('concern-id') concernId: string,
     @Headers('authorization') authorization: string,
     @Body() data: any
   ) {
     const user = this.getUserFromToken(authorization);
     return this.rateQuotationService.create(
       parseInt(tenantId), 
-      parseInt(concernId), 
+      data.concernId ? parseInt(data.concernId) : null, 
       { ...data, createdBy: user.username || 'system' }
     );
   }

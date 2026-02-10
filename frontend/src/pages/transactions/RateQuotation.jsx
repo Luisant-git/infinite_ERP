@@ -6,6 +6,7 @@ import { getNextQuotNo, getRateQuotations, createRateQuotation, updateRateQuotat
 import { getParties } from '../../api/party';
 import { getProcesses } from '../../api/process';
 import { uploadImage } from '../../api/upload';
+import { getConcerns } from '../../api/concern';
 import { useSelector } from 'react-redux';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 
@@ -21,6 +22,7 @@ const RateQuotation = () => {
   const [editingId, setEditingId] = useState(null);
   const [parties, setParties] = useState([]);
   const [processes, setProcesses] = useState([]);
+  const [concerns, setConcerns] = useState([]);
   const [details, setDetails] = useState([]);
   const [fileList, setFileList] = useState([]);
   const [searchText, setSearchText] = useState('');
@@ -43,9 +45,10 @@ const RateQuotation = () => {
 
   const loadMasters = async () => {
     try {
-      const [partiesRes, processesRes] = await Promise.all([
+      const [partiesRes, processesRes, concernsRes] = await Promise.all([
         getParties('', 1, 1000),
-        getProcesses('', 1, 1000)
+        getProcesses('', 1, 1000),
+        getConcerns('', 1, 1000)
       ]);
       
       const customerParties = (partiesRes.data || []).filter(p => 
@@ -53,6 +56,7 @@ const RateQuotation = () => {
       );
       setParties(customerParties);
       setProcesses(processesRes.data || []);
+      setConcerns(concernsRes.data || []);
     } catch (error) {
       console.error('Error loading masters:', error);
     }
@@ -93,6 +97,7 @@ const RateQuotation = () => {
         <div>
           <p><strong>Quot No:</strong> {record.quotNo}</p>
           <p><strong>Date:</strong> {dayjs(record.quotDate).format('DD-MM-YYYY')}</p>
+          <p><strong>Concern:</strong> {record.concern?.partyName || 'N/A'}</p>
           <p><strong>Party:</strong> {record.party?.partyName || 'N/A'}</p>
           <p><strong>Payment Terms:</strong> {record.paymentTerms || 'N/A'}</p>
           <p><strong>Remarks:</strong> {record.remarks || 'N/A'}</p>
@@ -349,33 +354,40 @@ const RateQuotation = () => {
         <Form form={form} layout="vertical" size="small">
           <Row gutter={8}>
             <Col span={12}>
-              <Form.Item label="Quot No" name="quotNo" style={{ marginBottom: 12 }}>
-                <Input disabled={!isAdmin} style={{ width: '60%' }} />
+              <Form.Item label="Quot No" name="quotNo" style={{ marginBottom: 8 }}>
+                <Input disabled={!isAdmin} style={{ width: '60%', height: '32px' }} size="middle" />
               </Form.Item>
             </Col>
             <Col span={12}>
               <div style={{ marginLeft: '-35%' }}>
-                <Form.Item label="Quot Date" name="quotDate" style={{ marginBottom: 12 }}>
-                  <DatePicker style={{ width: '60%', height: '40px' }} format="DD-MM-YYYY" size="large" />
+                <Form.Item label="Quot Date" name="quotDate" style={{ marginBottom: 8 }}>
+                  <DatePicker style={{ width: '60%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
                 </Form.Item>
               </div>
             </Col>
             <Col span={12}>
-              <Form.Item label="Party" name="partyId" style={{ marginBottom: 12 }}>
-                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ width: '60%', height: '40px' }} size="large">
-                  {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
+              <Form.Item label="Concern" name="concernId" style={{ marginBottom: 8 }}>
+                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ width: '60%', height: '32px' }} size="middle">
+                  {concerns.map(c => <Option key={c.id} value={c.id}>{c.partyName}</Option>)}
                 </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
               <div style={{ marginLeft: '-35%' }}>
-                <Form.Item label="Payment Terms" name="paymentTerms" style={{ marginBottom: 12 }}>
-                  <Input style={{ width: '60%' }} />
+                <Form.Item label="Party" name="partyId" style={{ marginBottom: 8 }}>
+                  <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ width: '60%', height: '32px' }} size="middle">
+                    {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
+                  </Select>
                 </Form.Item>
               </div>
             </Col>
             <Col span={12}>
-              <Form.Item label="Attach File" style={{ marginBottom: 12 }}>
+              <Form.Item label="Payment Terms" name="paymentTerms" style={{ marginBottom: 8 }}>
+                <Input style={{ width: '60%', height: '32px' }} size="middle" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Attach File" style={{ marginBottom: 8 }}>
                 <Upload customRequest={handleUpload} fileList={fileList} onRemove={() => setFileList([])} accept="image/*,.pdf">
                   <Button icon={<UploadOutlined />} size="small">Upload</Button>
                 </Upload>
@@ -383,31 +395,31 @@ const RateQuotation = () => {
             </Col>
           </Row>
 
-          <div style={{ marginTop: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <Title level={5} style={{ margin: 0 }}>Process Details</Title>
+          <div style={{ marginTop: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <Title level={5} style={{ margin: 0, fontSize: '14px' }}>Process Details</Title>
               <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAddDetail} style={{ backgroundColor: '#031d38', color: '#fff', borderColor: '#031d38' }}>Add Row</Button>
             </div>
             <Table 
               columns={detailColumns} 
               dataSource={details} 
               pagination={false} 
-              scroll={details.length > 0 ? { x: 800, y: 300 } : { x: 800 }}
+              scroll={details.length > 0 ? { x: 800, y: 200 } : { x: 800 }}
               size="small"
               bordered
               locale={{ emptyText: 'Click Add Row to add process details' }}
             />
           </div>
 
-          <Row gutter={8} style={{ marginTop: 8 }}>
+          <Row gutter={8} style={{ marginTop: 4 }}>
             <Col span={24}>
-              <Form.Item label="Remarks / Terms" name="remarks" style={{ marginBottom: 12 }}>
-                <TextArea rows={2} />
+              <Form.Item label="Remarks / Terms" name="remarks" style={{ marginBottom: 8 }}>
+                <TextArea rows={1} />
               </Form.Item>
             </Col>
           </Row>
 
-          <div style={{ marginTop: 8, textAlign: 'right' }}>
+          <div style={{ marginTop: 4, textAlign: 'right' }}>
             <Space>
               <Button icon={<CloseOutlined />} onClick={() => setIsFormVisible(false)}>Cancel</Button>
               <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={handleSubmit}>Save</Button>

@@ -5,9 +5,9 @@ export const getNextQuotNo = async () => {
   return response.data;
 };
 
-export const getRateQuotations = async (search = '', page = 1, limit = 10) => {
+export const getRateQuotations = async (search = '', page = 1, limit = 10, allConcerns = false) => {
   const response = await api.get('/rate-quotations', {
-    params: { search, page, limit }
+    params: { search, page, limit, allConcerns }
   });
   return response.data;
 };

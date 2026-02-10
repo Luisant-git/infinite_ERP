@@ -62,6 +62,19 @@ export class FabricInwardService {
     const grnNo = await this.getNextGrnNo(tenantId);
     const sortOrder = parseInt(grnNo);
 
+    // Check for duplicate grnNo within the same tenant
+    const existing = await this.prisma.fabricInwardHeader.findFirst({
+      where: {
+        tenantId,
+        grnNo: createDto.grnNo || grnNo,
+        deleteFlg: 0
+      }
+    });
+
+    if (existing) {
+      throw new Error('GRN number already exists for this tenant');
+    }
+
     const totalQty = createDto.details?.reduce((sum, d) => sum + (Number(d.weight) || 0), 0) || 0;
     const totalRolls = createDto.details?.reduce((sum, d) => sum + (d.rolls || 0), 0) || 0;
 
@@ -74,7 +87,7 @@ export class FabricInwardService {
     return this.prisma.fabricInwardHeader.create({
       data: {
         tenantId,
-        grnNo,
+        grnNo: createDto.grnNo || grnNo,
         sortOrder,
         grnDate: createDto.grnDate || new Date(),
         partyId: createDto.partyId,
@@ -84,7 +97,7 @@ export class FabricInwardService {
         dyeingDcNo: createDto.dyeingDcNo,
         dyeingDcDate: createDto.dyeingDcDate,
         orderNo: createDto.orderNo,
-        poNo: grnNo,
+        poNo: createDto.grnNo || grnNo,
         dcType: createDto.dcType || 'Fresh',
         fabricType: createDto.fabricType || 'Grey Lot',
         remarks: createDto.remarks,

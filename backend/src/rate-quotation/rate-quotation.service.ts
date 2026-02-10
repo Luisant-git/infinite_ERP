@@ -15,12 +15,12 @@ export class RateQuotationService {
     return { quotNo: nextNo.toString().padStart(10, '0') };
   }
 
-  async findAll(tenantId: number, search?: string, page: number = 1, limit: number = 10) {
+  async findAll(tenantId: number | null, search?: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     
     const where: any = {
-      tenantId,
       deleteFlg: 0,
+      ...(tenantId && { tenantId }),
       ...(search && {
         OR: [
           { quotNo: { contains: search } }
@@ -37,7 +37,8 @@ export class RateQuotationService {
               process: true
             }
           },
-          party: true
+          party: true,
+          concern: true
         },
         orderBy: { createdDate: 'desc' },
         skip,
@@ -52,10 +53,23 @@ export class RateQuotationService {
     };
   }
 
-  async create(tenantId: number, concernId: number, data: any) {
+  async create(tenantId: number, concernId: number | null, data: any) {
     const { details, ...headerData } = data;
     
     const sortOrder = parseInt(headerData.quotNo);
+    
+    // Check for duplicate quotNo within the same tenant
+    const existing = await this.prisma.rateQuotationHeader.findFirst({
+      where: {
+        tenantId,
+        quotNo: headerData.quotNo,
+        deleteFlg: 0
+      }
+    });
+
+    if (existing) {
+      throw new Error('Quotation number already exists for this tenant');
+    }
     
     return this.prisma.rateQuotationHeader.create({
       data: {
@@ -77,7 +91,7 @@ export class RateQuotationService {
   }
 
   async update(id: number, data: any) {
-    const { details, id: _, party, createdDate, modifiedDate, deletedDate, sortOrder, tenantId, concernId, ...headerData } = data;
+    const { details, id: _, party, concern, createdDate, modifiedDate, deletedDate, sortOrder, tenantId, ...headerData } = data;
     
     await this.prisma.rateQuotationDetail.deleteMany({
       where: { headerId: id }

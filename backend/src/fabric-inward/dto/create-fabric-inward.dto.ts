@@ -74,6 +74,10 @@ class FabricInwardProcessDto {
 
 export class CreateFabricInwardDto {
   @IsOptional()
+  @IsString()
+  grnNo?: string;
+
+  @IsOptional()
   @IsInt()
   partyId?: number;
 

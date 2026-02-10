@@ -110,7 +110,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
         // }] : [])
       ]
     },
-    ...(user?.adminUser === true || isMD === 1 ? [{
+    ...(isMD === 1 ? [{
       key: 'approval',
       icon: <FileTextOutlined />,
       label: 'Approval',

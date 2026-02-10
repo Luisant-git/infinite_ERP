@@ -26,6 +26,7 @@ export const useMenuPermissions = () => {
     canView,
     canAdd,
     canEdit,
-    canDelete
+    canDelete,
+    adminUser: user?.adminUser || false
   };
 };

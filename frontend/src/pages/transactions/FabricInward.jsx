@@ -150,6 +150,7 @@ const FabricInward = () => {
     setEditingId(record.id);
     form.setFieldsValue({
       ...record,
+      partyId: record.partyId || undefined,
       grnDate: dayjs(record.grnDate),
       pdcDate: record.pdcDate ? dayjs(record.pdcDate) : null,
       dyeingDcDate: record.dyeingDcDate ? dayjs(record.dyeingDcDate) : null
@@ -196,6 +197,11 @@ const FabricInward = () => {
   const handleSubmit = async (shouldPrint = false) => {
     try {
       const values = await form.validateFields(['grnNo', 'grnDate', 'pdcNo', 'dyeingPartyId']);
+      
+      if (details.length === 0) {
+        message.error('Please add at least one detail row');
+        return;
+      }
       
       if (selectedProcesses.length === 0) {
         message.error('Please select at least one process');
@@ -668,63 +674,63 @@ const FabricInward = () => {
         <Form form={form} layout="vertical" size="small">
           <Row gutter={8}>
             <Col span={6}>
-              <Form.Item label="GRN No" name="grnNo" rules={[{ required: true }]} style={{ marginBottom: 8 }}>
-                <Input disabled={!isAdmin} />
+              <Form.Item label="GRN No" name="grnNo" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
+                <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" />
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="GRN Date" name="grnDate" rules={[{ required: true }]} style={{ marginBottom: 8 }}>
-                <DatePicker style={{ width: '100%', height: '40px' }} format="DD-MM-YYYY" size="large" />
+              <Form.Item label="GRN Date" name="grnDate" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
+                <DatePicker style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="Party" name="partyId" style={{ marginBottom: 8 }}>
-                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '40px' }} size="large">
+              <Form.Item label="Party" name="partyId" style={{ marginBottom: 6 }}>
+                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
                   {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="PDC No" name="pdcNo" rules={[{ required: true, message: 'PDC No is required' }]} style={{ marginBottom: 8 }}>
-                <Input />
+              <Form.Item label="PDC No" name="pdcNo" rules={[{ required: true, message: 'PDC No is required' }]} style={{ marginBottom: 6 }}>
+                <Input style={{ height: '32px' }} size="middle" />
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="PDC Date" name="pdcDate" style={{ marginBottom: 8 }}>
-                <DatePicker style={{ width: '100%', height: '40px' }} format="DD-MM-YYYY" size="large" />
+              <Form.Item label="PDC Date" name="pdcDate" style={{ marginBottom: 6 }}>
+                <DatePicker style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="Dyeing Party" name="dyeingPartyId" rules={[{ required: true, message: 'Dyeing Party is required' }]} style={{ marginBottom: 8 }}>
+              <Form.Item label="Dyeing Party" name="dyeingPartyId" rules={[{ required: true, message: 'Dyeing Party is required' }]} style={{ marginBottom: 6 }}>
                 <Select 
                   showSearch 
                   onChange={setSelectedDyeingParty}
                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-                  style={{ height: '40px' }}
-                  size="large"
+                  style={{ height: '32px' }}
+                  size="middle"
                 >
                   {dyeingParties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="Dyeing DC No" name="dyeingDcNo" style={{ marginBottom: 8 }}>
-                <Input />
+              <Form.Item label="Dyeing DC No" name="dyeingDcNo" style={{ marginBottom: 6 }}>
+                <Input style={{ height: '32px' }} size="middle" />
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="Dyeing DC Date" name="dyeingDcDate" style={{ marginBottom: 8 }}>
-                <DatePicker style={{ width: '100%', height: '40px' }} format="DD-MM-YYYY" size="large" />
+              <Form.Item label="Dyeing DC Date" name="dyeingDcDate" style={{ marginBottom: 6 }}>
+                <DatePicker style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="Order No" name="orderNo" style={{ marginBottom: 8 }}>
-                <Input />
+              <Form.Item label="Order No" name="orderNo" style={{ marginBottom: 6 }}>
+                <Input style={{ height: '32px' }} size="middle" />
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="DC Type" name="dcType" style={{ marginBottom: 8 }}>
-                <Select onChange={setDcType} style={{ height: '40px' }} size="large">
+              <Form.Item label="DC Type" name="dcType" style={{ marginBottom: 6 }}>
+                <Select onChange={setDcType} style={{ height: '32px' }} size="middle">
                   <Option value="Fresh">Fresh</Option>
                   <Option value="Re-Process(Free)">Re-Process(Free)</Option>
                   <Option value="Re-Process(Charge)">Re-Process(Charge)</Option>
@@ -733,8 +739,8 @@ const FabricInward = () => {
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="Fabric Type" name="fabricType" style={{ marginBottom: 8 }}>
-                <Select onChange={setFabricType} style={{ height: '40px' }} size="large">
+              <Form.Item label="Fabric Type" name="fabricType" style={{ marginBottom: 6 }}>
+                <Select onChange={setFabricType} style={{ height: '32px' }} size="middle">
                   <Option value="Wet Lot">Wet Lot</Option>
                   <Option value="Dry Lot">Dry Lot</Option>
                   <Option value="Grey Lot">Grey Lot</Option>
@@ -743,27 +749,27 @@ const FabricInward = () => {
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="Vehicle No" name="vehicleNo" style={{ marginBottom: 8 }}>
-                <Input />
+              <Form.Item label="Vehicle No" name="vehicleNo" style={{ marginBottom: 6 }}>
+                <Input style={{ height: '32px' }} size="middle" />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="Remarks" name="remarks" style={{ marginBottom: 8 }}>
-                <Input />
+              <Form.Item label="Remarks" name="remarks" style={{ marginBottom: 6 }}>
+                <Input style={{ height: '32px' }} size="middle" />
               </Form.Item>
             </Col>
           </Row>
 
-          <div style={{ marginTop: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Title level={5}>Details</Title>
+          <div style={{ marginTop: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <Title level={5} style={{ margin: 0, fontSize: '14px' }}>Details</Title>
               <Button type="dashed" icon={<PlusOutlined />} onClick={handleAddDetail} style={{ backgroundColor: '#031d38', color: '#fff', borderColor: '#031d38' }}>Add Row</Button>
             </div>
             <Table 
               columns={detailColumns} 
               dataSource={details} 
               pagination={false} 
-              scroll={details.length > 0 ? { x: 1800, y: 300 } : { x: 1800 }}
+              scroll={details.length > 0 ? { x: 1800, y: 200 } : { x: 1800 }}
               size="small"
               bordered
               locale={{ emptyText: 'Click Add Row to add details' }}
@@ -775,11 +781,11 @@ const FabricInward = () => {
             />
           </div>
 
-          <div style={{ marginTop: 8 }}>
-            <Title level={5} style={{ margin: 0, marginBottom: 8 }}>Process Selection</Title>
+          <div style={{ marginTop: 4 }}>
+            <Title level={5} style={{ margin: 0, marginBottom: 4, fontSize: '14px' }}>Process Selection</Title>
             <Select
               mode="multiple"
-              style={{ width: '100%', marginBottom: 8 }}
+              style={{ width: '100%', marginBottom: 4 }}
               placeholder="Select processes"
               value={selectedProcesses.map(p => p.processId)}
               onChange={handleProcessSelect}
@@ -794,7 +800,7 @@ const FabricInward = () => {
             />
           </div>
 
-          <div style={{ marginTop: 8, textAlign: 'right' }}>
+          <div style={{ marginTop: 4, textAlign: 'right' }}>
             <Space>
               <Button icon={<CloseOutlined />} onClick={() => setIsFormVisible(false)}>Cancel</Button>
               <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={() => handleSubmit(false)}>Save</Button>
