@@ -87,7 +87,6 @@ const RateQuotationApproval = () => {
 
   const columns = [
     { title: 'S.No', key: 'sno', width: 50, render: (_, record, index) => index + 1 },
-    { title: 'Concern', dataIndex: ['concern', 'partyName'], width: 120 },
     { title: 'Quot No', dataIndex: 'quotNo', width: 100 },
     { title: 'Date', dataIndex: 'quotDate', width: 100, render: (val) => dayjs(val).format('DD-MM-YYYY') },
     { title: 'Customer', dataIndex: ['party', 'partyName'], width: 150 },
