@@ -647,23 +647,29 @@ const FabricInward = () => {
     <Card>
       <style>{`
         .compact-table .ant-table-thead > tr > th {
-          padding: 6px 8px !important;
-          font-size: 12px !important;
+          padding: 4px 6px !important;
+          font-size: 11px !important;
           font-weight: 600 !important;
+          line-height: 1.2 !important;
+          height: auto !important;
         }
         .compact-table .ant-table-tbody > tr > td {
-          padding: 4px 8px !important;
-          font-size: 12px !important;
+          padding: 2px 4px !important;
+          font-size: 11px !important;
+          line-height: 1.2 !important;
         }
         .compact-table .ant-table-tbody > tr {
-          height: 32px !important;
+          height: auto !important;
         }
-        .compact-table .ant-btn-link {
-          padding: 0 4px !important;
+        .compact-table .ant-input,
+        .compact-table .ant-input-number,
+        .compact-table .ant-select-selector {
+          font-size: 11px !important;
+          min-height: 24px !important;
           height: 24px !important;
         }
-        .compact-table .ant-space-item {
-          line-height: 1 !important;
+        .compact-table .ant-input-number-input {
+          height: 22px !important;
         }
       `}</style>
       <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -787,6 +793,7 @@ const FabricInward = () => {
               scroll={details.length > 0 ? { x: 1800, y: 200 } : { x: 1800 }}
               size="small"
               bordered
+              className="compact-table"
               locale={{ emptyText: 'Click Add Row to add details' }}
               footer={() => (
                 <div style={{ textAlign: 'right', fontWeight: 'bold' }}>
@@ -812,6 +819,7 @@ const FabricInward = () => {
               dataSource={selectedProcesses} 
               pagination={false}
               size="small"
+              className="compact-table"
             />
           </div>
 
