@@ -42,6 +42,7 @@ model Tenant {
   userTenants UserTenant[]
   fabricInwards FabricInwardHeader[]
   rateQuotations RateQuotationHeader[]
+  fabricDcs FabricDcHeader[]
   
   @@unique([concernId, financialYear])
   @@map("tenants")
@@ -145,6 +146,7 @@ model Concern {
   tenants  Tenant[]
   fabricInwards FabricInwardHeader[]
   rateQuotations RateQuotationHeader[]
+  fabricDcs FabricDcHeader[]
  
   @@map("concerns")
 }
@@ -267,10 +269,17 @@ model Master {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-  fabricDetails FabricInwardDetail[] @relation("FabricMaster")
-  colorDetails FabricInwardDetail[] @relation("ColorMaster")
-  diaDetails FabricInwardDetail[] @relation("DiaMaster")
-  uomDetails FabricInwardDetail[] @relation("UOMMaster")
+  fabricDetails    FabricInwardDetail[] @relation("FabricMaster")
+  colorDetails     FabricInwardDetail[] @relation("ColorMaster")
+  diaDetails       FabricInwardDetail[] @relation("DiaMaster")
+  uomDetails       FabricInwardDetail[] @relation("UOMMaster")
+  dcFabricDetails  FabricDcDetail[]     @relation("DcFabricMaster")
+  dcColorDetails   FabricDcDetail[]     @relation("DcColorMaster")
+  dcDiaDetails     FabricDcDetail[]     @relation("DcDiaMaster")
+  dcInwFabricDetails FabricDcDetail[]   @relation("DcInwFabricMaster")
+  dcInwColorDetails  FabricDcDetail[]   @relation("DcInwColorMaster")
+  dcInwDiaDetails    FabricDcDetail[]   @relation("DcInwDiaMaster")
+  dcUomDetails     FabricDcDetail[]     @relation("DcUOMMaster")
   
   @@map("masters")
 }
@@ -322,6 +331,7 @@ model FabricInwardDetail {
   diaId                 Int?
   gsm                   String?  @db.VarChar(100)
   designId              Int?
+  designNo              String?  @db.VarChar(100)
   designName            String?  @db.VarChar(100)
   noOfColor             Int?
   productionNotRequired Int      @default(0)
@@ -398,4 +408,96 @@ model RateQuotationDetail {
   process Process?            @relation(fields: [processId], references: [id])
   
   @@map("rate_quotation_details")
+}
+
+model FabricDcHeader {
+  id              Int      @id @default(autoincrement())
+  tenantId        Int
+  dcNo            String   @db.VarChar(10)
+  dcDate          DateTime @default(now())
+  partyId         Int?
+  deliveryTo      Int?
+  inwardNo        String?  @db.VarChar(50)
+  grnDate         DateTime?
+  pdcNo           String?  @db.VarChar(50)
+  dyeParty        Int?
+  dyeingDcNo      String?  @db.VarChar(50)
+  dyeingDcDate    DateTime?
+  orderNo         String?  @db.VarChar(100)
+  poNo            String?  @db.VarChar(50)
+  dcType          String?  @db.VarChar(20)
+  fabricType      String?  @db.VarChar(20)
+  remarks         String?  @db.VarChar(100)
+  vehicleNo       String?  @db.VarChar(20)
+  totalQty        Decimal  @default(0) @db.Decimal(12, 3)
+  totalRolls      Int      @default(0)
+  createdBy       String?  @db.VarChar(50)
+  createdDate     DateTime @default(now())
+  modifiedBy      String?  @db.VarChar(50)
+  modifiedDate    DateTime @updatedAt
+  deletedBy       String?  @db.VarChar(50)
+  deletedDate     DateTime?
+  deleteFlg       Int      @default(0)
+  yearId          Int?
+  concernId       Int?
+  sortOrder       Int?
+  hsnCode         String?  @db.VarChar(20)
+  isFinal         Int      @default(0)
+  isNoNeedBill    Int      @default(0)
+  ewayNo          String?  @db.VarChar(50)
+  receivedName    String?  @db.VarChar(50)
+  
+  tenant    Tenant            @relation(fields: [tenantId], references: [id])
+  concern   Concern?          @relation(fields: [concernId], references: [id])
+  details   FabricDcDetail[]
+  processes FabricDcProcess[]
+  
+  @@map("fabric_dc_headers")
+}
+
+model FabricDcDetail {
+  id              Int      @id @default(autoincrement())
+  headerId        Int
+  fabricId        Int?
+  colorId         Int?
+  diaId           Int?
+  inwFabricId     Int?
+  inwColorId      Int?
+  inwDiaId        Int?
+  gsm             String?  @db.VarChar(100)
+  designNo        String?  @db.VarChar(100)
+  designName      String?  @db.VarChar(100)
+  noOfColor       Int?
+  processWeight   Decimal  @default(0) @db.Decimal(12, 3)
+  dcWeight        Decimal  @default(0) @db.Decimal(12, 3)
+  weightLoss      Decimal  @default(0) @db.Decimal(12, 3)
+  lossPercentage  Decimal  @default(0) @db.Decimal(12, 2)
+  rolls           Int      @default(0)
+  uomId           Int?
+  rate            Decimal  @default(0) @db.Decimal(12, 2)
+  amount          Decimal  @default(0) @db.Decimal(12, 2)
+  remarks         String?  @db.VarChar(100)
+  deleteFlg       Int      @default(0)
+  
+  header     FabricDcHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
+  fabric     Master?        @relation("DcFabricMaster", fields: [fabricId], references: [id])
+  color      Master?        @relation("DcColorMaster", fields: [colorId], references: [id])
+  dia        Master?        @relation("DcDiaMaster", fields: [diaId], references: [id])
+  inwFabric  Master?        @relation("DcInwFabricMaster", fields: [inwFabricId], references: [id])
+  inwColor   Master?        @relation("DcInwColorMaster", fields: [inwColorId], references: [id])
+  inwDia     Master?        @relation("DcInwDiaMaster", fields: [inwDiaId], references: [id])
+  uom        Master?        @relation("DcUOMMaster", fields: [uomId], references: [id])
+  
+  @@map("fabric_dc_details")
+}
+
+model FabricDcProcess {
+  id          Int      @id @default(autoincrement())
+  headerId    Int
+  processName String   @db.VarChar(100)
+  deleteFlg   Int      @default(0)
+  
+  header FabricDcHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
+  
+  @@map("fabric_dc_processes")
 }

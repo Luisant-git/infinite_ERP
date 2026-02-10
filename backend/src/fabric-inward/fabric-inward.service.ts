@@ -114,6 +114,7 @@ export class FabricInwardService {
             diaId: d.diaId,
             gsm: d.gsm,
             designId: d.designId,
+            designNo: d.designNo,
             designName: d.designName,
             noOfColor: d.noOfColor,
             productionNotRequired: d.productionNotRequired || 0,
@@ -163,6 +164,7 @@ export class FabricInwardService {
     return this.prisma.fabricInwardHeader.update({
       where: { id, tenantId },
       data: {
+        grnNo: updateDto.grnNo,
         grnDate: updateDto.grnDate,
         partyId: updateDto.partyId,
         pdcNo: updateDto.pdcNo,
@@ -187,6 +189,7 @@ export class FabricInwardService {
             diaId: d.diaId,
             gsm: d.gsm,
             designId: d.designId,
+            designNo: d.designNo,
             designName: d.designName,
             noOfColor: d.noOfColor,
             productionNotRequired: d.productionNotRequired || 0,

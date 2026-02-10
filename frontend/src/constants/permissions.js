@@ -26,6 +26,7 @@ export const ROUTES = {
   DESIGN_APPROVAL: '/masters/design-approval',
   MASTER_DATA: '/masters/master-data',
   FABRIC_INWARD: '/transactions/fabric-inward',
+  FABRIC_DC: '/transactions/fabric-dc',
   RATE_QUOTATION: '/transactions/rate-quotation',
   RATE_QUOTATION_APPROVAL: '/transactions/rate-quotation-approval',
   DC_ENTRY: '/transactions/dc-entry',

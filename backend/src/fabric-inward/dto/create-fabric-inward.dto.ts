@@ -24,6 +24,10 @@ class FabricInwardDetailDto {
 
   @IsOptional()
   @IsString()
+  designNo?: string;
+
+  @IsOptional()
+  @IsString()
   designName?: string;
 
   @IsOptional()

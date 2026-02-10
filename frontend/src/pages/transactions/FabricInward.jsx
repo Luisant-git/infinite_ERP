@@ -89,6 +89,7 @@ const FabricInward = () => {
       setDias(diasRes || []);
       setUoms(uomsRes || []);
       setDesigns(designsRes.data || []);
+      console.log('Loaded designs:', designsRes.data);
       setProcesses(processesRes.data || []);
     } catch (error) {
       console.error('Error loading masters:', error);
@@ -128,7 +129,10 @@ const FabricInward = () => {
       pdcDate: record.pdcDate ? dayjs(record.pdcDate) : null,
       dyeingDcDate: record.dyeingDcDate ? dayjs(record.dyeingDcDate) : null
     });
-    setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
+    setDetails(record.details?.map(d => {
+      const design = designs.find(des => des.id === d.designId);
+      return { ...d, key: d.id, designNo: design?.designNo || d.designNo };
+    }) || []);
     
     const processesWithIds = record.processes?.map(p => {
       const process = processes.find(pr => pr.processName === p.processName);
@@ -155,7 +159,10 @@ const FabricInward = () => {
       pdcDate: record.pdcDate ? dayjs(record.pdcDate) : null,
       dyeingDcDate: record.dyeingDcDate ? dayjs(record.dyeingDcDate) : null
     });
-    setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
+    setDetails(record.details?.map(d => {
+      const design = designs.find(des => des.id === d.designId);
+      return { ...d, key: d.id, designNo: design?.designNo || d.designNo };
+    }) || []);
     
     const processesWithIds = record.processes?.map(p => {
       const process = processes.find(pr => pr.processName === p.processName);
@@ -196,7 +203,13 @@ const FabricInward = () => {
 
   const handleSubmit = async (shouldPrint = false) => {
     try {
-      const values = await form.validateFields(['grnNo', 'grnDate', 'pdcNo', 'dyeingPartyId']);
+      const values = await form.validateFields();
+      
+      // Check required fields
+      if (!values.grnNo || !values.grnDate || !values.pdcNo || !values.dyeingPartyId) {
+        message.error('Please fill all required fields');
+        return;
+      }
       
       if (details.length === 0) {
         message.error('Please add at least one detail row');
@@ -242,15 +255,16 @@ const FabricInward = () => {
       const data = {
         ...values,
         grnDate: values.grnDate?.toISOString(),
-        pdcDate: values.pdcDate?.toISOString(),
-        dyeingDcDate: values.dyeingDcDate?.toISOString(),
+        pdcDate: values.pdcDate?.toISOString() || null,
+        dyeingDcDate: values.dyeingDcDate?.toISOString() || null,
         details: details.map(d => ({
           fabricId: d.fabricId,
           colorId: d.colorId,
           diaId: d.diaId,
           gsm: d.gsm,
           designId: d.designId,
-          designName: d.designName || '',
+          designNo: d.designNo,
+          designName: d.designName,
           noOfColor: d.noOfColor,
           productionNotRequired: d.productionNotRequired ? 1 : 0,
           weight: Number(d.weight) || 0,
@@ -305,6 +319,7 @@ const FabricInward = () => {
       diaId: null,
       gsm: '',
       designId: null,
+      designNo: '',
       designName: '',
       noOfColor: 0,
       productionNotRequired: false,
@@ -322,11 +337,10 @@ const FabricInward = () => {
   const handleDetailChange = (key, field, value) => {
     setDetails(details.map(d => {
       if (d.key === key) {
-        console.log(`Updating ${field}:`, value);
         if (field === 'designId' && fabricType === 'Print Lot') {
           const design = designs.find(des => des.id === value);
           if (design) {
-            return { ...d, designId: value, designName: design.designName, noOfColor: design.noOfColor };
+            return { ...d, designId: value, designNo: design.designNo, designName: design.designName, noOfColor: design.noOfColor };
           }
         }
         return { ...d, [field]: value };
@@ -426,18 +440,19 @@ const FabricInward = () => {
       )
     },
     ...(fabricType === 'Print Lot' ? [
-      {title: 'Design No',
-        dataIndex: 'designId',
+      {
+        title: 'Design No',
+        dataIndex: 'designNo',
         width: 150,
         render: (val, record) => (
           <Select
-            value={val}
+            value={record.designId}
             onChange={(v) => handleDetailChange(record.key, 'designId', v)}
             style={{ width: '100%' }}
             showSearch
             filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
           >
-            {designs.map(d => <Option key={d.id} value={d.id}>{`${d.designNo} / ${d.designName}`}</Option>)}
+            {designs.map(d => <Option key={d.id} value={d.id}>{d.designNo}</Option>)}
           </Select>
         )
       },
