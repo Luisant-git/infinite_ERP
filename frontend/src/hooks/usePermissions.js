@@ -12,6 +12,7 @@ export const usePermissions = () => {
       try {
         const userData = await validateToken();
         setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
       } catch (error) {
         console.error('Token validation failed:', error);
         localStorage.clear();
