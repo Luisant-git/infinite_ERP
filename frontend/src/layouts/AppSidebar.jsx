@@ -89,6 +89,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
       label: 'Transactions',
       children: [
         {
+          key: ROUTES.RATE_QUOTATION,
+          icon: <FileTextOutlined />,
+          label: 'Rate Quotation'
+        },
+        {
           key: ROUTES.FABRIC_INWARD,
           icon: <FileTextOutlined />,
           label: 'Fabric Inward'
@@ -102,11 +107,6 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           key: ROUTES.FABRIC_RETURN,
           icon: <FileTextOutlined />,
           label: 'Fabric Return'
-        },
-        {
-          key: ROUTES.RATE_QUOTATION,
-          icon: <FileTextOutlined />,
-          label: 'Rate Quotation'
         }
         // {
         //   key: ROUTES.DC_ENTRY,

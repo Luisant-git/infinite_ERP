@@ -1,5 +1,49 @@
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
+  /* Header fixes */
+  .app-header {
+    padding: 0 8px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    line-height: normal !important;
+  }
+
+  .app-header .ant-space {
+    gap: 8px !important;
+    align-items: center !important;
+  }
+
+  .app-header .ant-btn {
+    padding: 4px 8px !important;
+  }
+
+  .header-logo {
+    height: 32px !important;
+    max-height: 32px !important;
+    display: block !important;
+  }
+
+  .company-info {
+    display: none !important;
+  }
+
+  .company-text {
+    display: none !important;
+  }
+
+  .username-text {
+    display: none !important;
+  }
+
+  .header-right {
+    gap: 4px !important;
+  }
+
+  .header-right .ant-btn {
+    padding: 4px !important;
+    min-width: 32px !important;
+  }
+
   /* Force vertical stacking */
   .page-header {
     display: flex !important;
@@ -27,8 +71,9 @@
     width: 100% !important;
   }
 
-  /* Modal forms single column */
-  .ant-modal .ant-col {
+  /* Form columns single column on mobile */
+  .ant-row.ant-form-item-row .ant-col,
+  .ant-row > .ant-col {
     max-width: 100% !important;
     flex: 0 0 100% !important;
   }
@@ -39,9 +84,37 @@
     -webkit-overflow-scrolling: touch !important;
   }
 
+  .ant-table {
+    min-width: 800px !important;
+  }
+
+  /* Card padding */
+  .ant-card-body {
+    padding: 12px !important;
+  }
+
   /* Full width modals */
   .ant-modal {
     max-width: 95vw !important;
     margin: 10px !important;
+  }
+
+  /* Compact form items */
+  .ant-form-item {
+    margin-bottom: 8px !important;
+  }
+
+  /* Button groups stack */
+  .ant-space-horizontal {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .ant-space-horizontal .ant-space-item {
+    width: 100% !important;
+  }
+
+  .ant-space-horizontal .ant-btn {
+    width: 100% !important;
   }
 }

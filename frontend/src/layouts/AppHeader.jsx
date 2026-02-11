@@ -43,16 +43,18 @@ const AppHeader = () => {
       borderBottom: '1px solid #f0f0f0',
       position: 'sticky',
       top: 0,
-      zIndex: 998
+      zIndex: 998,
+      height: '64px'
     }}>
-      <Space>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <Button
           type="text"
           icon={sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           onClick={() => dispatch(toggleSidebar())}
+          style={{ fontSize: '20px', padding: '4px 8px' }}
         />
-        <img src={logo} alt="Infinite ERP" className="header-logo" style={{ height: '36px', marginTop: '25px' }} />
-      </Space>
+        <img src={logo} alt="Infinite ERP" className="header-logo" style={{ height: '42px', display: 'block' }} />
+      </div>
       
       <Space className="header-right">
         {selectedCompany && selectedYear && (

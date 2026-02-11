@@ -671,9 +671,14 @@ const FabricInward = () => {
         .compact-table .ant-input-number-input {
           height: 22px !important;
         }
+        @media (max-width: 768px) {
+          .page-header { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
+          .page-header .ant-space { width: 100% !important; }
+          .section-header { flex-direction: column !important; gap: 8px !important; align-items: flex-start !important; }
+        }
       `}</style>
-      <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={4} style={{ margin: 0 }}>Fabric Inward</Title>
+      <div className="page-header" style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Title level={4} style={{ margin: 0, whiteSpace: 'nowrap' }}>Fabric Inward</Title>
         {!isFormVisible && (
           <Space style={{ width: 'auto' }}>
             <Input 
@@ -782,7 +787,7 @@ const FabricInward = () => {
           </Row>
 
           <div style={{ marginTop: 4 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
               <Title level={5} style={{ margin: 0, fontSize: '14px' }}>Details</Title>
               <Button type="dashed" icon={<PlusOutlined />} onClick={handleAddDetail} style={{ backgroundColor: '#031d38', color: '#fff', borderColor: '#031d38' }}>Add Row</Button>
             </div>
