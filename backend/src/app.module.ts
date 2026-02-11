@@ -16,9 +16,10 @@ import { RateQuotationModule } from './rate-quotation/rate-quotation.module';
 import { FabricDcModule } from './fabric-dc/fabric-dc.module';
 import { FabricReturnModule } from './fabric-return/fabric-return.module';
 import { GstMasterModule } from './gst-master/gst-master.module';
+import { FabricBillModule } from './fabric-bill/fabric-bill.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule, MasterModule, FabricInwardModule, RateQuotationModule, FabricDcModule, FabricReturnModule, GstMasterModule],
+  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule, MasterModule, FabricInwardModule, RateQuotationModule, FabricDcModule, FabricReturnModule, GstMasterModule, FabricBillModule],
   controllers: [AppController],
   providers: [AppService],
 })

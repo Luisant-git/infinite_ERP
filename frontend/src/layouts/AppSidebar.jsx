@@ -112,6 +112,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           key: ROUTES.FABRIC_RETURN,
           icon: <FileTextOutlined />,
           label: 'Fabric Return'
+        },
+        {
+          key: ROUTES.FABRIC_BILL,
+          icon: <FileTextOutlined />,
+          label: 'Fabric Bill'
         }
         // {
         //   key: ROUTES.DC_ENTRY,

@@ -21,6 +21,7 @@ import GstMaster from './pages/masters/GstMaster';
 import FabricInward from './pages/transactions/FabricInward';
 import FabricDc from './pages/transactions/FabricDc';
 import FabricReturn from './pages/transactions/FabricReturn';
+import FabricBill from './pages/transactions/FabricBill';
 import RateQuotation from './pages/transactions/RateQuotation';
 import RateQuotationApproval from './pages/transactions/RateQuotationApproval';
 import { ROUTES } from './constants/permissions';
@@ -60,6 +61,7 @@ function App() {
                     <Route path={ROUTES.FABRIC_INWARD} element={<FabricInward />} />
                     <Route path={ROUTES.FABRIC_DC} element={<FabricDc />} />
                     <Route path={ROUTES.FABRIC_RETURN} element={<FabricReturn />} />
+                    <Route path={ROUTES.FABRIC_BILL} element={<FabricBill />} />
                     <Route path={ROUTES.RATE_QUOTATION} element={<RateQuotation />} />
                     <Route path={ROUTES.RATE_QUOTATION_APPROVAL} element={<RateQuotationApproval />} />
                     <Route path={ROUTES.DC_ENTRY} element={<div>DC Entry</div>} />

@@ -44,6 +44,7 @@ model Tenant {
   rateQuotations RateQuotationHeader[]
   fabricDcs FabricDcHeader[]
   fabricReturns FabricReturnHeader[]
+  fabricBills FabricBillHeader[]
   
   @@unique([concernId, financialYear])
   @@map("tenants")
@@ -96,6 +97,8 @@ model Party {
   partyTypes PartyPartyType[]
   designs    Design[]
   rateQuotations RateQuotationHeader[]
+  fabricBills FabricBillHeader[] @relation("BillParty")
+  fabricBillInvoices FabricBillHeader[] @relation("BillInvoiceTo")
   
   @@map("parties")
 }
@@ -149,6 +152,7 @@ model Concern {
   rateQuotations RateQuotationHeader[]
   fabricDcs FabricDcHeader[]
   fabricReturns FabricReturnHeader[]
+  fabricBills FabricBillHeader[]
  
   @@map("concerns")
 }
@@ -302,6 +306,11 @@ model Master {
   returnColorDetails  FabricReturnDetail[] @relation("ReturnColorMaster")
   returnDiaDetails    FabricReturnDetail[] @relation("ReturnDiaMaster")
   returnUomDetails    FabricReturnDetail[] @relation("ReturnUOMMaster")
+  billFabricDetails FabricBillDetail[] @relation("BillFabricMaster")
+  billColorDetails  FabricBillDetail[] @relation("BillColorMaster")
+  billDiaDetails    FabricBillDetail[] @relation("BillDiaMaster")
+  billUomDetails    FabricBillDetail[] @relation("BillUOMMaster")
+  billTaxDetails    FabricBillTax[]    @relation("BillTaxMaster")
   
   @@map("masters")
 }
@@ -473,6 +482,7 @@ model FabricDcHeader {
   concern   Concern?          @relation(fields: [concernId], references: [id])
   details   FabricDcDetail[]
   processes FabricDcProcess[]
+  billDetails FabricBillDetail[]
   
   @@map("fabric_dc_headers")
 }
@@ -602,4 +612,109 @@ model FabricReturnProcess {
   header FabricReturnHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
   
   @@map("fabric_return_processes")
+}
+
+model FabricBillHeader {
+  id              Int      @id @default(autoincrement())
+  tenantId        Int
+  billNo          String   @db.VarChar(10)
+  billDate        DateTime @default(now())
+  partyId         Int?
+  invoiceTo       Int?
+  creditDays      Int      @default(0)
+  orderNo         String?  @db.VarChar(100)
+  remarks         String?  @db.VarChar(100)
+  totalQty        Decimal  @default(0) @db.Decimal(12, 3)
+  totalRolls      Int      @default(0)
+  totalAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  noOfDesign      Int      @default(0)
+  designRate      Decimal  @default(0) @db.Decimal(12, 2)
+  designAmount    Decimal  @default(0) @db.Decimal(12, 2)
+  noOfScreen      Int      @default(0)
+  screenRate      Decimal  @default(0) @db.Decimal(12, 2)
+  screenAmount    Decimal  @default(0) @db.Decimal(12, 2)
+  gstAmount       Decimal  @default(0) @db.Decimal(12, 2)
+  otherCharges    Decimal  @default(0) @db.Decimal(12, 2)
+  roundOff        Decimal  @default(0) @db.Decimal(12, 2)
+  netAmount       Decimal  @default(0) @db.Decimal(12, 2)
+  createdBy       String?  @db.VarChar(50)
+  createdDate     DateTime @default(now())
+  modifiedBy      String?  @db.VarChar(50)
+  modifiedDate    DateTime @updatedAt
+  deletedBy       String?  @db.VarChar(50)
+  deletedDate     DateTime?
+  deleteFlg       Int      @default(0)
+  yearId          Int?
+  concernId       Int?
+  sortOrder       Int?
+  hsnCode         String?  @db.VarChar(20)
+  ewayNo          String?  @db.VarChar(50)
+  ackNo           String?  @db.VarChar(50)
+  ackDate         DateTime?
+  irnNo           String?  @db.VarChar(100)
+  qrText          String?  @db.Text
+  isCanceled      Int      @default(0)
+  cancelReason    String?  @db.VarChar(100)
+  ewbDate         DateTime?
+  validDate       DateTime?
+  ewbAlert        String?  @db.VarChar(100)
+  
+  tenant    Tenant              @relation(fields: [tenantId], references: [id])
+  concern   Concern?            @relation(fields: [concernId], references: [id])
+  party     Party?              @relation("BillParty", fields: [partyId], references: [id])
+  invoiceParty Party?           @relation("BillInvoiceTo", fields: [invoiceTo], references: [id])
+  details   FabricBillDetail[]
+  taxes     FabricBillTax[]
+  
+  @@map("fabric_bill_headers")
+}
+
+model FabricBillDetail {
+  id          Int      @id @default(autoincrement())
+  headerId    Int
+  inwardNo    String?  @db.VarChar(100)
+  grnId       Int?
+  pdcNo       String?  @db.VarChar(50)
+  dcNo        String?  @db.VarChar(50)
+  dcId        Int?
+  dcDate      DateTime?
+  fabricId    Int?
+  colorId     Int?
+  diaId       Int?
+  gsm         String?  @db.VarChar(100)
+  designNo    String?  @db.VarChar(100)
+  designName  String?  @db.VarChar(100)
+  noOfColor   Int?
+  weight      Decimal  @default(0) @db.Decimal(12, 3)
+  rolls       Int      @default(0)
+  uomId       Int?
+  rate        Decimal  @default(0) @db.Decimal(12, 2)
+  amount      Decimal  @default(0) @db.Decimal(12, 2)
+  process     String?  @db.VarChar(100)
+  processList String?  @db.Text
+  remarks     String?  @db.VarChar(100)
+  deleteFlg   Int      @default(0)
+  
+  header FabricBillHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
+  fabric Master?          @relation("BillFabricMaster", fields: [fabricId], references: [id])
+  color  Master?          @relation("BillColorMaster", fields: [colorId], references: [id])
+  dia    Master?          @relation("BillDiaMaster", fields: [diaId], references: [id])
+  uom    Master?          @relation("BillUOMMaster", fields: [uomId], references: [id])
+  dc     FabricDcHeader?  @relation(fields: [dcId], references: [id])
+  
+  @@map("fabric_bill_details")
+}
+
+model FabricBillTax {
+  id            Int     @id @default(autoincrement())
+  headerId      Int
+  taxName       Int?
+  taxPercentage Decimal @default(0) @db.Decimal(12, 2)
+  taxAmount     Decimal @default(0) @db.Decimal(12, 2)
+  deleteFlg     Int     @default(0)
+  
+  header     FabricBillHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
+  taxMaster  Master?          @relation("BillTaxMaster", fields: [taxName], references: [id])
+  
+  @@map("fabric_bill_taxes")
 }

@@ -29,6 +29,7 @@ export const ROUTES = {
   FABRIC_INWARD: '/transactions/fabric-inward',
   FABRIC_DC: '/transactions/fabric-dc',
   FABRIC_RETURN: '/transactions/fabric-return',
+  FABRIC_BILL: '/transactions/fabric-bill',
   RATE_QUOTATION: '/transactions/rate-quotation',
   RATE_QUOTATION_APPROVAL: '/transactions/rate-quotation-approval',
   DC_ENTRY: '/transactions/dc-entry',
