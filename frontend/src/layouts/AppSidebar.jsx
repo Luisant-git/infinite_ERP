@@ -79,6 +79,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           key: ROUTES.MASTER_DATA,
           icon: <DatabaseOutlined />,
           label: 'Master Data'
+        }] : []),
+        ...(canView('gst_master') ? [{
+          key: ROUTES.GST_MASTER,
+          icon: <FileTextOutlined />,
+          label: 'GST Master'
         }] : [])
         
       ].filter(item => item)

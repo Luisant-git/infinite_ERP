@@ -17,6 +17,7 @@ import PartyProcessRateSetting from './pages/masters/PartyProcessRateSetting';
 import DesignMaster from './pages/masters/DesignMaster';
 import DesignApproval from './pages/masters/DesignApproval';
 import MasterData from './pages/masters/MasterData';
+import GstMaster from './pages/masters/GstMaster';
 import FabricInward from './pages/transactions/FabricInward';
 import FabricDc from './pages/transactions/FabricDc';
 import FabricReturn from './pages/transactions/FabricReturn';
@@ -55,6 +56,7 @@ function App() {
                     <Route path={ROUTES.DESIGN_MASTER} element={<DesignMaster />} />
                     <Route path={ROUTES.DESIGN_APPROVAL} element={<DesignApproval />} />
                     <Route path={ROUTES.MASTER_DATA} element={<MasterData />} />
+                    <Route path={ROUTES.GST_MASTER} element={<GstMaster />} />
                     <Route path={ROUTES.FABRIC_INWARD} element={<FabricInward />} />
                     <Route path={ROUTES.FABRIC_DC} element={<FabricDc />} />
                     <Route path={ROUTES.FABRIC_RETURN} element={<FabricReturn />} />

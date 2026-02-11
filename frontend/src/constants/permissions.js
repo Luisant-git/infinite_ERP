@@ -25,6 +25,7 @@ export const ROUTES = {
   DESIGN_MASTER: '/masters/designs',
   DESIGN_APPROVAL: '/masters/design-approval',
   MASTER_DATA: '/masters/master-data',
+  GST_MASTER: '/masters/gst-master',
   FABRIC_INWARD: '/transactions/fabric-inward',
   FABRIC_DC: '/transactions/fabric-dc',
   FABRIC_RETURN: '/transactions/fabric-return',

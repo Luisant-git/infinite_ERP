@@ -260,6 +260,22 @@ model PartyProcessRateSetting {
   @@map("party_process_rate_settings")
 }
 
+model GstMaster {
+  id            Int      @id @default(autoincrement())
+  taxName       String   @db.VarChar(50)
+  taxPercent    Decimal  @db.Decimal(12, 2)
+  taxType       String   @db.VarChar(10)
+  isActive      Int      @default(1)
+  isLoadDefault Int      @default(0)
+  isDeleted     Boolean  @default(false)
+  deletedAt     DateTime?
+  deletedBy     Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("gst_masters")
+}
+
 model Master {
   id          Int      @id @default(autoincrement())
   masterType  String   @db.VarChar(50)

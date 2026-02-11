@@ -7,7 +7,7 @@ const apiClient = axios.create({
 });
 
 // List of endpoints that don't need tenant-id
-const noTenantEndpoints = ['/concern', '/party', '/party-types', '/auth', '/design', '/upload'];
+const noTenantEndpoints = ['/concern', '/party', '/party-types', '/auth', '/design', '/upload', '/gst-master'];
 
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
