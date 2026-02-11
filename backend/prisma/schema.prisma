@@ -43,6 +43,7 @@ model Tenant {
   fabricInwards FabricInwardHeader[]
   rateQuotations RateQuotationHeader[]
   fabricDcs FabricDcHeader[]
+  fabricReturns FabricReturnHeader[]
   
   @@unique([concernId, financialYear])
   @@map("tenants")
@@ -147,6 +148,7 @@ model Concern {
   fabricInwards FabricInwardHeader[]
   rateQuotations RateQuotationHeader[]
   fabricDcs FabricDcHeader[]
+  fabricReturns FabricReturnHeader[]
  
   @@map("concerns")
 }
@@ -280,6 +282,10 @@ model Master {
   dcInwColorDetails  FabricDcDetail[]   @relation("DcInwColorMaster")
   dcInwDiaDetails    FabricDcDetail[]   @relation("DcInwDiaMaster")
   dcUomDetails     FabricDcDetail[]     @relation("DcUOMMaster")
+  returnFabricDetails FabricReturnDetail[] @relation("ReturnFabricMaster")
+  returnColorDetails  FabricReturnDetail[] @relation("ReturnColorMaster")
+  returnDiaDetails    FabricReturnDetail[] @relation("ReturnDiaMaster")
+  returnUomDetails    FabricReturnDetail[] @relation("ReturnUOMMaster")
   
   @@map("masters")
 }
@@ -536,6 +542,8 @@ model FabricReturnHeader {
   hsnCode         String?  @db.VarChar(20)
   receivedName    String?  @db.VarChar(50)
   
+  tenant    Tenant                @relation(fields: [tenantId], references: [id])
+  concern   Concern?              @relation(fields: [concernId], references: [id])
   details   FabricReturnDetail[]
   processes FabricReturnProcess[]
   
@@ -561,6 +569,10 @@ model FabricReturnDetail {
   deleteFlg   Int      @default(0)
   
   header FabricReturnHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
+  fabric Master?            @relation("ReturnFabricMaster", fields: [fabricId], references: [id])
+  color  Master?            @relation("ReturnColorMaster", fields: [colorId], references: [id])
+  dia    Master?            @relation("ReturnDiaMaster", fields: [diaId], references: [id])
+  uom    Master?            @relation("ReturnUOMMaster", fields: [uomId], references: [id])
   
   @@map("fabric_return_details")
 }

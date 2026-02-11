@@ -605,7 +605,7 @@ const FabricInward = () => {
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} style={{ color: '#1890ff' }} />
-          <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRecord(record)} style={{ color: '#722ed1' }} />
+          {/* <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRecord(record)} style={{ color: '#722ed1' }} /> */}
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
           <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
         </Space>
@@ -827,7 +827,7 @@ const FabricInward = () => {
             <Space>
               <Button icon={<CloseOutlined />} onClick={() => setIsFormVisible(false)}>Cancel</Button>
               <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={() => handleSubmit(false)}>Save</Button>
-              <Button type="primary" icon={<PrinterOutlined />} loading={loading} onClick={() => handleSubmit(true)}>Save & Print</Button>
+              {/* <Button type="primary" icon={<PrinterOutlined />} loading={loading} onClick={() => handleSubmit(true)}>Save & Print</Button> */}
             </Space>
           </div>
         </Form>
