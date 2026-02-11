@@ -1,26 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, Button, Row, Col, Typography, Select, DatePicker, Table, Modal, InputNumber, message, Space, Radio, Checkbox } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, EyeOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Button, Row, Col, Typography, Select, DatePicker, Table, Modal, InputNumber, message, Space } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { getNextDcNo, getFabricDcs, createFabricDc, updateFabricDc, deleteFabricDc } from '../../api/fabricDc';
+import { getNextDcNo, getFabricReturns, createFabricReturn, updateFabricReturn, deleteFabricReturn } from '../../api/fabricReturn';
 import { getParties } from '../../api/party';
 import { getFabricInwards } from '../../api/fabricInward';
 import { getMastersByType } from '../../api/fabricInward';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
-import { useSelector } from 'react-redux';
 
 const { Title } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
-const FabricDc = () => {
+const FabricReturn = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [fabricDcs, setFabricDcs] = useState([]);
+  const [fabricReturns, setFabricReturns] = useState([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const { adminUser: isAdmin } = useMenuPermissions();
-  const { selectedCompany, selectedYear } = useSelector(state => state.auth);
   
   const [parties, setParties] = useState([]);
   const [allParties, setAllParties] = useState([]);
@@ -33,7 +31,6 @@ const FabricDc = () => {
   const [details, setDetails] = useState([]);
   const [selectedProcesses, setSelectedProcesses] = useState([]);
   const [searchText, setSearchText] = useState('');
-  const [dcType, setDcType] = useState('Production');
 
   useEffect(() => {
     loadData();
@@ -53,10 +50,10 @@ const FabricDc = () => {
 
   const loadData = async () => {
     try {
-      const response = await getFabricDcs('', 1, 100);
-      setFabricDcs(response.data || []);
+      const response = await getFabricReturns('', 1, 100);
+      setFabricReturns(response.data || []);
     } catch (error) {
-      console.error('Error loading fabric DCs:', error);
+      console.error('Error loading fabric returns:', error);
     }
   };
 
@@ -92,7 +89,6 @@ const FabricDc = () => {
         i.partyId === partyId && (i.isClosed === 0 || i.isClosed === false)
       );
       setInwards(filtered);
-      console.log('Loaded inwards for party:', partyId, filtered);
     } catch (error) {
       console.error('Error loading inwards:', error);
     }
@@ -104,12 +100,10 @@ const FabricDc = () => {
       form.resetFields();
       form.setFieldsValue({
         dcNo: response.dcNo,
-        dcDate: dayjs(),
-        isFinal: 0
+        dcDate: dayjs()
       });
       setDetails([]);
       setSelectedProcesses([]);
-      setDcType('Fresh');
       setEditingId(null);
       setIsFormVisible(true);
     } catch (error) {
@@ -128,22 +122,20 @@ const FabricDc = () => {
       dcDate: dayjs(record.dcDate),
       grnDate: record.grnDate ? dayjs(record.grnDate) : null,
       dyeingDcDate: record.dyeingDcDate ? dayjs(record.dyeingDcDate) : null,
-      dyeingPartyName: dyeParty?.partyName || '',
-      isFinal: Boolean(record.isFinal)
+      dyeingPartyName: dyeParty?.partyName || ''
     });
     setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
     setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
-    setDcType(record.dcType || 'Fresh');
     setIsFormVisible(true);
   };
 
   const handleDelete = (id) => {
     Modal.confirm({
-      title: 'Delete Fabric DC',
+      title: 'Delete Fabric Return',
       content: 'Are you sure?',
       onOk: async () => {
         try {
-          await deleteFabricDc(id);
+          await deleteFabricReturn(id);
           message.success('Deleted successfully');
           loadData();
         } catch (error) {
@@ -163,7 +155,7 @@ const FabricDc = () => {
       }
       
       if (!editingId) {
-        const duplicate = fabricDcs.find(f => f.dcNo === values.dcNo);
+        const duplicate = fabricReturns.find(f => f.dcNo === values.dcNo);
         if (duplicate) {
           message.error('DC number already exists!');
           return;
@@ -172,7 +164,7 @@ const FabricDc = () => {
       
       setLoading(true);
 
-      const totalQty = details.reduce((sum, d) => sum + (Number(d.dcWeight) || 0), 0);
+      const totalQty = details.reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
       const totalRolls = details.reduce((sum, d) => sum + (d.rolls || 0), 0);
 
       const { dyeingPartyName, dyeParty, ...submitValues } = values;
@@ -183,25 +175,17 @@ const FabricDc = () => {
         dcDate: values.dcDate?.toISOString(),
         grnDate: values.grnDate?.toISOString(),
         dyeingDcDate: values.dyeingDcDate?.toISOString(),
-        dcType,
-        isFinal: values.isFinal ? 1 : 0,
         totalQty,
         totalRolls,
         details: details.map(d => ({
           fabricId: d.fabricId,
           colorId: d.colorId,
           diaId: d.diaId,
-          inwFabricId: d.inwFabricId,
-          inwColorId: d.inwColorId,
-          inwDiaId: d.inwDiaId,
           gsm: d.gsm,
           designNo: d.designNo,
           designName: d.designName,
           noOfColor: d.noOfColor,
-          processWeight: Number(d.processWeight) || 0,
-          dcWeight: Number(d.dcWeight) || 0,
-          weightLoss: Number(d.weightLoss) || 0,
-          lossPercentage: Number(d.lossPercentage) || 0,
+          weight: Number(d.weight) || 0,
           rolls: d.rolls || 0,
           uomId: d.uomId,
           rate: Number(d.rate) || 0,
@@ -214,10 +198,10 @@ const FabricDc = () => {
       };
 
       if (editingId) {
-        await updateFabricDc(editingId, data);
+        await updateFabricReturn(editingId, data);
         message.success('Updated successfully');
       } else {
-        await createFabricDc(data);
+        await createFabricReturn(data);
         message.success('Created successfully');
       }
       
@@ -247,26 +231,17 @@ const FabricDc = () => {
         fabricType: selectedInward.fabricType
       });
       
-      setDcType(selectedInward.dcType || 'Fresh');
-      
-      // Auto-load details from inward
       if (selectedInward.details && selectedInward.details.length > 0) {
         const loadedDetails = selectedInward.details.map((d, idx) => ({
           key: Date.now() + idx,
           fabricId: d.fabricId,
           colorId: d.colorId,
           diaId: d.diaId,
-          inwFabricId: d.fabricId,
-          inwColorId: d.colorId,
-          inwDiaId: d.diaId,
           gsm: d.gsm,
           designNo: d.designNo || '',
           designName: d.designName,
           noOfColor: d.noOfColor,
-          processWeight: d.weight || 0,
-          dcWeight: 0,
-          weightLoss: 0,
-          lossPercentage: 0,
+          weight: 0,
           rolls: d.rolls || 0,
           uomId: d.uomId,
           rate: 0,
@@ -279,8 +254,7 @@ const FabricDc = () => {
       if (selectedInward.processes) {
         setSelectedProcesses(selectedInward.processes.map((p, idx) => ({
           key: Date.now() + idx,
-          processName: p.processName,
-          remarks: ''
+          processName: p.processName
         })));
       }
     }
@@ -292,17 +266,11 @@ const FabricDc = () => {
       fabricId: null,
       colorId: null,
       diaId: null,
-      inwFabricId: null,
-      inwColorId: null,
-      inwDiaId: null,
       gsm: '',
       designNo: '',
       designName: '',
       noOfColor: 0,
-      processWeight: 0,
-      dcWeight: 0,
-      weightLoss: 0,
-      lossPercentage: 0,
+      weight: 0,
       rolls: 0,
       uomId: null,
       rate: 0,
@@ -320,19 +288,10 @@ const FabricDc = () => {
       if (d.key === key) {
         const updated = { ...d, [field]: value };
         
-        // Calculate weight loss and percentage
-        if (field === 'processWeight' || field === 'dcWeight') {
-          const processWeight = field === 'processWeight' ? value : d.processWeight;
-          const dcWeight = field === 'dcWeight' ? value : d.dcWeight;
-          updated.weightLoss = processWeight - dcWeight;
-          updated.lossPercentage = processWeight > 0 ? ((processWeight - dcWeight) / processWeight * 100) : 0;
-        }
-        
-        // Calculate amount
-        if (field === 'dcWeight' || field === 'rate') {
-          const dcWeight = field === 'dcWeight' ? value : d.dcWeight;
+        if (field === 'weight' || field === 'rate') {
+          const weight = field === 'weight' ? value : d.weight;
           const rate = field === 'rate' ? value : d.rate;
-          updated.amount = dcWeight * rate;
+          updated.amount = weight * rate;
         }
         
         return updated;
@@ -348,37 +307,7 @@ const FabricDc = () => {
   const detailColumns = [
     { title: 'Sl.No', width: 50, render: (_, record, index) => index + 1 },
     {
-      title: 'Inw Dia',
-      dataIndex: 'inwDiaId',
-      width: 80,
-      render: (val, record) => (
-        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'inwDiaId', v)} style={{ width: '100%' }}>
-          {dias.map(d => <Option key={d.id} value={d.id}>{d.masterName}</Option>)}
-        </Select>
-      )
-    },
-    {
-      title: 'Dc Dia',
-      dataIndex: 'diaId',
-      width: 80,
-      render: (val, record) => (
-        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'diaId', v)} style={{ width: '100%' }}>
-          {dias.map(d => <Option key={d.id} value={d.id}>{d.masterName}</Option>)}
-        </Select>
-      )
-    },
-    {
-      title: 'Rec.Fabric',
-      dataIndex: 'inwFabricId',
-      width: 120,
-      render: (val, record) => (
-        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'inwFabricId', v)} style={{ width: '100%' }} showSearch>
-          {fabrics.map(f => <Option key={f.id} value={f.id}>{f.masterName}</Option>)}
-        </Select>
-      )
-    },
-    {
-      title: 'Dc Fabric',
+      title: 'Fabric',
       dataIndex: 'fabricId',
       width: 120,
       render: (val, record) => (
@@ -388,22 +317,22 @@ const FabricDc = () => {
       )
     },
     {
-      title: 'Inw Color',
-      dataIndex: 'inwColorId',
-      width: 120,
-      render: (val, record) => (
-        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'inwColorId', v)} style={{ width: '100%' }} showSearch>
-          {colors.map(c => <Option key={c.id} value={c.id}>{c.masterName}</Option>)}
-        </Select>
-      )
-    },
-    {
-      title: 'DC Color',
+      title: 'Color',
       dataIndex: 'colorId',
       width: 120,
       render: (val, record) => (
         <Select value={val} onChange={(v) => handleDetailChange(record.key, 'colorId', v)} style={{ width: '100%' }} showSearch>
           {colors.map(c => <Option key={c.id} value={c.id}>{c.masterName}</Option>)}
+        </Select>
+      )
+    },
+    {
+      title: 'Dia',
+      dataIndex: 'diaId',
+      width: 80,
+      render: (val, record) => (
+        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'diaId', v)} style={{ width: '100%' }}>
+          {dias.map(d => <Option key={d.id} value={d.id}>{d.masterName}</Option>)}
         </Select>
       )
     },
@@ -440,32 +369,12 @@ const FabricDc = () => {
       )
     },
     {
-      title: 'INW Weight',
-      dataIndex: 'processWeight',
+      title: 'Weight',
+      dataIndex: 'weight',
       width: 100,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'processWeight', v)} style={{ width: '100%' }} precision={3} />
+        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'weight', v)} style={{ width: '100%' }} precision={3} />
       )
-    },
-    {
-      title: 'DC Weight',
-      dataIndex: 'dcWeight',
-      width: 100,
-      render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'dcWeight', v)} style={{ width: '100%' }} precision={3} />
-      )
-    },
-    {
-      title: 'Weight Loss',
-      dataIndex: 'weightLoss',
-      width: 100,
-      render: (val) => <InputNumber value={val} disabled style={{ width: '100%' }} precision={3} />
-    },
-    {
-      title: 'Loss %',
-      dataIndex: 'lossPercentage',
-      width: 80,
-      render: (val) => <InputNumber value={val} disabled style={{ width: '100%' }} precision={2} />
     },
     {
       title: 'Rolls',
@@ -519,7 +428,6 @@ const FabricDc = () => {
   const processColumns = [
     { title: 'Sl.No', width: 80, render: (_, record, index) => index + 1 },
     { title: 'Process', dataIndex: 'processName', width: 200 },
-    { title: 'Remarks', dataIndex: 'remarks', width: 200 },
     {
       title: 'Action',
       width: 80,
@@ -550,10 +458,10 @@ const FabricDc = () => {
     }
   ];
 
-  const totalQty = details.reduce((sum, d) => sum + (Number(d.dcWeight) || 0), 0);
+  const totalQty = details.reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
   const totalRolls = details.reduce((sum, d) => sum + (d.rolls || 0), 0);
 
-  const filteredFabricDcs = fabricDcs.filter(item => {
+  const filteredFabricReturns = fabricReturns.filter(item => {
     if (!searchText) return true;
     const search = searchText.toLowerCase();
     return (
@@ -577,7 +485,7 @@ const FabricDc = () => {
         }
       `}</style>
       <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={4} style={{ margin: 0 }}>Fabric DC</Title>
+        <Title level={4} style={{ margin: 0 }}>Fabric Return</Title>
         {!isFormVisible && (
           <Space>
             <Input 
@@ -594,7 +502,7 @@ const FabricDc = () => {
       </div>
 
       {!isFormVisible ? (
-        <Table columns={listColumns} dataSource={filteredFabricDcs} rowKey="id" size="small" className="compact-table" />
+        <Table columns={listColumns} dataSource={filteredFabricReturns} rowKey="id" size="small" className="compact-table" />
       ) : (
         <Form form={form} layout="vertical" size="small">
           <Row gutter={8}>
@@ -672,32 +580,10 @@ const FabricDc = () => {
                 <Input disabled style={{ height: '32px' }} size="middle" />
               </Form.Item>
             </Col>
-            <Col span={6}>
+            <Col span={4}>
               <Form.Item label="DC Type" name="dcType" style={{ marginBottom: 6 }}>
-                <Select value={dcType} onChange={setDcType} disabled style={{ height: '32px' }} size="middle">
-                  <Option value="Fresh">Fresh</Option>
-                  <Option value="Re-Process(Free)">Re-Process(Free)</Option>
-                  <Option value="Re-Process(Charge)">Re-Process(Charge)</Option>
-                  <Option value="Sample">Sample</Option>
-                </Select>
+                <Input disabled style={{ height: '32px' }} size="middle" />
               </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item name="isFinal" valuePropName="checked" style={{ marginTop: 28 }}>
-                <Checkbox>Final Delivery</Checkbox>
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <div style={{ marginBottom: 6 }}>
-                <label style={{ fontSize: '12px' }}>Inward Qty</label>
-                <Input value="211.900" disabled style={{ height: '32px', backgroundColor: '#ffc0cb' }} />
-              </div>
-            </Col>
-            <Col span={4}>
-              <div style={{ marginBottom: 6 }}>
-                <label style={{ fontSize: '12px' }}>Pending Inward</label>
-                <Input disabled style={{ height: '32px', backgroundColor: '#add8e6' }} />
-              </div>
             </Col>
           </Row>
 
@@ -710,7 +596,7 @@ const FabricDc = () => {
               columns={detailColumns} 
               dataSource={details} 
               pagination={false} 
-              scroll={{ x: 1800, y: 200 }}
+              scroll={{ x: 1600, y: 200 }}
               size="small"
               bordered
               className="compact-table"
@@ -775,4 +661,4 @@ const FabricDc = () => {
   );
 };
 
-export default FabricDc;
+export default FabricReturn;

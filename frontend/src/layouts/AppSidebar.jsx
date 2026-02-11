@@ -99,6 +99,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           label: 'Fabric DC'
         },
         {
+          key: ROUTES.FABRIC_RETURN,
+          icon: <FileTextOutlined />,
+          label: 'Fabric Return'
+        },
+        {
           key: ROUTES.RATE_QUOTATION,
           icon: <FileTextOutlined />,
           label: 'Rate Quotation'

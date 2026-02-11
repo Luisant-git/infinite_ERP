@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
-export class FabricDcService {
+export class FabricReturnService {
   constructor(private prisma: PrismaService) {}
 
   async getNextDcNo(tenantId: number) {
-    const lastRecord = await this.prisma.fabricDcHeader.findFirst({
+    const lastRecord = await this.prisma.fabricReturnHeader.findFirst({
       where: { tenantId, deleteFlg: 0 },
       orderBy: { sortOrder: 'desc' }
     });
@@ -27,7 +27,7 @@ export class FabricDcService {
     }
 
     const [data, total] = await Promise.all([
-      this.prisma.fabricDcHeader.findMany({
+      this.prisma.fabricReturnHeader.findMany({
         where,
         skip,
         take: limit,
@@ -37,7 +37,7 @@ export class FabricDcService {
           processes: { where: { deleteFlg: 0 } }
         }
       }),
-      this.prisma.fabricDcHeader.count({ where })
+      this.prisma.fabricReturnHeader.count({ where })
     ]);
 
     return {
@@ -49,8 +49,7 @@ export class FabricDcService {
   async create(tenantId: number, concernId: number | null, data: any) {
     const sortOrder = parseInt(data.dcNo);
     
-    // Check for duplicate dcNo within the same tenant
-    const existing = await this.prisma.fabricDcHeader.findFirst({
+    const existing = await this.prisma.fabricReturnHeader.findFirst({
       where: {
         tenantId,
         dcNo: data.dcNo,
@@ -62,7 +61,7 @@ export class FabricDcService {
       throw new Error('DC number already exists for this tenant');
     }
 
-    return this.prisma.fabricDcHeader.create({
+    return this.prisma.fabricReturnHeader.create({
       data: {
         dcNo: data.dcNo,
         inwardNo: data.grnNo,
@@ -82,7 +81,6 @@ export class FabricDcService {
         receivedName: data.receivedName,
         hsnCode: data.hsnCode,
         vehicleNo: data.vehicleNo,
-        isFinal: data.isFinal || 0,
         totalQty: data.totalQty,
         totalRolls: data.totalRolls,
         tenantId,
@@ -94,17 +92,11 @@ export class FabricDcService {
             fabricId: d.fabricId,
             colorId: d.colorId,
             diaId: d.diaId,
-            inwFabricId: d.inwFabricId,
-            inwColorId: d.inwColorId,
-            inwDiaId: d.inwDiaId,
             gsm: d.gsm,
             designNo: d.designNo,
             designName: d.designName,
             noOfColor: d.noOfColor,
-            processWeight: d.processWeight || 0,
-            dcWeight: d.dcWeight || 0,
-            weightLoss: d.weightLoss || 0,
-            lossPercentage: d.lossPercentage || 0,
+            weight: d.weight || 0,
             rolls: d.rolls || 0,
             uomId: d.uomId,
             rate: d.rate || 0,
@@ -123,15 +115,15 @@ export class FabricDcService {
   }
 
   async update(id: number, data: any) {
-    await this.prisma.fabricDcDetail.deleteMany({
+    await this.prisma.fabricReturnDetail.deleteMany({
       where: { headerId: id }
     });
 
-    await this.prisma.fabricDcProcess.deleteMany({
+    await this.prisma.fabricReturnProcess.deleteMany({
       where: { headerId: id }
     });
 
-    return this.prisma.fabricDcHeader.update({
+    return this.prisma.fabricReturnHeader.update({
       where: { id },
       data: {
         dcNo: data.dcNo,
@@ -152,7 +144,6 @@ export class FabricDcService {
         receivedName: data.receivedName,
         hsnCode: data.hsnCode,
         vehicleNo: data.vehicleNo,
-        isFinal: data.isFinal || 0,
         totalQty: data.totalQty,
         totalRolls: data.totalRolls,
         modifiedBy: data.modifiedBy,
@@ -161,17 +152,11 @@ export class FabricDcService {
             fabricId: d.fabricId,
             colorId: d.colorId,
             diaId: d.diaId,
-            inwFabricId: d.inwFabricId,
-            inwColorId: d.inwColorId,
-            inwDiaId: d.inwDiaId,
             gsm: d.gsm,
             designNo: d.designNo,
             designName: d.designName,
             noOfColor: d.noOfColor,
-            processWeight: d.processWeight || 0,
-            dcWeight: d.dcWeight || 0,
-            weightLoss: d.weightLoss || 0,
-            lossPercentage: d.lossPercentage || 0,
+            weight: d.weight || 0,
             rolls: d.rolls || 0,
             uomId: d.uomId,
             rate: d.rate || 0,
@@ -190,7 +175,7 @@ export class FabricDcService {
   }
 
   async delete(id: number, userId: string) {
-    return this.prisma.fabricDcHeader.update({
+    return this.prisma.fabricReturnHeader.update({
       where: { id },
       data: {
         deleteFlg: 1,
