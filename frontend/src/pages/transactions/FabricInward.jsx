@@ -206,13 +206,23 @@ const FabricInward = () => {
       const values = await form.validateFields();
       
       // Check required fields
-      if (!values.grnNo || !values.grnDate || !values.pdcNo || !values.dyeingPartyId) {
+      if (!values.grnNo || !values.grnDate || !values.pdcNo || !values.partyId) {
         message.error('Please fill all required fields');
         return;
       }
       
       if (details.length === 0) {
         message.error('Please add at least one detail row');
+        return;
+      }
+      
+      // Validate that at least one valid detail row exists with all required fields
+      const validDetails = details.filter(d => 
+        d.fabricId && d.colorId && d.diaId && d.weight > 0 && d.uomId
+      );
+      
+      if (validDetails.length === 0) {
+        message.error('Please fill at least one complete detail row with Fabric, Color, Dia, Weight (Kgs), and UOM!');
         return;
       }
       
@@ -594,6 +604,13 @@ const FabricInward = () => {
     },
     { title: 'GRN No', dataIndex: 'grnNo', width: 120 },
     { title: 'GRN Date', dataIndex: 'grnDate', width: 120, render: (val) => dayjs(val).format('DD-MM-YYYY') },
+    { 
+      title: 'Party', 
+      key: 'party', 
+      width: 150,
+      render: (_, record) => parties.find(p => p.id === record.partyId)?.partyName || 'N/A'
+    },
+    { title: 'PDC No', dataIndex: 'pdcNo', width: 120 },
     { title: 'DC Type', dataIndex: 'dcType', width: 120 },
     { title: 'Fabric Type', dataIndex: 'fabricType', width: 120 },
     { title: 'Total Qty', dataIndex: 'totalQty', width: 100 },
@@ -710,7 +727,7 @@ const FabricInward = () => {
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="Party" name="partyId" style={{ marginBottom: 6 }}>
+              <Form.Item label="Party" name="partyId" rules={[{ required: true, message: 'Party is required' }]} style={{ marginBottom: 6 }}>
                 <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
                   {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
@@ -727,7 +744,7 @@ const FabricInward = () => {
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="Dyeing Party" name="dyeingPartyId" rules={[{ required: true, message: 'Dyeing Party is required' }]} style={{ marginBottom: 6 }}>
+              <Form.Item label="Dyeing Party" name="dyeingPartyId" style={{ marginBottom: 6 }}>
                 <Select 
                   showSearch 
                   onChange={setSelectedDyeingParty}
@@ -831,8 +848,12 @@ const FabricInward = () => {
           <div style={{ marginTop: 4, textAlign: 'right' }}>
             <Space>
               <Button icon={<CloseOutlined />} onClick={() => setIsFormVisible(false)}>Cancel</Button>
-              <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={() => handleSubmit(false)}>Save</Button>
-              {/* <Button type="primary" icon={<PrinterOutlined />} loading={loading} onClick={() => handleSubmit(true)}>Save & Print</Button> */}
+              {!isViewMode && (
+                <>
+                  <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={() => handleSubmit(false)}>Save</Button>
+                  {/* <Button type="primary" icon={<PrinterOutlined />} loading={loading} onClick={() => handleSubmit(true)}>Save & Print</Button> */}
+                </>
+              )}
             </Space>
           </div>
         </Form>

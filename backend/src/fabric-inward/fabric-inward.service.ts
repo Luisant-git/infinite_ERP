@@ -13,7 +13,7 @@ export class FabricInwardService {
     });
     
     const nextNum = lastRecord ? (lastRecord.sortOrder || 0) + 1 : 1;
-    return nextNum.toString().padStart(10, '0');
+    return `G/${nextNum}`;
   }
 
   async findAll(tenantId: number, search?: string, page = 1, limit = 10) {
@@ -60,7 +60,9 @@ export class FabricInwardService {
 
   async create(createDto: CreateFabricInwardDto, username: string, tenantId: number) {
     const grnNo = await this.getNextGrnNo(tenantId);
-    const sortOrder = parseInt(grnNo);
+    // Extract number from G/1 format
+    const grnNoMatch = grnNo.match(/G\/(\d+)/);
+    const sortOrder = grnNoMatch ? parseInt(grnNoMatch[1]) : 1;
 
     // Check for duplicate grnNo within the same tenant
     const existing = await this.prisma.fabricInwardHeader.findFirst({

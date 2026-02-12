@@ -63,6 +63,7 @@ const RateQuotationApproval = () => {
         <div>
           <p><strong>Quot No:</strong> {record.quotNo}</p>
           <p><strong>Date:</strong> {dayjs(record.quotDate).format('DD-MM-YYYY')}</p>
+          <p><strong>Concern:</strong> {record.concern?.partyName || 'N/A'}</p>
           <p><strong>Customer:</strong> {record.party?.partyName || 'N/A'}</p>
           <p><strong>Payment Terms:</strong> {record.paymentTerms || 'N/A'}</p>
           <p><strong>Remarks:</strong> {record.remarks || 'N/A'}</p>
@@ -89,24 +90,18 @@ const RateQuotationApproval = () => {
     { title: 'S.No', key: 'sno', width: 50, render: (_, record, index) => index + 1 },
     { title: 'Quot No', dataIndex: 'quotNo', width: 100 },
     { title: 'Date', dataIndex: 'quotDate', width: 100, render: (val) => dayjs(val).format('DD-MM-YYYY') },
+    { title: 'Concern', dataIndex: ['concern', 'partyName'], width: 150 },
     { title: 'Customer', dataIndex: ['party', 'partyName'], width: 150 },
     { 
-      title: 'Process', 
-      key: 'process', 
-      width: 150,
-      render: (_, record) => record.details?.map(d => d.process?.processName).filter(Boolean).join(', ') || 'N/A'
-    },
-    { 
-      title: 'Rate', 
-      key: 'rate', 
-      width: 80,
-      render: (_, record) => record.details?.[0]?.rate || 0
-    },
-    { 
-      title: 'Confirm Rate', 
-      key: 'confirmRate', 
-      width: 100,
-      render: (_, record) => record.details?.[0]?.confirmRate || 0
+      title: 'Process/Rate/Confirm Rate', 
+      key: 'processRates', 
+      width: 250,
+      render: (_, record) => {
+        const details = record.details?.map(d => 
+          `${d.process?.processName || 'N/A'}-Rs.${d.rate || 0}/Rs.${d.confirmRate || 0}`
+        ).join(', ') || 'N/A';
+        return details;
+      }
     },
     {
       title: 'Approval',
@@ -133,6 +128,12 @@ const RateQuotationApproval = () => {
       align: 'center',
       render: (_, record) => (
         <Space size="small">
+          <Button
+            type="link"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => handleView(record)}
+          />
           <Button
             type="link"
             size="small"

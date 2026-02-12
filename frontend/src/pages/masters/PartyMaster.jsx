@@ -434,7 +434,7 @@ const PartyMaster = () => {
                     name="partyName"
                     rules={[{ required: true, message: 'Please input party name!' }]}
                   >
-                    <Input placeholder="Enter party name" maxLength={50} autoComplete="off" />
+                    <Input placeholder="Enter party name" maxLength={50} style={{ textTransform: 'uppercase' }} autoComplete="off" />
                   </Form.Item>
                 </Col>
                 {/* <Col span={12}>

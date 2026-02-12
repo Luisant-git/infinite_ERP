@@ -285,16 +285,15 @@ const RateQuotation = () => {
     { title: 'Party', dataIndex: ['party', 'partyName'], width: 150 },
     { title: 'Payment Terms', dataIndex: 'paymentTerms', width: 120 },
     { 
-      title: 'Process', 
-      key: 'process', 
-      width: 150,
-      render: (_, record) => record.details?.map(d => d.process?.processName).filter(Boolean).join(', ') || 'N/A'
-    },
-    { 
-      title: 'Rate', 
-      key: 'rate', 
-      width: 80,
-      render: (_, record) => record.details?.[0]?.rate || 0
+      title: 'Process/Rate', 
+      key: 'processRate', 
+      width: 200,
+      render: (_, record) => {
+        const processRates = record.details?.map(d => 
+          `${d.process?.processName || 'N/A'}-${d.rate || 0}`
+        ).join(', ') || 'N/A';
+        return processRates;
+      }
     },
     {
       title: 'Actions',
