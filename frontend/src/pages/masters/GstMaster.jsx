@@ -180,6 +180,7 @@ const GstMaster = () => {
               style={{ width: 280, height: 32 }}
               size="small"
               allowClear
+              autoComplete="off"
             />
             <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
           </Space>
@@ -199,7 +200,7 @@ const GstMaster = () => {
         <Form form={form} layout="vertical" size="small">
           <div style={{ maxWidth: 600 }}>
             <Form.Item label="Tax Name" name="taxName" rules={[{ required: true, message: 'Tax Name is required' }]} style={{ marginBottom: 8 }}>
-              <Input style={{ height: '32px' }} size="middle" />
+              <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
             </Form.Item>
 
             <Form.Item label="Tax Percent" name="taxPercent" rules={[{ required: true, message: 'Tax Percent is required' }]} style={{ marginBottom: 8 }}>
@@ -211,6 +212,7 @@ const GstMaster = () => {
                 size="middle" 
                 controls={false}
                 parser={value => value.replace(/[^0-9.]/g, '')}
+                autoComplete="off"
               />
             </Form.Item>
 

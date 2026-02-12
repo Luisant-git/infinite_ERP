@@ -179,6 +179,7 @@ const PartyTypeMaster = () => {
             style={{ width: 280, height: 32 }}
             size="small"
             allowClear
+            autoComplete="off"
           />
           <Button 
             type="primary" 
@@ -235,13 +236,14 @@ const PartyTypeMaster = () => {
           layout="vertical"
           onFinish={handleSubmit}
           initialValues={{ isActive: true }}
+          autoComplete="off"
         >
           <Form.Item
             label="Party Type Name"
             name="partyTypeName"
             rules={[{ required: true, message: 'Please input party type name!' }]}
           >
-            <Input placeholder="Enter party type name" maxLength={50} />
+            <Input placeholder="Enter party type name" maxLength={50} style={{ textTransform: 'uppercase' }} autoComplete="off" />
           </Form.Item>
           
           <Form.Item

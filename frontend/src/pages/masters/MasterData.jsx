@@ -193,7 +193,7 @@ const MasterData = () => {
             name="masterName"
             rules={[{ required: true, message: 'Please input name!' }]}
           >
-            <Input placeholder={`Enter ${currentType.toLowerCase()} name`} />
+            <Input placeholder={`Enter ${currentType.toLowerCase()} name`} autoComplete="off" />
           </Form.Item>
           
           <Form.Item name="isActive" valuePropName="checked">

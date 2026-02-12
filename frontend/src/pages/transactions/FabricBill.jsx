@@ -236,19 +236,19 @@ const FabricBill = () => {
 
   const detailColumns = [
     { title: 'Sl', width: 50, render: (_, r, i) => i + 1 },
-    { title: 'Inward No', dataIndex: 'inwardNo', width: 100, render: (v, r) => <Input value={v} onChange={(e) => handleDetailChange(r.key, 'inwardNo', e.target.value)} size="small" /> },
-    { title: 'Our DC No', dataIndex: 'dcNo', width: 100, render: (v, r) => <Input value={v} onChange={(e) => handleDetailChange(r.key, 'dcNo', e.target.value)} size="small" /> },
+    { title: 'Inward No', dataIndex: 'inwardNo', width: 100, render: (v, r) => <Input value={v} onChange={(e) => handleDetailChange(r.key, 'inwardNo', e.target.value)} size="small" autoComplete="off" /> },
+    { title: 'Our DC No', dataIndex: 'dcNo', width: 100, render: (v, r) => <Input value={v} onChange={(e) => handleDetailChange(r.key, 'dcNo', e.target.value)} size="small" autoComplete="off" /> },
     { title: 'Our DC Date', dataIndex: 'dcDate', width: 120, render: (v, r) => <DatePicker value={v ? dayjs(v) : null} onChange={(date) => handleDetailChange(r.key, 'dcDate', date?.toISOString())} format="DD-MM-YYYY" size="small" style={{ width: '100%' }} /> },
     { title: 'Fabric', dataIndex: 'fabricId', width: 120, render: (v, r) => <Select value={v} onChange={(val) => handleDetailChange(r.key, 'fabricId', val)} showSearch size="small" style={{ width: '100%' }}>{masters.filter(m => m.masterType === 'Fabric').map(m => <Option key={m.id} value={m.id}>{m.masterName}</Option>)}</Select> },
     { title: 'Dia', dataIndex: 'diaId', width: 80, render: (v, r) => <Select value={v} onChange={(val) => handleDetailChange(r.key, 'diaId', val)} showSearch size="small" style={{ width: '100%' }}>{masters.filter(m => m.masterType === 'Dia').map(m => <Option key={m.id} value={m.id}>{m.masterName}</Option>)}</Select> },
     { title: 'Color', dataIndex: 'colorId', width: 100, render: (v, r) => <Select value={v} onChange={(val) => handleDetailChange(r.key, 'colorId', val)} showSearch size="small" style={{ width: '100%' }}>{masters.filter(m => m.masterType === 'Color').map(m => <Option key={m.id} value={m.id}>{m.masterName}</Option>)}</Select> },
-    { title: 'Rolls', dataIndex: 'rolls', width: 80, render: (v, r) => <InputNumber value={v} onChange={(val) => handleDetailChange(r.key, 'rolls', val)} style={{ width: '100%' }} size="small" /> },
-    { title: 'Bill Weight', dataIndex: 'weight', width: 100, render: (v, r) => <InputNumber value={v} onChange={(val) => handleDetailChange(r.key, 'weight', val)} style={{ width: '100%' }} precision={3} size="small" /> },
-    { title: 'Rate', dataIndex: 'rate', width: 100, render: (v, r) => <InputNumber value={v} onChange={(val) => handleDetailChange(r.key, 'rate', val)} style={{ width: '100%' }} precision={2} size="small" /> },
-    { title: 'Amount', dataIndex: 'amount', width: 120, render: (v) => <InputNumber value={v} disabled style={{ width: '100%' }} precision={2} size="small" /> },
-    { title: 'Process', dataIndex: 'process', width: 120, render: (v, r) => <Input value={v} onChange={(e) => handleDetailChange(r.key, 'process', e.target.value)} size="small" /> },
-    { title: 'Process List', dataIndex: 'processList', width: 150, render: (v, r) => <Input value={v} onChange={(e) => handleDetailChange(r.key, 'processList', e.target.value)} size="small" /> },
-    { title: 'Remarks', dataIndex: 'remarks', width: 120, render: (v, r) => <Input value={v} onChange={(e) => handleDetailChange(r.key, 'remarks', e.target.value)} size="small" /> },
+    { title: 'Rolls', dataIndex: 'rolls', width: 80, render: (v, r) => <InputNumber value={v} onChange={(val) => handleDetailChange(r.key, 'rolls', val)} style={{ width: '100%' }} size="small" autoComplete="off" /> },
+    { title: 'Bill Weight', dataIndex: 'weight', width: 100, render: (v, r) => <InputNumber value={v} onChange={(val) => handleDetailChange(r.key, 'weight', val)} style={{ width: '100%' }} precision={3} size="small" autoComplete="off" /> },
+    { title: 'Rate', dataIndex: 'rate', width: 100, render: (v, r) => <InputNumber value={v} onChange={(val) => handleDetailChange(r.key, 'rate', val)} style={{ width: '100%' }} precision={2} size="small" autoComplete="off" /> },
+    { title: 'Amount', dataIndex: 'amount', width: 120, render: (v) => <InputNumber value={v} disabled style={{ width: '100%' }} precision={2} size="small" autoComplete="off" /> },
+    { title: 'Process', dataIndex: 'process', width: 120, render: (v, r) => <Input value={v} onChange={(e) => handleDetailChange(r.key, 'process', e.target.value)} size="small" autoComplete="off" /> },
+    { title: 'Process List', dataIndex: 'processList', width: 150, render: (v, r) => <Input value={v} onChange={(e) => handleDetailChange(r.key, 'processList', e.target.value)} size="small" autoComplete="off" /> },
+    { title: 'Remarks', dataIndex: 'remarks', width: 120, render: (v, r) => <Input value={v} onChange={(e) => handleDetailChange(r.key, 'remarks', e.target.value)} size="small" autoComplete="off" /> },
     { title: 'Action', width: 60, fixed: 'right', render: (_, r) => <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDeleteDetail(r.key)} size="small" /> }
   ];
 
@@ -315,6 +315,7 @@ const FabricBill = () => {
               style={{ width: 280, height: 32 }}
               size="small"
               allowClear
+              autoComplete="off"
             />
             <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
           </Space>
@@ -328,7 +329,7 @@ const FabricBill = () => {
           <Row gutter={8}>
             <Col span={4}>
               <Form.Item label="Bill No" name="billNo" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
-                <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" />
+                <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={4}>
@@ -345,12 +346,12 @@ const FabricBill = () => {
             </Col>
             <Col span={5}>
               <Form.Item label="E-way No" name="ewayNo" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" />
+                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={5}>
               <Form.Item label="HSN Code" name="hsnCode" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" />
+                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
           </Row>
@@ -365,12 +366,12 @@ const FabricBill = () => {
             </Col>
             <Col span={4}>
               <Form.Item label="Credit Days" name="creditDays" style={{ marginBottom: 6 }}>
-                <InputNumber style={{ width: '100%', height: '32px' }} size="middle" />
+                <InputNumber style={{ width: '100%', height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={4}>
               <Form.Item label="Order No" name="orderNo" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" />
+                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
           </Row>
@@ -378,7 +379,7 @@ const FabricBill = () => {
           <Row gutter={8}>
             <Col span={24}>
               <Form.Item label="Remarks" name="remarks" style={{ marginBottom: 6 }}>
-                <Input.TextArea rows={1} size="middle" />
+                <Input.TextArea rows={1} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
           </Row>
@@ -417,19 +418,19 @@ const FabricBill = () => {
             </Col>
             <Col span={12}>
               <Row gutter={8}>
-                <Col span={8}><Form.Item label="Total Rolls" name="totalRolls" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} /></Form.Item></Col>
-                <Col span={8}><Form.Item label="Total Qty" name="totalQty" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={3} /></Form.Item></Col>
-                <Col span={8}><Form.Item label="Total Amount" name="totalAmount" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={2} /></Form.Item></Col>
-                <Col span={8}><Form.Item label="No of Design" name="noOfDesign" style={{ marginBottom: 6 }}><InputNumber style={{ width: '100%' }} onChange={calculateTotals} /></Form.Item></Col>
-                <Col span={8}><Form.Item label="Design Rate" name="designRate" style={{ marginBottom: 6 }}><InputNumber style={{ width: '100%' }} precision={2} onChange={calculateTotals} /></Form.Item></Col>
-                <Col span={8}><Form.Item label="Design Amount" name="designAmount" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={2} /></Form.Item></Col>
-                <Col span={8}><Form.Item label="No of Screen" name="noOfScreen" style={{ marginBottom: 6 }}><InputNumber style={{ width: '100%' }} onChange={calculateTotals} /></Form.Item></Col>
-                <Col span={8}><Form.Item label="Screen Rate" name="screenRate" style={{ marginBottom: 6 }}><InputNumber style={{ width: '100%' }} precision={2} onChange={calculateTotals} /></Form.Item></Col>
-                <Col span={8}><Form.Item label="Screen Amount" name="screenAmount" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={2} /></Form.Item></Col>
-                <Col span={8}><Form.Item label="GST Amount" name="gstAmount" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={2} /></Form.Item></Col>
-                <Col span={8}><Form.Item label="Other Charges" name="otherCharges" style={{ marginBottom: 6 }}><InputNumber style={{ width: '100%' }} precision={2} onChange={calculateTotals} /></Form.Item></Col>
-                <Col span={8}><Form.Item label="Round Off" name="roundOff" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={2} /></Form.Item></Col>
-                <Col span={12}><Form.Item label="Net Amount" name="netAmount" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={2} /></Form.Item></Col>
+                <Col span={8}><Form.Item label="Total Rolls" name="totalRolls" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} autoComplete="off" /></Form.Item></Col>
+                <Col span={8}><Form.Item label="Total Qty" name="totalQty" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={3} autoComplete="off" /></Form.Item></Col>
+                <Col span={8}><Form.Item label="Total Amount" name="totalAmount" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={2} autoComplete="off" /></Form.Item></Col>
+                <Col span={8}><Form.Item label="No of Design" name="noOfDesign" style={{ marginBottom: 6 }}><InputNumber style={{ width: '100%' }} onChange={calculateTotals} autoComplete="off" /></Form.Item></Col>
+                <Col span={8}><Form.Item label="Design Rate" name="designRate" style={{ marginBottom: 6 }}><InputNumber style={{ width: '100%' }} precision={2} onChange={calculateTotals} autoComplete="off" /></Form.Item></Col>
+                <Col span={8}><Form.Item label="Design Amount" name="designAmount" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={2} autoComplete="off" /></Form.Item></Col>
+                <Col span={8}><Form.Item label="No of Screen" name="noOfScreen" style={{ marginBottom: 6 }}><InputNumber style={{ width: '100%' }} onChange={calculateTotals} autoComplete="off" /></Form.Item></Col>
+                <Col span={8}><Form.Item label="Screen Rate" name="screenRate" style={{ marginBottom: 6 }}><InputNumber style={{ width: '100%' }} precision={2} onChange={calculateTotals} autoComplete="off" /></Form.Item></Col>
+                <Col span={8}><Form.Item label="Screen Amount" name="screenAmount" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={2} autoComplete="off" /></Form.Item></Col>
+                <Col span={8}><Form.Item label="GST Amount" name="gstAmount" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={2} autoComplete="off" /></Form.Item></Col>
+                <Col span={8}><Form.Item label="Other Charges" name="otherCharges" style={{ marginBottom: 6 }}><InputNumber style={{ width: '100%' }} precision={2} onChange={calculateTotals} autoComplete="off" /></Form.Item></Col>
+                <Col span={8}><Form.Item label="Round Off" name="roundOff" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={2} autoComplete="off" /></Form.Item></Col>
+                <Col span={12}><Form.Item label="Net Amount" name="netAmount" style={{ marginBottom: 6 }}><InputNumber disabled style={{ width: '100%' }} precision={2} autoComplete="off" /></Form.Item></Col>
               </Row>
             </Col>
           </Row>

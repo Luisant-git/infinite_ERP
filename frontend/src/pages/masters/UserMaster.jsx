@@ -254,6 +254,7 @@ const UserMaster = () => {
             style={{ width: 280, height: 32 }}
             size="small"
             allowClear
+            autoComplete="off"
           />
           <Button 
             type="primary" 

@@ -231,6 +231,7 @@ const ProcessMaster = () => {
             style={{ width: 280, height: 32 }}
             size="small"
             allowClear
+            autoComplete="off"
           />
           <Button 
             type="primary" 
@@ -293,14 +294,14 @@ const ProcessMaster = () => {
             name="processName"
             rules={[{ required: true, message: 'Please input process name!' }]}
           >
-            <Input placeholder="Enter process name" maxLength={100} />
+            <Input placeholder="Enter process name" maxLength={100} autoComplete="off" />
           </Form.Item>
 
           <Form.Item
             label="Tally Name"
             name="tallyName"
           >
-            <Input placeholder="Enter tally name" maxLength={100} />
+            <Input placeholder="Enter tally name" maxLength={100} autoComplete="off" />
           </Form.Item>
 
           <Form.Item
@@ -339,6 +340,7 @@ const ProcessMaster = () => {
               keyboard={true}
               controls={false}
               parser={value => value.replace(/[^0-9.]/g, '')}
+              autoComplete="off"
             />
           </Form.Item>
 

@@ -305,6 +305,7 @@ const DesignMaster = () => {
             style={{ width: 280, height: 32 }}
             size="small"
             allowClear
+            autoComplete="off"
           />
           <Button 
             type="primary" 
@@ -371,7 +372,7 @@ const DesignMaster = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item label="# Ref No" name="refNo">
-                    <Input placeholder="Auto Generated" disabled />
+                    <Input placeholder="Auto Generated" disabled autoComplete="off" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -396,12 +397,12 @@ const DesignMaster = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item label="Design No" name="designNo" rules={[{ required: true, message: 'Please input design number!' }]}>
-                    <Input placeholder="e.g. PRINT-2024-001" />
+                    <Input placeholder="e.g. PRINT-2024-001" autoComplete="off" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item label="Design Name *" name="designName" rules={[{ required: true, message: 'Please input design name!' }]}>
-                    <Input placeholder="e.g. Mandala Blue Pattern" />
+                    <Input placeholder="e.g. Mandala Blue Pattern" autoComplete="off" />
                   </Form.Item>
                 </Col>
               </Row>
@@ -426,6 +427,7 @@ const DesignMaster = () => {
                       keyboard={true}
                       controls={false}
                       parser={value => value.replace(/[^0-9.]/g, '')}
+                      autoComplete="off"
                     />
                   </Form.Item>
                 </Col>
@@ -441,6 +443,7 @@ const DesignMaster = () => {
                       keyboard={true}
                       controls={false}
                       parser={value => value.replace(/[^0-9]/g, '')}
+                      autoComplete="off"
                     />
                   </Form.Item>
                 </Col>
@@ -453,6 +456,7 @@ const DesignMaster = () => {
                       keyboard={true}
                       controls={false}
                       parser={value => value.replace(/[^0-9]/g, '')}
+                      autoComplete="off"
                     />
                   </Form.Item>
                 </Col>
@@ -461,7 +465,7 @@ const DesignMaster = () => {
               <Row gutter={16}>
                 <Col span={24}>
                   <Form.Item label="Description" name="description">
-                    <TextArea rows={3} placeholder="Enter technical specifications or print requirements..." />
+                    <TextArea rows={3} placeholder="Enter technical specifications or print requirements..." autoComplete="off" />
                   </Form.Item>
                 </Col>
               </Row>
@@ -469,7 +473,7 @@ const DesignMaster = () => {
               <Row gutter={16}>
                 <Col span={24}>
                   <Form.Item label="Remarks" name="remarks">
-                    <TextArea rows={3} placeholder="Additional notes or internal instructions..." />
+                    <TextArea rows={3} placeholder="Additional notes or internal instructions..." autoComplete="off" />
                   </Form.Item>
                 </Col>
               </Row>

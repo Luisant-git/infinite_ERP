@@ -234,7 +234,7 @@ const RateQuotation = () => {
       dataIndex: 'rate',
       width: 120,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'rate', v)} style={{ width: '100%' }} precision={2} />
+        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'rate', v)} style={{ width: '100%' }} precision={2} autoComplete="off" />
       )
     },
     {
@@ -242,7 +242,7 @@ const RateQuotation = () => {
       dataIndex: 'confirmRate',
       width: 120,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'confirmRate', v)} style={{ width: '100%' }} precision={2} />
+        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'confirmRate', v)} style={{ width: '100%' }} precision={2} autoComplete="off" />
       )
     },
     {
@@ -250,7 +250,7 @@ const RateQuotation = () => {
       dataIndex: 'remarks',
       width: 200,
       render: (val, record) => (
-        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'remarks', e.target.value)} />
+        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'remarks', e.target.value)} autoComplete="off" />
       )
     },
     {
@@ -354,6 +354,7 @@ const RateQuotation = () => {
             style={{ width: 280, height: 32 }}
             size="small"
             allowClear
+            autoComplete="off"
           />
           <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
         </Space>
@@ -367,7 +368,7 @@ const RateQuotation = () => {
           <Row gutter={8}>
             <Col span={8}>
               <Form.Item label="Quot No" name="quotNo" style={{ marginBottom: 8 }}>
-                <Input disabled={!isAdmin} style={{ width: '100%', height: '32px' }} size="middle" />
+                <Input disabled={!isAdmin} style={{ width: '100%', height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -384,7 +385,7 @@ const RateQuotation = () => {
             </Col>
             <Col span={8}>
               <Form.Item label="Payment Terms" name="paymentTerms" style={{ marginBottom: 8 }}>
-                <Input style={{ width: '100%', height: '32px' }} size="middle" />
+                <Input style={{ width: '100%', height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -416,7 +417,7 @@ const RateQuotation = () => {
           <Row gutter={8} style={{ marginTop: 4 }}>
             <Col span={24}>
               <Form.Item label="Remarks / Terms" name="remarks" style={{ marginBottom: 8 }}>
-                <TextArea rows={1} />
+                <TextArea rows={1} autoComplete="off" />
               </Form.Item>
             </Col>
           </Row>

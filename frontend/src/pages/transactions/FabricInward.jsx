@@ -446,7 +446,7 @@ const FabricInward = () => {
       dataIndex: 'gsm',
       width: 100,
       render: (val, record) => (
-        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} />
+        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} autoComplete="off" />
       )
     },
     ...(fabricType === 'Print Lot' ? [
@@ -470,13 +470,13 @@ const FabricInward = () => {
         title: 'Design Name',
         dataIndex: 'designName',
         width: 150,
-        render: (val) => <Input value={val} disabled style={{ width: '100%' }} />
+        render: (val) => <Input value={val} disabled style={{ width: '100%' }} autoComplete="off" />
       },
       {
         title: 'No of Color',
         dataIndex: 'noOfColor',
         width: 100,
-        render: (val) => <InputNumber value={val} disabled style={{ width: '100%' }} />
+        render: (val) => <InputNumber value={val} disabled style={{ width: '100%' }} autoComplete="off" />
       }
     ] : []),
     {
@@ -484,7 +484,7 @@ const FabricInward = () => {
       dataIndex: 'weight',
       width: 100,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'weight', v)} style={{ width: '100%' }} />
+        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'weight', v)} style={{ width: '100%' }} autoComplete="off" />
       )
     },
     {
@@ -492,7 +492,7 @@ const FabricInward = () => {
       dataIndex: 'rolls',
       width: 80,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'rolls', v)} style={{ width: '100%' }} />
+        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'rolls', v)} style={{ width: '100%' }} autoComplete="off" />
       )
     },
     {
@@ -526,7 +526,7 @@ const FabricInward = () => {
       dataIndex: 'remarks',
       width: 150,
       render: (val, record) => (
-        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'remarks', e.target.value)} />
+        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'remarks', e.target.value)} autoComplete="off" />
       )
     },
     {
@@ -554,6 +554,7 @@ const FabricInward = () => {
           onChange={(v) => handleProcessChange(record.key, 'rate', v)} 
           style={{ width: '100%' }}
           disabled={dcType === 'Sample'}
+          autoComplete="off"
         />
       )
     },
@@ -705,6 +706,7 @@ const FabricInward = () => {
               style={{ width: 280, height: 32 }}
               size="small"
               allowClear
+              autoComplete="off"
             />
             <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
           </Space>
@@ -718,7 +720,7 @@ const FabricInward = () => {
           <Row gutter={8}>
             <Col span={6}>
               <Form.Item label="GRN No" name="grnNo" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
-                <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" />
+                <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={6}>
@@ -735,7 +737,7 @@ const FabricInward = () => {
             </Col>
             <Col span={6}>
               <Form.Item label="PDC No" name="pdcNo" rules={[{ required: true, message: 'PDC No is required' }]} style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" />
+                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={6}>
@@ -758,7 +760,7 @@ const FabricInward = () => {
             </Col>
             <Col span={6}>
               <Form.Item label="Dyeing DC No" name="dyeingDcNo" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" />
+                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={6}>
@@ -768,7 +770,7 @@ const FabricInward = () => {
             </Col>
             <Col span={6}>
               <Form.Item label="Order No" name="orderNo" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" />
+                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={6}>
@@ -793,12 +795,12 @@ const FabricInward = () => {
             </Col>
             <Col span={6}>
               <Form.Item label="Vehicle No" name="vehicleNo" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" />
+                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item label="Remarks" name="remarks" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" />
+                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
           </Row>
