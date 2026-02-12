@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Button, Space, Table, Modal, Typography, Select, InputNumber, DatePicker, Row, Col, Upload, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, UploadOutlined } from '@ant-design/icons';
-import { getDesigns, createDesign, updateDesign, deleteDesign } from '../../api/design';
+import { getDesigns, createDesign, updateDesign, deleteDesign, getNextRefNo } from '../../api/design';
 import { getParties } from '../../api/party';
 import { uploadImage, deleteFile } from '../../api/upload';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
@@ -310,7 +310,16 @@ const DesignMaster = () => {
           <Button 
             type="primary" 
             icon={<PlusOutlined />} 
-            onClick={() => setIsModalVisible(true)}
+            onClick={async () => {
+              try {
+                const response = await getNextRefNo();
+                form.setFieldsValue({ refNo: response.refNo });
+                setIsModalVisible(true);
+              } catch (error) {
+                console.error('Error getting ref no:', error);
+                setIsModalVisible(true);
+              }
+            }}
             disabled={!canAdd('design_master')}
           >
             Add Design

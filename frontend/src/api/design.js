@@ -5,6 +5,11 @@ export const getDesigns = async (search = '', page = 1, limit = 10) => {
   return response.data;
 };
 
+export const getNextRefNo = async () => {
+  const response = await api.get('/design/next-ref-no/generate');
+  return response.data;
+};
+
 export const getDesignById = async (id) => {
   const response = await api.get(`/design/${id}`);
   return response.data;

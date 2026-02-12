@@ -31,6 +31,13 @@ export class DesignController {
     );
   }
 
+  @Get('next-ref-no/generate')
+  @ApiOperation({ summary: 'Get next reference number' })
+  @ApiResponse({ status: 200, description: 'Next reference number' })
+  getNextRefNo() {
+    return this.designService.getNextRefNo();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get design by ID' })
   @ApiResponse({ status: 200, description: 'Design details' })

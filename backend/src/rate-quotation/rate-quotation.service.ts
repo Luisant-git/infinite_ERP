@@ -6,13 +6,38 @@ export class RateQuotationService {
   constructor(private prisma: PrismaService) {}
 
   async getNextQuotNo(tenantId: number) {
-    const lastQuot = await this.prisma.rateQuotationHeader.findFirst({
+    const allQuots = await this.prisma.rateQuotationHeader.findMany({
       where: { tenantId, deleteFlg: 0 },
-      orderBy: { sortOrder: 'desc' }
+      orderBy: { createdDate: 'desc' }
     });
 
-    const nextNo = lastQuot ? (lastQuot.sortOrder || 0) + 1 : 1;
-    return { quotNo: `Q/${nextNo}` };
+    if (allQuots.length === 0) {
+      return { quotNo: 'Q/1' };
+    }
+
+    // Get the last quotation number
+    const lastQuotNo = allQuots[0].quotNo;
+    
+    // Extract the numeric part from the end
+    const match = lastQuotNo.match(/(\d+)$/);
+    
+    if (match) {
+      const lastNumber = parseInt(match[1]);
+      const prefix = lastQuotNo.substring(0, lastQuotNo.length - match[1].length);
+      const nextNumber = lastNumber + 1;
+      const nextQuotNo = `${prefix}${nextNumber}`;
+      
+      // Ensure it doesn't exceed 10 characters
+      if (nextQuotNo.length > 10) {
+        return { quotNo: lastQuotNo }; // Return same if would exceed limit
+      }
+      
+      return { quotNo: nextQuotNo };
+    }
+    
+    // If no number found, append 1
+    const nextQuotNo = `${lastQuotNo}1`;
+    return { quotNo: nextQuotNo.substring(0, 10) }; // Truncate to 10 chars
   }
 
   async findAll(tenantId: number | null, search?: string, page: number = 1, limit: number = 10) {
@@ -56,8 +81,8 @@ export class RateQuotationService {
   async create(tenantId: number, concernId: number | null, data: any) {
     const { details, ...headerData } = data;
     
-    // Extract number from Q/1 format
-    const quotNoMatch = headerData.quotNo.match(/Q\/(\d+)/);
+    // Extract number from any format (Q/1, AMP TEST 3, HVACBAS////10, etc.)
+    const quotNoMatch = headerData.quotNo.match(/(\d+)$/);
     const sortOrder = quotNoMatch ? parseInt(quotNoMatch[1]) : 1;
     
     // Check for duplicate quotNo within the same tenant

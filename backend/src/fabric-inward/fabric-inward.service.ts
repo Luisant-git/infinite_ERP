@@ -7,13 +7,38 @@ export class FabricInwardService {
   constructor(private prisma: PrismaService) {}
 
   async getNextGrnNo(tenantId: number): Promise<string> {
-    const lastRecord = await this.prisma.fabricInwardHeader.findFirst({
-      orderBy: { sortOrder: 'desc' },
-      where: { deleteFlg: 0, tenantId }
+    const allInwards = await this.prisma.fabricInwardHeader.findMany({
+      where: { deleteFlg: 0, tenantId },
+      orderBy: { createdDate: 'desc' }
     });
+
+    if (allInwards.length === 0) {
+      return 'G/1';
+    }
+
+    // Get the last GRN number
+    const lastGrnNo = allInwards[0].grnNo;
     
-    const nextNum = lastRecord ? (lastRecord.sortOrder || 0) + 1 : 1;
-    return `G/${nextNum}`;
+    // Extract the numeric part from the end
+    const match = lastGrnNo.match(/(\d+)$/);
+    
+    if (match) {
+      const lastNumber = parseInt(match[1]);
+      const prefix = lastGrnNo.substring(0, lastGrnNo.length - match[1].length);
+      const nextNumber = lastNumber + 1;
+      const nextGrnNo = `${prefix}${nextNumber}`;
+      
+      // Ensure it doesn't exceed 10 characters
+      if (nextGrnNo.length > 10) {
+        return lastGrnNo; // Return same if would exceed limit
+      }
+      
+      return nextGrnNo;
+    }
+    
+    // If no number found, append 1
+    const nextGrnNo = `${lastGrnNo}1`;
+    return nextGrnNo.substring(0, 10); // Truncate to 10 chars
   }
 
   async findAll(tenantId: number, search?: string, page = 1, limit = 10) {
@@ -60,8 +85,8 @@ export class FabricInwardService {
 
   async create(createDto: CreateFabricInwardDto, username: string, tenantId: number) {
     const grnNo = await this.getNextGrnNo(tenantId);
-    // Extract number from G/1 format
-    const grnNoMatch = grnNo.match(/G\/(\d+)/);
+    // Extract number from any format
+    const grnNoMatch = (createDto.grnNo || grnNo).match(/(\d+)$/);
     const sortOrder = grnNoMatch ? parseInt(grnNoMatch[1]) : 1;
 
     // Check for duplicate grnNo within the same tenant

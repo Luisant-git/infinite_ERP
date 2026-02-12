@@ -75,6 +75,19 @@ export class DesignService {
     };
   }
 
+  async getNextRefNo() {
+    const allDesigns = await this.prisma.design.findMany({
+      where: { isDeleted: false }
+    });
+    
+    const maxRefNo = allDesigns.reduce((max, design) => {
+      const refNo = parseInt(design.refNo || '0') || 0;
+      return refNo > max ? refNo : max;
+    }, 0);
+    
+    return { refNo: (maxRefNo + 1).toString() };
+  }
+
   async findOne(id: number) {
     return this.prisma.design.findUnique({
       where: { id, isDeleted: false },

@@ -719,8 +719,8 @@ const FabricInward = () => {
         <Form form={form} layout="vertical" size="small">
           <Row gutter={8}>
             <Col span={6}>
-              <Form.Item label="GRN No" name="grnNo" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
-                <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" autoComplete="off" />
+              <Form.Item label="GRN No" name="grnNo" rules={[{ required: true }, { max: 10, message: 'GRN number cannot exceed 10 characters!' }]} style={{ marginBottom: 6 }}>
+                <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" autoComplete="off" maxLength={10} />
               </Form.Item>
             </Col>
             <Col span={6}>
