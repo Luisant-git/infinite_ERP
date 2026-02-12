@@ -371,7 +371,7 @@ const DesignMaster = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item label="# Ref No" name="refNo">
-                    <Input placeholder="External Reference" />
+                    <Input placeholder="Auto Generated" disabled />
                   </Form.Item>
                 </Col>
                 <Col span={12}>

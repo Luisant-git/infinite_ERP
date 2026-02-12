@@ -220,12 +220,11 @@ const PartyProcessRateSetting = () => {
           padding: 6px 8px !important;
           font-size: 12px !important;
           font-weight: 600 !important;
-          background: #fafafa !important;
+          // background: #fafafa !important;
         }
         .compact-table .ant-table-tbody > tr > td {
           padding: 4px 8px !important;
           font-size: 12px !important;
-          font-weight: 600 !important;
         }
         .compact-table .ant-table-tbody > tr {
           height: 32px !important;

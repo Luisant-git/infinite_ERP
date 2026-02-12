@@ -66,6 +66,20 @@ const GstMaster = () => {
       const values = await form.validateFields();
       setLoading(true);
 
+      // Check for duplicate Tax Name
+      const normalizedTaxName = values.taxName.trim().toLowerCase();
+      const duplicate = gstMasters.find(g => 
+        g.taxName.trim().toLowerCase() === normalizedTaxName && g.id !== editingId
+      );
+      if (duplicate) {
+        Modal.error({
+          title: 'Duplicate Tax Name',
+          content: 'A GST with this tax name already exists!',
+        });
+        setLoading(false);
+        return;
+      }
+
       const data = {
         ...values,
         isActive: values.isActive ? 1 : 0,
@@ -189,7 +203,15 @@ const GstMaster = () => {
             </Form.Item>
 
             <Form.Item label="Tax Percent" name="taxPercent" rules={[{ required: true, message: 'Tax Percent is required' }]} style={{ marginBottom: 8 }}>
-              <InputNumber style={{ width: '100%', height: '32px' }} precision={2} min={0} max={100} size="middle" />
+              <InputNumber 
+                style={{ width: '100%', height: '32px' }} 
+                precision={2} 
+                min={0} 
+                max={100} 
+                size="middle" 
+                controls={false}
+                parser={value => value.replace(/[^0-9.]/g, '')}
+              />
             </Form.Item>
 
             <Form.Item label="Type" name="taxType" rules={[{ required: true, message: 'Tax Type is required' }]} style={{ marginBottom: 8 }}>

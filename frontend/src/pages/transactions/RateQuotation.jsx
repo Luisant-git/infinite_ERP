@@ -6,7 +6,6 @@ import { getNextQuotNo, getRateQuotations, createRateQuotation, updateRateQuotat
 import { getParties } from '../../api/party';
 import { getProcesses } from '../../api/process';
 import { uploadImage } from '../../api/upload';
-import { getConcerns } from '../../api/concern';
 import { useSelector } from 'react-redux';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 
@@ -22,7 +21,6 @@ const RateQuotation = () => {
   const [editingId, setEditingId] = useState(null);
   const [parties, setParties] = useState([]);
   const [processes, setProcesses] = useState([]);
-  const [concerns, setConcerns] = useState([]);
   const [details, setDetails] = useState([]);
   const [fileList, setFileList] = useState([]);
   const [searchText, setSearchText] = useState('');
@@ -45,10 +43,9 @@ const RateQuotation = () => {
 
   const loadMasters = async () => {
     try {
-      const [partiesRes, processesRes, concernsRes] = await Promise.all([
+      const [partiesRes, processesRes] = await Promise.all([
         getParties('', 1, 1000),
-        getProcesses('', 1, 1000),
-        getConcerns('', 1, 1000)
+        getProcesses('', 1, 1000)
       ]);
       
       const customerParties = (partiesRes.data || []).filter(p => 
@@ -56,7 +53,6 @@ const RateQuotation = () => {
       );
       setParties(customerParties);
       setProcesses(processesRes.data || []);
-      setConcerns(concernsRes.data || []);
     } catch (error) {
       console.error('Error loading masters:', error);
     }
@@ -97,7 +93,6 @@ const RateQuotation = () => {
         <div>
           <p><strong>Quot No:</strong> {record.quotNo}</p>
           <p><strong>Date:</strong> {dayjs(record.quotDate).format('DD-MM-YYYY')}</p>
-          <p><strong>Concern:</strong> {record.concern?.partyName || 'N/A'}</p>
           <p><strong>Party:</strong> {record.party?.partyName || 'N/A'}</p>
           <p><strong>Payment Terms:</strong> {record.paymentTerms || 'N/A'}</p>
           <p><strong>Remarks:</strong> {record.remarks || 'N/A'}</p>
@@ -140,6 +135,13 @@ const RateQuotation = () => {
     try {
       const values = await form.validateFields();
       
+      // Validate at least one valid detail exists
+      const validDetails = details.filter(d => d.processId && d.rate > 0);
+      if (validDetails.length === 0) {
+        message.error('Please add at least one process detail with valid Process and Rate!');
+        return;
+      }
+      
       if (!editingId) {
         const duplicate = quotations.find(q => q.quotNo === values.quotNo);
         if (duplicate) {
@@ -155,7 +157,7 @@ const RateQuotation = () => {
         quotDate: values.quotDate?.toISOString(),
         attachFile: fileList.length > 0 ? fileList[0].url : null,
         isApproval: editingId ? 0 : undefined,
-        details: details.map(d => ({
+        details: validDetails.map(d => ({
           processId: d.processId,
           rate: Number(d.rate) || 0,
           confirmRate: Number(d.confirmRate) || 0,
@@ -364,40 +366,29 @@ const RateQuotation = () => {
       ) : (
         <Form form={form} layout="vertical" size="small">
           <Row gutter={8}>
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item label="Quot No" name="quotNo" style={{ marginBottom: 8 }}>
-                <Input disabled={!isAdmin} style={{ width: '60%', height: '32px' }} size="middle" />
+                <Input disabled={!isAdmin} style={{ width: '100%', height: '32px' }} size="middle" />
               </Form.Item>
             </Col>
-            <Col span={12}>
-              <div style={{ marginLeft: '-35%' }}>
-                <Form.Item label="Quot Date" name="quotDate" style={{ marginBottom: 8 }}>
-                  <DatePicker style={{ width: '60%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
-                </Form.Item>
-              </div>
+            <Col span={8}>
+              <Form.Item label="Quot Date" name="quotDate" style={{ marginBottom: 8 }}>
+                <DatePicker style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
+              </Form.Item>
             </Col>
-            <Col span={12}>
-              <Form.Item label="Concern" name="concernId" style={{ marginBottom: 8 }}>
-                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ width: '60%', height: '32px' }} size="middle">
-                  {concerns.map(c => <Option key={c.id} value={c.id}>{c.partyName}</Option>)}
+            <Col span={8}>
+              <Form.Item label="Party" name="partyId" rules={[{ required: true, message: 'Please select party!' }]} style={{ marginBottom: 8 }}>
+                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ width: '100%', height: '32px' }} size="middle">
+                  {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={12}>
-              <div style={{ marginLeft: '-35%' }}>
-                <Form.Item label="Party" name="partyId" style={{ marginBottom: 8 }}>
-                  <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ width: '60%', height: '32px' }} size="middle">
-                    {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
-                  </Select>
-                </Form.Item>
-              </div>
-            </Col>
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item label="Payment Terms" name="paymentTerms" style={{ marginBottom: 8 }}>
-                <Input style={{ width: '60%', height: '32px' }} size="middle" />
+                <Input style={{ width: '100%', height: '32px' }} size="middle" />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item label="Attach File" style={{ marginBottom: 8 }}>
                 <Upload customRequest={handleUpload} fileList={fileList} onRemove={() => setFileList([])} accept="image/*,.pdf">
                   <Button icon={<UploadOutlined />} size="small">Upload</Button>

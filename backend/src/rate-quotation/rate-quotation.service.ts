@@ -12,7 +12,7 @@ export class RateQuotationService {
     });
 
     const nextNo = lastQuot ? (lastQuot.sortOrder || 0) + 1 : 1;
-    return { quotNo: nextNo.toString().padStart(10, '0') };
+    return { quotNo: `Q/${nextNo}` };
   }
 
   async findAll(tenantId: number | null, search?: string, page: number = 1, limit: number = 10) {
@@ -56,7 +56,9 @@ export class RateQuotationService {
   async create(tenantId: number, concernId: number | null, data: any) {
     const { details, ...headerData } = data;
     
-    const sortOrder = parseInt(headerData.quotNo);
+    // Extract number from Q/1 format
+    const quotNoMatch = headerData.quotNo.match(/Q\/(\d+)/);
+    const sortOrder = quotNoMatch ? parseInt(quotNoMatch[1]) : 1;
     
     // Check for duplicate quotNo within the same tenant
     const existing = await this.prisma.rateQuotationHeader.findFirst({

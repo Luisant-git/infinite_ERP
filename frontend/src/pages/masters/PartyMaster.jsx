@@ -254,6 +254,15 @@ const PartyMaster = () => {
       render: (partyTypes) => partyTypes?.map(pt => pt.partyType.partyTypeName).join(', ') || 'N/A',
     },
     {
+      title: 'Address',
+      key: 'address',
+      width: 200,
+      render: (_, record) => {
+        const addressParts = [record.address1, record.address2, record.address3, record.address4].filter(Boolean);
+        return addressParts.join(', ') || 'N/A';
+      },
+    },
+    {
       title: 'Mobile No',
       dataIndex: 'mobileNo',
       key: 'mobileNo',

@@ -207,10 +207,13 @@ const ConcernMaster = () => {
       width: 180,
     },
     {
-      title: 'Vendor Code',
-      dataIndex: 'vendorCode',
-      key: 'vendorCode',
-      width: 120,
+      title: 'Address',
+      key: 'address',
+      width: 200,
+      render: (_, record) => {
+        const addressParts = [record.address1, record.address2, record.address3, record.address4].filter(Boolean);
+        return addressParts.join(', ') || 'N/A';
+      },
     },
     {
       title: 'Mobile No',

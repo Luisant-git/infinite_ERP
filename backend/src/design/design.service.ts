@@ -28,9 +28,16 @@ export class DesignService {
       throw new Error('Design name already exists');
     }
 
+    const maxRefNo = allDesigns.reduce((max, design) => {
+      const refNo = parseInt(design.refNo || '0') || 0;
+      return refNo > max ? refNo : max;
+    }, 0);
+    const newRefNo = (maxRefNo + 1).toString();
+
     return this.prisma.design.create({
       data: {
         ...createDesignDto,
+        refNo: newRefNo,
         designName: createDesignDto.designName.trim(),
         date: createDesignDto.date ? new Date(createDesignDto.date) : new Date(),
       },
