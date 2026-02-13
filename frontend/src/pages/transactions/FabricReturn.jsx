@@ -478,10 +478,26 @@ const FabricReturn = () => {
           padding: 4px 6px !important;
           font-size: 11px !important;
           font-weight: 600 !important;
+          line-height: 1.2 !important;
+          height: auto !important;
         }
         .compact-table .ant-table-tbody > tr > td {
           padding: 2px 4px !important;
           font-size: 11px !important;
+          line-height: 1.2 !important;
+        }
+        .compact-table .ant-table-tbody > tr {
+          height: auto !important;
+        }
+        .compact-table .ant-input,
+        .compact-table .ant-input-number,
+        .compact-table .ant-select-selector {
+          font-size: 11px !important;
+          min-height: 24px !important;
+          height: 24px !important;
+        }
+        .compact-table .ant-input-number-input {
+          height: 22px !important;
         }
         @media (max-width: 768px) {
           .page-header { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
@@ -548,48 +564,60 @@ const FabricReturn = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item label="PDC No" name="pdcNo" style={{ marginBottom: 6 }}>
-                <Input disabled style={{ height: '32px' }} size="middle" autoComplete="off" />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item label="Dye Party" name="dyeingPartyName" style={{ marginBottom: 6 }}>
-                <Input disabled style={{ height: '32px' }} size="middle" autoComplete="off" />
-              </Form.Item>
-              <Form.Item name="dyeParty" hidden>
-                <Input autoComplete="off" />
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item label="Dye Dc No" name="dyeingDcNo" style={{ marginBottom: 6 }}>
-                <Input disabled style={{ height: '32px' }} size="middle" autoComplete="off" />
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item label="Dye Dc Date" name="dyeingDcDate" style={{ marginBottom: 6 }}>
-                <DatePicker disabled style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item label="Order No" name="orderNo" style={{ marginBottom: 6 }}>
-                <Input disabled style={{ height: '32px' }} size="middle" autoComplete="off" />
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item label="PO No" name="poNo" style={{ marginBottom: 6 }}>
-                <Input disabled style={{ height: '32px' }} size="middle" autoComplete="off" />
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item label="Fabric Type" name="fabricType" style={{ marginBottom: 6 }}>
-                <Input disabled style={{ height: '32px' }} size="middle" autoComplete="off" />
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item label="DC Type" name="dcType" style={{ marginBottom: 6 }}>
-                <Input disabled style={{ height: '32px' }} size="middle" autoComplete="off" />
-              </Form.Item>
+            <Col span={18}>
+              <div style={{ marginBottom: 6 }}>
+                <label style={{ fontSize: '11px', color: '#666', display: 'block', marginBottom: 2 }}>Info</label>
+                <div style={{ display: 'inline-flex', padding: '6px 8px', backgroundColor: '#f5f5f5', borderRadius: '4px', height: '32px', alignItems: 'center' }}>
+                  <div style={{ paddingLeft: '4px' }}>
+                    <div style={{ fontSize: '11px', color: '#666' }}>PDC No</div>
+                    <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('pdcNo') || '-'}</div>
+                  </div>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
+                  <div style={{ paddingLeft: '4px' }}>
+                    <div style={{ fontSize: '11px', color: '#666' }}>Dye Party</div>
+                    <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('dyeingPartyName') || '-'}</div>
+                  </div>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
+                  <div style={{ paddingLeft: '4px' }}>
+                    <div style={{ fontSize: '11px', color: '#666' }}>Dye Dc No</div>
+                    <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('dyeingDcNo') || '-'}</div>
+                  </div>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
+                  <div style={{ paddingLeft: '4px' }}>
+                    <div style={{ fontSize: '11px', color: '#666' }}>Dye Dc Date</div>
+                    <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('dyeingDcDate') ? form.getFieldValue('dyeingDcDate').format('DD-MM-YYYY') : '-'}</div>
+                  </div>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
+                  <div style={{ paddingLeft: '4px' }}>
+                    <div style={{ fontSize: '11px', color: '#666' }}>Order No</div>
+                    <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('orderNo') || '-'}</div>
+                  </div>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
+                  <div style={{ paddingLeft: '4px' }}>
+                    <div style={{ fontSize: '11px', color: '#666' }}>PO No</div>
+                    <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('poNo') || '-'}</div>
+                  </div>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
+                  <div style={{ paddingLeft: '4px' }}>
+                    <div style={{ fontSize: '11px', color: '#666' }}>Fabric Type</div>
+                    <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('fabricType') || '-'}</div>
+                  </div>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
+                  <div style={{ paddingLeft: '4px' }}>
+                    <div style={{ fontSize: '11px', color: '#666' }}>DC Type</div>
+                    <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('dcType') || '-'}</div>
+                  </div>
+                </div>
+              </div>
+              <Form.Item name="pdcNo" hidden><Input /></Form.Item>
+              <Form.Item name="dyeingPartyName" hidden><Input /></Form.Item>
+              <Form.Item name="dyeParty" hidden><Input /></Form.Item>
+              <Form.Item name="dyeingDcNo" hidden><Input /></Form.Item>
+              <Form.Item name="dyeingDcDate" hidden><DatePicker /></Form.Item>
+              <Form.Item name="orderNo" hidden><Input /></Form.Item>
+              <Form.Item name="poNo" hidden><Input /></Form.Item>
+              <Form.Item name="fabricType" hidden><Input /></Form.Item>
+              <Form.Item name="dcType" hidden><Input /></Form.Item>
             </Col>
           </Row>
 

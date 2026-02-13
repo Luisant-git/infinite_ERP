@@ -293,10 +293,28 @@ const FabricBill = () => {
           padding: 4px 6px !important;
           font-size: 11px !important;
           font-weight: 600 !important;
+          line-height: 1.2 !important;
+          height: auto !important;
         }
         .compact-table .ant-table-tbody > tr > td {
           padding: 2px 4px !important;
           font-size: 11px !important;
+          line-height: 1.2 !important;
+        }
+        .compact-table .ant-table-tbody > tr {
+          height: auto !important;
+        }
+        .compact-table .ant-input,
+        .compact-table .ant-input-number,
+        .compact-table .ant-select-selector,
+        .compact-table .ant-picker {
+          font-size: 11px !important;
+          min-height: 24px !important;
+          height: 24px !important;
+        }
+        .compact-table .ant-input-number-input,
+        .compact-table .ant-picker-input > input {
+          height: 22px !important;
         }
         @media (max-width: 768px) {
           .page-header { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
@@ -374,10 +392,7 @@ const FabricBill = () => {
                 <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
-          </Row>
-
-          <Row gutter={8}>
-            <Col span={24}>
+            <Col span={10}>
               <Form.Item label="Remarks" name="remarks" style={{ marginBottom: 6 }}>
                 <Input.TextArea rows={1} size="middle" autoComplete="off" />
               </Form.Item>
