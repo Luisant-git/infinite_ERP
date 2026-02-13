@@ -7,6 +7,7 @@ const initialState = {
   error: null,
   showCompanySelection: false,
   selectedCompany: null,
+  selectedCompanyId: null,
   selectedYear: null,
   selectedTenantId: null,
   IsMD: 0
@@ -18,6 +19,7 @@ const loadPersistedState = () => {
     const token = localStorage.getItem('token');
     const tenantId = localStorage.getItem('tenantId');
     const selectedCompany = localStorage.getItem('selectedCompany');
+    const selectedCompanyId = localStorage.getItem('selectedCompanyId');
     const selectedYear = localStorage.getItem('selectedYear');
     const IsMD = localStorage.getItem('IsMD');
     
@@ -27,6 +29,7 @@ const loadPersistedState = () => {
         isAuthenticated: true,
         selectedTenantId: tenantId,
         selectedCompany: selectedCompany,
+        selectedCompanyId: selectedCompanyId ? parseInt(selectedCompanyId) : null,
         selectedYear: selectedYear,
         IsMD: IsMD ? parseInt(IsMD) : 0
       };
@@ -54,11 +57,13 @@ const authSlice = createSlice({
       // Auto-select tenant for users with concern mapping
       if (action.payload.autoSelectTenant) {
         state.selectedCompany = action.payload.autoSelectTenant.company;
+        state.selectedCompanyId = action.payload.autoSelectTenant.id;
         state.selectedYear = action.payload.autoSelectTenant.financialYear;
         state.selectedTenantId = action.payload.autoSelectTenant.id;
         state.showCompanySelection = false;
         localStorage.setItem('tenantId', action.payload.autoSelectTenant.id);
         localStorage.setItem('selectedCompany', action.payload.autoSelectTenant.company);
+        localStorage.setItem('selectedCompanyId', action.payload.autoSelectTenant.id);
         localStorage.setItem('selectedYear', action.payload.autoSelectTenant.financialYear);
       } else {
         state.tenants = action.payload.tenants || [];
@@ -75,12 +80,14 @@ const authSlice = createSlice({
       state.error = null;
       state.showCompanySelection = false;
       state.selectedCompany = null;
+      state.selectedCompanyId = null;
       state.selectedYear = null;
       state.selectedTenantId = null;
       state.IsMD = 0;
       localStorage.removeItem('token');
       localStorage.removeItem('tenantId');
       localStorage.removeItem('selectedCompany');
+      localStorage.removeItem('selectedCompanyId');
       localStorage.removeItem('selectedYear');
       localStorage.removeItem('IsMD');
     },
@@ -92,11 +99,13 @@ const authSlice = createSlice({
         state.showCompanySelection = true;
       } else {
         state.selectedCompany = action.payload.company;
+        state.selectedCompanyId = action.payload.tenantId;
         state.selectedYear = action.payload.year;
         state.selectedTenantId = action.payload.tenantId;
         state.showCompanySelection = false;
         localStorage.setItem('tenantId', action.payload.tenantId);
         localStorage.setItem('selectedCompany', action.payload.company);
+        localStorage.setItem('selectedCompanyId', action.payload.tenantId);
         localStorage.setItem('selectedYear', action.payload.year);
       }
     },

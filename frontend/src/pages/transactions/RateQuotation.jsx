@@ -26,7 +26,7 @@ const RateQuotation = () => {
   const [details, setDetails] = useState([]);
   const [fileList, setFileList] = useState([]);
   const [searchText, setSearchText] = useState('');
-  const { selectedCompany, selectedYear } = useSelector(state => state.auth);
+  const { selectedCompany, selectedCompanyId, selectedYear } = useSelector(state => state.auth);
   const { adminUser: isAdmin } = useMenuPermissions();
 
   useEffect(() => {
@@ -66,9 +66,21 @@ const RateQuotation = () => {
     try {
       const response = await getNextQuotNo();
       form.resetFields();
+      
+      console.log('selectedCompanyId:', selectedCompanyId);
+      
+      if (!selectedCompanyId) {
+        Modal.error({
+          title: 'Error',
+          content: 'Company information not found. Please login again to continue.'
+        });
+        return;
+      }
+      
       form.setFieldsValue({
         quotNo: response.quotNo,
-        quotDate: dayjs()
+        quotDate: dayjs(),
+        concernId: selectedCompanyId
       });
       setDetails([]);
       setFileList([]);
@@ -101,6 +113,9 @@ const RateQuotation = () => {
           <p><strong>Party:</strong> {record.party?.partyName || 'N/A'}</p>
           <p><strong>Payment Terms:</strong> {record.paymentTerms || 'N/A'}</p>
           <p><strong>Remarks:</strong> {record.remarks || 'N/A'}</p>
+          {record.attachFile && (
+            <p><strong>Attached File:</strong> <a href={record.attachFile} target="_blank" rel="noopener noreferrer">View File</a></p>
+          )}
           <div style={{ marginTop: 16 }}>
             <strong>Process Details:</strong>
             <Table
@@ -181,7 +196,11 @@ const RateQuotation = () => {
       setIsFormVisible(false);
       loadData();
     } catch (error) {
-      message.error('Failed to save');
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to save';
+      Modal.error({
+        title: 'Error',
+        content: errorMessage
+      });
     } finally {
       setLoading(false);
     }
@@ -387,13 +406,9 @@ const RateQuotation = () => {
                 <DatePicker style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
               </Form.Item>
             </Col>
-            <Col span={8}>
-              <Form.Item label="Concern" name="concernId" rules={[{ required: true, message: 'Please select concern!' }]} style={{ marginBottom: 8 }}>
-                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ width: '100%', height: '32px' }} size="middle">
-                  {concerns.map(c => <Option key={c.id} value={c.id}>{c.partyName}</Option>)}
-                </Select>
-              </Form.Item>
-            </Col>
+            <Form.Item name="concernId" hidden>
+              <Input />
+            </Form.Item>
             <Col span={8}>
               <Form.Item label="Party" name="partyId" rules={[{ required: true, message: 'Please select party!' }]} style={{ marginBottom: 8 }}>
                 <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ width: '100%', height: '32px' }} size="middle">

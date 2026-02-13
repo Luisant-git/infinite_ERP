@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -81,6 +81,11 @@ export class RateQuotationService {
   async create(tenantId: number, concernId: number | null, data: any) {
     const { details, ...headerData } = data;
     
+    // Validate concernId is provided
+    if (!concernId) {
+      throw new BadRequestException('Concern ID is required. Please login again to continue.');
+    }
+    
     // Extract number from any format (Q/1, AMP TEST 3, HVACBAS////10, etc.)
     const quotNoMatch = headerData.quotNo.match(/(\d+)$/);
     const sortOrder = quotNoMatch ? parseInt(quotNoMatch[1]) : 1;
@@ -95,7 +100,7 @@ export class RateQuotationService {
     });
 
     if (existing) {
-      throw new Error('Quotation number already exists for this tenant');
+      throw new BadRequestException('Quotation number already exists for this tenant');
     }
     
     return this.prisma.rateQuotationHeader.create({
@@ -118,7 +123,12 @@ export class RateQuotationService {
   }
 
   async update(id: number, data: any) {
-    const { details, id: _, party, concern, createdDate, modifiedDate, deletedDate, sortOrder, tenantId, ...headerData } = data;
+    const { details, id: _, party, concern, createdDate, modifiedDate, deletedDate, sortOrder, tenantId, concernId, ...headerData } = data;
+    
+    // Validate concernId is provided
+    if (!concernId) {
+      throw new BadRequestException('Concern ID is required. Please login again to continue.');
+    }
     
     await this.prisma.rateQuotationDetail.deleteMany({
       where: { headerId: id }
@@ -128,6 +138,7 @@ export class RateQuotationService {
       where: { id },
       data: {
         ...headerData,
+        concernId,
         details: {
           create: details?.map(d => ({
             processId: d.processId,
