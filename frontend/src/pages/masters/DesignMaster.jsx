@@ -163,6 +163,11 @@ const DesignMaster = () => {
           <p><strong>Commercial Rate:</strong> ₹{record.commercialRate}</p>
           <p><strong>Description:</strong> {record.description || 'N/A'}</p>
           <p><strong>Remarks:</strong> {record.remarks || 'N/A'}</p>
+          {record.strikeOffComment && (
+            <p style={{ color: 'red', fontWeight: 500 }}>
+              <strong>Strike Off Comment:</strong> {record.strikeOffComment}
+            </p>
+          )}
           {record.imagePath && (
             <div style={{ marginTop: 16 }}>
               <strong>Design Image:</strong>
@@ -301,6 +306,14 @@ const DesignMaster = () => {
       render: (val) => <Checkbox checked={val === 1} disabled />,
     },
     {
+      title: 'MD Approve',
+      dataIndex: 'isApproval',
+      key: 'isApproval',
+      width: 110,
+      align: 'center',
+      render: (val) => <Checkbox checked={val === 1} disabled />,
+    },
+    {
       title: 'StrikeOff Approval',
       dataIndex: 'strikeOffApproval',
       key: 'strikeOffApproval',
@@ -309,18 +322,10 @@ const DesignMaster = () => {
       render: (val) => <Checkbox checked={val === 1} disabled />,
     },
     {
-      title: 'MD Approval',
-      dataIndex: 'mdApproval',
-      key: 'mdApproval',
-      width: 110,
-      align: 'center',
-      render: (val) => <Checkbox checked={val === 1} disabled />,
-    },
-    {
-      title: 'Rejected',
-      dataIndex: 'rejected',
-      key: 'rejected',
-      width: 100,
+      title: 'StrikeOff Rejected',
+      dataIndex: 'strikeOffRejected',
+      key: 'strikeOffRejected',
+      width: 130,
       align: 'center',
       render: (val) => <Checkbox checked={val === 1} disabled />,
     },

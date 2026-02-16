@@ -13,8 +13,8 @@ export class CreateDesignDto {
   buyerId?: number;
   designCompleted?: number;
   strikeOffApproval?: number;
-  mdApproval?: number;
-  rejected?: number;
+  strikeOffRejected?: number;
+  strikeOffComment?: string;
   description?: string;
   remarks?: string;
   imagePath?: string;

@@ -146,6 +146,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           label: 'Design Approval'
         },
         {
+          key: ROUTES.STRIKEOFF_APPROVAL,
+          icon: <FileTextOutlined />,
+          label: 'Strike Off Approval'
+        },
+        {
           key: ROUTES.RATE_QUOTATION_APPROVAL,
           icon: <FileTextOutlined />,
           label: 'Rate Quotation Approval'

@@ -24,6 +24,7 @@ export const ROUTES = {
   PARTY_PROCESS_RATE: '/masters/party-process-rate',
   DESIGN_MASTER: '/masters/designs',
   DESIGN_APPROVAL: '/masters/design-approval',
+  STRIKEOFF_APPROVAL: '/masters/strikeoff-approval',
   MASTER_DATA: '/masters/master-data',
   GST_MASTER: '/masters/gst-master',
   FABRIC_INWARD: '/transactions/fabric-inward',

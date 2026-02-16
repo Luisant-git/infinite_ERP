@@ -17,6 +17,7 @@ import ProcessMaster from './pages/masters/ProcessMaster';
 import PartyProcessRateSetting from './pages/masters/PartyProcessRateSetting';
 import DesignMaster from './pages/masters/DesignMaster';
 import DesignApproval from './pages/masters/DesignApproval';
+import StrikeOffApproval from './pages/masters/StrikeOffApproval';
 import MasterData from './pages/masters/MasterData';
 import GstMaster from './pages/masters/GstMaster';
 import FabricInward from './pages/transactions/FabricInward';
@@ -57,6 +58,7 @@ function App() {
                     <Route path={ROUTES.PARTY_PROCESS_RATE} element={<PartyProcessRateSetting />} />
                     <Route path={ROUTES.DESIGN_MASTER} element={<DesignMaster />} />
                     <Route path={ROUTES.DESIGN_APPROVAL} element={<MDRoute><DesignApproval /></MDRoute>} />
+                    <Route path={ROUTES.STRIKEOFF_APPROVAL} element={<StrikeOffApproval />} />
                     <Route path={ROUTES.MASTER_DATA} element={<MasterData />} />
                     <Route path={ROUTES.GST_MASTER} element={<GstMaster />} />
                     <Route path={ROUTES.FABRIC_INWARD} element={<FabricInward />} />
