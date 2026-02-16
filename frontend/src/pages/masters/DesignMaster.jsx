@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, Button, Space, Table, Modal, Typography, Select, InputNumber, DatePicker, Row, Col, Upload, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, UploadOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Button, Space, Table, Modal, Typography, Select, InputNumber, DatePicker, Row, Col, Upload, message, Checkbox } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, UploadOutlined, PrinterOutlined } from '@ant-design/icons';
 import { getDesigns, createDesign, updateDesign, deleteDesign, getNextRefNo } from '../../api/design';
 import { getParties } from '../../api/party';
+import { getMastersByType } from '../../api/fabricInward';
 import { uploadImage, deleteFile } from '../../api/upload';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
+import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
 
 const { Title } = Typography;
@@ -19,13 +21,19 @@ const DesignMaster = () => {
   const [searchText, setSearchText] = useState('');
   const [designs, setDesigns] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [buyers, setBuyers] = useState([]);
   const [fileList, setFileList] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const { canAdd, canEdit, canDelete } = useMenuPermissions();
+  const { IsMD } = useSelector(state => state.auth);
+  const isAdminOrMD = IsMD === 1;
 
   useEffect(() => {
     loadDesigns();
     loadCustomers();
+    loadEmployees();
+    loadBuyers();
   }, []);
 
   const loadCustomers = async () => {
@@ -34,6 +42,24 @@ const DesignMaster = () => {
       setCustomers(response.data || response);
     } catch (error) {
       console.error('Error loading customers:', error);
+    }
+  };
+
+  const loadEmployees = async () => {
+    try {
+      const response = await getMastersByType('Employee');
+      setEmployees(response || []);
+    } catch (error) {
+      console.error('Error loading employees:', error);
+    }
+  };
+
+  const loadBuyers = async () => {
+    try {
+      const response = await getParties('', 1, 1000);
+      setBuyers(response.data || response);
+    } catch (error) {
+      console.error('Error loading buyers:', error);
     }
   };
 
@@ -94,6 +120,7 @@ const DesignMaster = () => {
         ...values,
         date: values.date ? values.date.toISOString() : new Date().toISOString(),
         imagePath: fileList.length > 0 ? fileList[0].url : null,
+        designCompleted: values.designCompleted ? 1 : 0,
       };
 
       if (editingDesign) {
@@ -150,10 +177,15 @@ const DesignMaster = () => {
   };
 
   const handleEdit = (record) => {
+    if (record.isApproval === 1 && !isAdminOrMD) {
+      message.warning('Only Admin/MD can edit approved designs');
+      return;
+    }
     setEditingDesign(record);
     form.setFieldsValue({
       ...record,
       date: record.date ? dayjs(record.date) : dayjs(),
+      designCompleted: record.designCompleted === 1,
     });
     if (record.imagePath) {
       setFileList([{
@@ -167,6 +199,11 @@ const DesignMaster = () => {
   };
 
   const handleDelete = async (id) => {
+    const design = designs.find(d => d.id === id);
+    if (design?.isApproval === 1 && !isAdminOrMD) {
+      message.warning('Only Admin/MD can delete approved designs');
+      return;
+    }
     try {
       await deleteDesign(id);
       loadDesigns();
@@ -256,15 +293,54 @@ const DesignMaster = () => {
       render: (rate) => `₹${rate}`,
     },
     {
+      title: 'Design Completed',
+      dataIndex: 'designCompleted',
+      key: 'designCompleted',
+      width: 130,
+      align: 'center',
+      render: (val) => <Checkbox checked={val === 1} disabled />,
+    },
+    {
+      title: 'StrikeOff Approval',
+      dataIndex: 'strikeOffApproval',
+      key: 'strikeOffApproval',
+      width: 140,
+      align: 'center',
+      render: (val) => <Checkbox checked={val === 1} disabled />,
+    },
+    {
+      title: 'MD Approval',
+      dataIndex: 'mdApproval',
+      key: 'mdApproval',
+      width: 110,
+      align: 'center',
+      render: (val) => <Checkbox checked={val === 1} disabled />,
+    },
+    {
+      title: 'Rejected',
+      dataIndex: 'rejected',
+      key: 'rejected',
+      width: 100,
+      align: 'center',
+      render: (val) => <Checkbox checked={val === 1} disabled />,
+    },
+    {
       title: 'Actions',
       key: 'actions',
-      width: 100,
+      width: 140,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} />
-          {canEdit('design_master') && <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />}
-          {canDelete('design_master') && <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />}
+          {(record.isApproval === 0 || isAdminOrMD) && canEdit('design_master') && (
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
+          )}
+          {(record.isApproval === 0 || isAdminOrMD) && canDelete('design_master') && (
+            <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
+          )}
+          {(record.isApproval === 0 || isAdminOrMD) && (
+            <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => message.info('Print functionality')} />
+          )}
         </Space>
       ),
     },
@@ -373,6 +449,8 @@ const DesignMaster = () => {
             noOfColor: 1,
             noOfPrint: 1,
             commercialRate: 0,
+            confirmRate: 0,
+            designCompleted: false,
             isActive: true
           }}
         >
@@ -428,16 +506,64 @@ const DesignMaster = () => {
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item label="₹ Commercial Rate" name="commercialRate">
-                    <InputNumber 
-                      min={0} 
-                      style={{ width: '100%' }} 
-                      precision={2}
-                      keyboard={true}
-                      controls={false}
-                      parser={value => value.replace(/[^0-9.]/g, '')}
-                      autoComplete="off"
-                    />
+                  {isAdminOrMD && (
+                    <Form.Item label="₹ Commercial Rate" name="commercialRate">
+                      <InputNumber 
+                        min={0} 
+                        style={{ width: '100%' }} 
+                        precision={2}
+                        keyboard={true}
+                        controls={false}
+                        parser={value => value.replace(/[^0-9.]/g, '')}
+                        autoComplete="off"
+                      />
+                    </Form.Item>
+                  )}
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  {isAdminOrMD && (
+                    <Form.Item label="₹ Confirm Rate" name="confirmRate">
+                      <InputNumber 
+                        min={0} 
+                        style={{ width: '100%' }} 
+                        precision={2}
+                        keyboard={true}
+                        controls={false}
+                        parser={value => value.replace(/[^0-9.]/g, '')}
+                        autoComplete="off"
+                      />
+                    </Form.Item>
+                  )}
+                </Col>
+                <Col span={12}>
+                  {isAdminOrMD && (
+                    <Form.Item label="Buyer" name="buyerId">
+                      <Select placeholder="Select Buyer" showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}>
+                        {buyers.map(buyer => (
+                          <Option key={buyer.id} value={buyer.id}>{buyer.partyName}</Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  )}
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label="Followup" name="followupId">
+                    <Select placeholder="Select Employee" showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}>
+                      {employees.filter(e => e.isActive).map(emp => (
+                        <Option key={emp.id} value={emp.id}>{emp.masterName}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="designCompleted" valuePropName="checked" style={{ marginTop: 30 }}>
+                    <Checkbox>Design Completed</Checkbox>
                   </Form.Item>
                 </Col>
               </Row>

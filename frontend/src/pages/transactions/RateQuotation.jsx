@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, Button, Row, Col, Typography, Select, DatePicker, Table, Modal, InputNumber, message, Space, Upload } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, UploadOutlined, EyeOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Button, Row, Col, Typography, Select, DatePicker, Table, Modal, InputNumber, message, Space, Upload, Checkbox } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, UploadOutlined, EyeOutlined, PrinterOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getNextQuotNo, getRateQuotations, createRateQuotation, updateRateQuotation, deleteRateQuotation } from '../../api/rateQuotation';
 import { getParties } from '../../api/party';
 import { getProcesses } from '../../api/process';
 import { getConcerns } from '../../api/concern';
+import { getMastersByType } from '../../api/fabricInward';
 import { uploadImage } from '../../api/upload';
 import { useSelector } from 'react-redux';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
@@ -23,11 +24,13 @@ const RateQuotation = () => {
   const [parties, setParties] = useState([]);
   const [concerns, setConcerns] = useState([]);
   const [processes, setProcesses] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [details, setDetails] = useState([]);
   const [fileList, setFileList] = useState([]);
   const [searchText, setSearchText] = useState('');
-  const { selectedCompany, selectedCompanyId, selectedYear } = useSelector(state => state.auth);
+  const { selectedCompany, selectedCompanyId, selectedYear, IsMD } = useSelector(state => state.auth);
   const { adminUser: isAdmin } = useMenuPermissions();
+  const isAdminOrMD = isAdmin || IsMD === 1;
 
   useEffect(() => {
     loadData();
@@ -43,12 +46,23 @@ const RateQuotation = () => {
     }
   };
 
+  const handlePartyChange = (partyId) => {
+    const selectedParty = parties.find(p => p.id === partyId);
+    if (selectedParty) {
+      const paymentTerms = selectedParty.creditDays > 0 
+        ? `${selectedParty.creditDays} Days` 
+        : 'Advance';
+      form.setFieldsValue({ paymentTerms });
+    }
+  };
+
   const loadMasters = async () => {
     try {
-      const [partiesRes, processesRes, concernsRes] = await Promise.all([
+      const [partiesRes, processesRes, concernsRes, employeesRes] = await Promise.all([
         getParties('', 1, 1000),
         getProcesses('', 1, 1000),
-        getConcerns('', 1, 1000)
+        getConcerns('', 1, 1000),
+        getMastersByType('Employee')
       ]);
       
       const customerParties = (partiesRes.data || []).filter(p => 
@@ -57,6 +71,7 @@ const RateQuotation = () => {
       setParties(customerParties);
       setProcesses(processesRes.data || []);
       setConcerns(concernsRes.data || []);
+      setEmployees(employeesRes || []);
     } catch (error) {
       console.error('Error loading masters:', error);
     }
@@ -92,6 +107,10 @@ const RateQuotation = () => {
   };
 
   const handleEdit = (record) => {
+    if (record.isApproval === 1 && !isAdminOrMD) {
+      message.warning('Only Admin/MD can edit approved quotations');
+      return;
+    }
     setEditingId(record.id);
     form.setFieldsValue({
       ...record,
@@ -136,6 +155,11 @@ const RateQuotation = () => {
   };
 
   const handleDelete = (id) => {
+    const quotation = quotations.find(q => q.id === id);
+    if (quotation?.isApproval === 1 && !isAdminOrMD) {
+      message.warning('Only Admin/MD can delete approved quotations');
+      return;
+    }
     Modal.confirm({
       title: 'Delete Rate Quotation',
       content: 'Are you sure?',
@@ -309,6 +333,14 @@ const RateQuotation = () => {
     { title: 'Concern', dataIndex: ['concern', 'partyName'], width: 150 },
     { title: 'Party', dataIndex: ['party', 'partyName'], width: 150 },
     { title: 'Payment Terms', dataIndex: 'paymentTerms', width: 120 },
+    {
+      title: 'MD Approval',
+      dataIndex: 'mdApproval',
+      key: 'mdApproval',
+      width: 100,
+      align: 'center',
+      render: (val) => <Checkbox checked={val === 1 || val === undefined || val === null ? false : true} disabled />,
+    },
     { 
       title: 'Process/Rate', 
       key: 'processRate', 
@@ -327,8 +359,15 @@ const RateQuotation = () => {
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} />
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
-          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+          {(record.isApproval === 0 || isAdminOrMD) && (
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
+          )}
+          {(record.isApproval === 0 || isAdminOrMD) && (
+            <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+          )}
+          {(record.isApproval === 0 || isAdminOrMD) && (
+            <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => message.info('Print functionality')} />
+          )}
         </Space>
       )
     }
@@ -411,7 +450,13 @@ const RateQuotation = () => {
             </Form.Item>
             <Col span={8}>
               <Form.Item label="Party" name="partyId" rules={[{ required: true, message: 'Please select party!' }]} style={{ marginBottom: 8 }}>
-                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ width: '100%', height: '32px' }} size="middle">
+                <Select 
+                  showSearch 
+                  filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} 
+                  style={{ width: '100%', height: '32px' }} 
+                  size="middle"
+                  onChange={handlePartyChange}
+                >
                   {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
@@ -419,6 +464,19 @@ const RateQuotation = () => {
             <Col span={8}>
               <Form.Item label="Payment Terms" name="paymentTerms" style={{ marginBottom: 8 }}>
                 <Input style={{ width: '100%', height: '32px' }} size="middle" autoComplete="off" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="Followup" name="followupId" style={{ marginBottom: 8 }}>
+                <Select 
+                  showSearch 
+                  filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} 
+                  style={{ width: '100%', height: '32px' }} 
+                  size="middle"
+                  placeholder="Select Employee"
+                >
+                  {employees.filter(e => e.isActive).map(emp => <Option key={emp.id} value={emp.id}>{emp.masterName}</Option>)}
+                </Select>
               </Form.Item>
             </Col>
             <Col span={8}>
