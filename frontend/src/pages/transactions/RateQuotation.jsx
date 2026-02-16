@@ -334,12 +334,12 @@ const RateQuotation = () => {
     { title: 'Party', dataIndex: ['party', 'partyName'], width: 150 },
     { title: 'Payment Terms', dataIndex: 'paymentTerms', width: 120 },
     {
-      title: 'MD Approval',
-      dataIndex: 'mdApproval',
-      key: 'mdApproval',
+      title: 'MD Approve',
+      dataIndex: 'isApproval',
+      key: 'isApproval',
       width: 100,
       align: 'center',
-      render: (val) => <Checkbox checked={val === 1 || val === undefined || val === null ? false : true} disabled />,
+      render: (val) => <Checkbox checked={val === 1} disabled />,
     },
     { 
       title: 'Process/Rate', 
