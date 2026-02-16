@@ -48,18 +48,6 @@ export class FabricReturnService {
 
   async create(tenantId: number, concernId: number | null, data: any) {
     const sortOrder = parseInt(data.dcNo);
-    
-    const existing = await this.prisma.fabricReturnHeader.findFirst({
-      where: {
-        tenantId,
-        dcNo: data.dcNo,
-        deleteFlg: 0
-      }
-    });
-
-    if (existing) {
-      throw new Error('DC number already exists for this tenant');
-    }
 
     return this.prisma.fabricReturnHeader.create({
       data: {

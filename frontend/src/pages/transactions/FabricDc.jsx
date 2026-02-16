@@ -185,6 +185,8 @@ const FabricDc = () => {
         dyeingDcDate: values.dyeingDcDate?.toISOString(),
         dcType,
         isFinal: values.isFinal ? 1 : 0,
+        inwardQty: values.inwardQty || null,
+        pendingInward: values.pendingInward || null,
         totalQty,
         totalRolls,
         details: details.map(d => ({
@@ -714,13 +716,17 @@ const FabricDc = () => {
             <Col span={4}>
               <div style={{ marginBottom: 6 }}>
                 <label style={{ fontSize: '12px' }}>Inward Qty</label>
-                <Input value="211.900" disabled style={{ height: '32px', backgroundColor: '#ffc0cb' }} />
+                <Form.Item name="inwardQty" noStyle>
+                  <InputNumber style={{ width: '100%', height: '32px', backgroundColor: '#ffc0cb' }} precision={3} autoComplete="off" />
+                </Form.Item>
               </div>
             </Col>
             <Col span={4}>
               <div style={{ marginBottom: 6 }}>
                 <label style={{ fontSize: '12px' }}>Pending Inward</label>
-                <Input disabled style={{ height: '32px', backgroundColor: '#add8e6' }} />
+                <Form.Item name="pendingInward" noStyle>
+                  <InputNumber style={{ width: '100%', height: '32px', backgroundColor: '#add8e6' }} precision={3} autoComplete="off" />
+                </Form.Item>
               </div>
             </Col>
             <Col span={4}>

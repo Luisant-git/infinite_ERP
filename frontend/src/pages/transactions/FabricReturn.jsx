@@ -154,14 +154,6 @@ const FabricReturn = () => {
         return;
       }
       
-      if (!editingId) {
-        const duplicate = fabricReturns.find(f => f.dcNo === values.dcNo);
-        if (duplicate) {
-          message.error('DC number already exists!');
-          return;
-        }
-      }
-      
       setLoading(true);
 
       const totalQty = details.reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
