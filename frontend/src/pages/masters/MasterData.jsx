@@ -17,6 +17,7 @@ const MasterData = () => {
   const [colors, setColors] = useState([]);
   const [dias, setDias] = useState([]);
   const [uoms, setUoms] = useState([]);
+  const [employees, setEmployees] = useState([]);
 
   useEffect(() => {
     loadAllMasters();
@@ -24,16 +25,18 @@ const MasterData = () => {
 
   const loadAllMasters = async () => {
     try {
-      const [fabricsRes, colorsRes, diasRes, uomsRes] = await Promise.all([
+      const [fabricsRes, colorsRes, diasRes, uomsRes, employeesRes] = await Promise.all([
         getMastersByType('Fabric'),
         getMastersByType('Color'),
         getMastersByType('Dia'),
-        getMastersByType('UOM')
+        getMastersByType('UOM'),
+        getMastersByType('Employee')
       ]);
       setFabrics(fabricsRes || []);
       setColors(colorsRes || []);
       setDias(diasRes || []);
       setUoms(uomsRes || []);
+      setEmployees(employeesRes || []);
     } catch (error) {
       console.error('Error loading masters:', error);
     }
@@ -175,6 +178,12 @@ const MasterData = () => {
             Add UOM
           </Button>
           <Table columns={columns('UOM')} dataSource={uoms} rowKey="id" size="small" className="compact-table" />
+        </TabPane>
+        <TabPane tab="Employee" key="Employee">
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Employee')} style={{ marginBottom: 16 }}>
+            Add Employee
+          </Button>
+          <Table columns={columns('Employee')} dataSource={employees} rowKey="id" size="small" className="compact-table" />
         </TabPane>
       </Tabs>
 

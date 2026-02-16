@@ -17,6 +17,8 @@ const PartyMaster = () => {
   const [searchText, setSearchText] = useState('');
   const [filteredParties, setFilteredParties] = useState([]);
   const [partyTypes, setPartyTypes] = useState([]);
+  const [isRegistered, setIsRegistered] = useState(true);
+  const [selectedPartyTypes, setSelectedPartyTypes] = useState([]);
   const { canAdd, canEdit, canDelete } = useMenuPermissions();
 
   // Sample data for the table
@@ -100,8 +102,10 @@ const PartyMaster = () => {
         ...values,
         active: values.active ? 1 : 0,
         creditDays: values.creditDays || 0,
-        isApproval: editingParty?.isApproval || 0,
-        creditAmount: values.creditAmount || 0
+        isApproval: values.againstPayment ? 0 : (editingParty?.isApproval || 1),
+        creditAmount: values.creditAmount || 0,
+        registered: values.registered || 1,
+        againstPayment: values.againstPayment ? 1 : 0
       };
       
       console.log('Sending data:', formData);
@@ -191,8 +195,11 @@ const PartyMaster = () => {
     setEditingParty(record);
     const formData = {
       ...record,
-      partyTypeIds: record.partyTypes?.map(pt => pt.partyTypeId) || []
+      partyTypeIds: record.partyTypes?.map(pt => pt.partyTypeId) || [],
+      registered: record.registered !== undefined ? record.registered : 1
     };
+    setIsRegistered(formData.registered === 1);
+    setSelectedPartyTypes(formData.partyTypeIds);
     form.setFieldsValue(formData);
     setIsModalVisible(true);
   };
@@ -218,6 +225,8 @@ const PartyMaster = () => {
     setIsModalVisible(false);
     form.resetFields();
     setEditingParty(null);
+    setIsRegistered(true);
+    setSelectedPartyTypes([]);
   };
 
   const districts = [
@@ -421,9 +430,17 @@ const PartyMaster = () => {
             }
             message.error('Please fill all required fields correctly!');
           }}
-          initialValues={{ active: true, creditDays: 0, creditAmount: 0, state: 'Tamil Nadu' }}
+          initialValues={{ active: true, creditDays: 0, creditAmount: 0, state: 'Tamil Nadu', registered: 1, againstPayment: 0 }}
           scrollToFirstError
           autoComplete="off"
+          onValuesChange={(changedValues) => {
+            if ('registered' in changedValues) {
+              setIsRegistered(changedValues.registered === 1);
+            }
+            if ('partyTypeIds' in changedValues) {
+              setSelectedPartyTypes(changedValues.partyTypeIds || []);
+            }
+          }}
         >
           <Tabs defaultActiveKey="1">
             <TabPane tab="Basic Details" key="1">
@@ -445,7 +462,7 @@ const PartyMaster = () => {
                     <Input placeholder="Enter party code" maxLength={50} />
                   </Form.Item>
                 </Col> */}
-                <Col span={12}>
+                <Col span={8}>
                   <Form.Item
                     label="Party Types"
                     name="partyTypeIds"
@@ -466,10 +483,41 @@ const PartyMaster = () => {
                     </Select>
                   </Form.Item>
                 </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label="Registered"
+                    name="registered"
+                    rules={[{ required: true, message: 'Please select registration status!' }]}
+                  >
+                    <Select placeholder="Select registration status">
+                      <Option value={1}>Registered</Option>
+                      <Option value={0}>Un-Registered</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item name="againstPayment" valuePropName="checked">
+                    <Checkbox>Against Payment</Checkbox>
+                  </Form.Item>
+                </Col>
                 <Col span={12}>
                   <Form.Item
                     label="Address 1"
                     name="address1"
+                    rules={[
+                      ({ getFieldValue }) => ({
+                        validator(_, value) {
+                          const partyTypeIds = getFieldValue('partyTypeIds') || [];
+                          const isCustomer = partyTypes.some(pt => 
+                            partyTypeIds.includes(pt.id) && pt.partyTypeName.toLowerCase() === 'customer'
+                          );
+                          if (isCustomer && !value) {
+                            return Promise.reject('Address 1 is required for Customer!');
+                          }
+                          return Promise.resolve();
+                        },
+                      }),
+                    ]}
                   >
                     <Input placeholder="Enter address line 1" maxLength={50} autoComplete="new-address" />
                   </Form.Item>
@@ -502,7 +550,21 @@ const PartyMaster = () => {
                   <Form.Item
                     label="Pincode"
                     name="pincode"
-                    rules={[{ pattern: /^[0-9]{6}$/, message: 'Please enter valid 6-digit pincode!' }]}
+                    rules={[
+                      { pattern: /^[0-9]{6}$/, message: 'Please enter valid 6-digit pincode!' },
+                      ({ getFieldValue }) => ({
+                        validator(_, value) {
+                          const partyTypeIds = getFieldValue('partyTypeIds') || [];
+                          const isCustomer = partyTypes.some(pt => 
+                            partyTypeIds.includes(pt.id) && pt.partyTypeName.toLowerCase() === 'customer'
+                          );
+                          if (isCustomer && !value) {
+                            return Promise.reject('Pincode is required for Customer!');
+                          }
+                          return Promise.resolve();
+                        },
+                      }),
+                    ]}
                   >
                     <Input placeholder="Enter pincode" maxLength={6} onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()} autoComplete="new-postal-code" />
                   </Form.Item>
@@ -523,6 +585,20 @@ const PartyMaster = () => {
                   <Form.Item
                     label="District"
                     name="district"
+                    rules={[
+                      ({ getFieldValue }) => ({
+                        validator(_, value) {
+                          const partyTypeIds = getFieldValue('partyTypeIds') || [];
+                          const isCustomer = partyTypes.some(pt => 
+                            partyTypeIds.includes(pt.id) && pt.partyTypeName.toLowerCase() === 'customer'
+                          );
+                          if (isCustomer && !value) {
+                            return Promise.reject('District is required for Customer!');
+                          }
+                          return Promise.resolve();
+                        },
+                      }),
+                    ]}
                   >
                     <Input placeholder="Enter district" maxLength={50} autoComplete="new-district" />
                   </Form.Item>
@@ -531,7 +607,21 @@ const PartyMaster = () => {
                   <Form.Item
                     label="Mobile No"
                     name="mobileNo"
-                    rules={[{ pattern: /^[0-9]{10}$/, message: 'Please enter valid 10-digit mobile number!' }]}
+                    rules={[
+                      { pattern: /^[0-9]{10}$/, message: 'Please enter valid 10-digit mobile number!' },
+                      ({ getFieldValue }) => ({
+                        validator(_, value) {
+                          const partyTypeIds = getFieldValue('partyTypeIds') || [];
+                          const isCustomer = partyTypes.some(pt => 
+                            partyTypeIds.includes(pt.id) && pt.partyTypeName.toLowerCase() === 'customer'
+                          );
+                          if (isCustomer && !value) {
+                            return Promise.reject('Mobile No is required for Customer!');
+                          }
+                          return Promise.resolve();
+                        },
+                      }),
+                    ]}
                   >
                     <Input placeholder="Enter mobile number" maxLength={10} autoComplete="new-tel" />
                   </Form.Item>
@@ -565,6 +655,14 @@ const PartyMaster = () => {
                 </Col>
                 <Col span={12}>
                   <Form.Item
+                    label="TAN No"
+                    name="tanNo"
+                  >
+                    <Input placeholder="Enter TAN number" maxLength={50} style={{ textTransform: 'uppercase' }} autoComplete="off" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
                     label="Tally Acc. Name"
                     name="tallyAccName"
                   >
@@ -576,7 +674,20 @@ const PartyMaster = () => {
                     label="GST No"
                     name="gstNo"
                     rules={[
-                      { pattern: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, message: 'Please enter valid GST number!' }
+                      { pattern: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, message: 'Please enter valid GST number!' },
+                      ({ getFieldValue }) => ({
+                        validator(_, value) {
+                          const partyTypeIds = getFieldValue('partyTypeIds') || [];
+                          const registered = getFieldValue('registered');
+                          const isCustomer = partyTypes.some(pt => 
+                            partyTypeIds.includes(pt.id) && pt.partyTypeName.toLowerCase() === 'customer'
+                          );
+                          if (isCustomer && registered === 1 && !value) {
+                            return Promise.reject('GST No is required for Registered Customer!');
+                          }
+                          return Promise.resolve();
+                        },
+                      }),
                     ]}
                   >
                     <Input placeholder="Enter GST number" maxLength={15} style={{ textTransform: 'uppercase' }} autoComplete="off" />
@@ -598,7 +709,7 @@ const PartyMaster = () => {
                     <InputNumber placeholder="Enter credit amount" min={0} max={9999999999.99} precision={2} style={{ width: '100%' }} />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col span={6}>
                   <Form.Item name="active" valuePropName="checked">
                     <Checkbox>Active</Checkbox>
                   </Form.Item>

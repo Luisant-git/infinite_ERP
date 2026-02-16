@@ -44,11 +44,20 @@ export class CreatePartyDto {
   @ApiPropertyOptional({ example: 'ABCDE1234F' })
   panNo?: string;
 
+  @ApiPropertyOptional({ example: 'ABCD12345E' })
+  tanNo?: string;
+
   @ApiPropertyOptional({ example: 'ABC Suppliers Tally' })
   tallyAccName?: string;
 
   @ApiPropertyOptional({ example: '27ABCDE1234F1Z5' })
   gstNo?: string;
+
+  @ApiPropertyOptional({ example: 1 })
+  registered?: number;
+
+  @ApiPropertyOptional({ example: 0 })
+  againstPayment?: number;
 
   @ApiPropertyOptional({ example: 30 })
   creditDays?: number;

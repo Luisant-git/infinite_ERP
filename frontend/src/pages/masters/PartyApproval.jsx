@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Typography, Space, Button, Checkbox, message, Modal } from 'antd';
+import { Card, Table, Typography, Space, Button, Checkbox, message, Modal, InputNumber, Form } from 'antd';
 import { EyeOutlined, CheckOutlined } from '@ant-design/icons';
 import { getParties, updateParty } from '../../api/party';
 import { useSelector } from 'react-redux';
@@ -11,6 +11,8 @@ const PartyApproval = () => {
   const [parties, setParties] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [selectedRows, setSelectedRows] = useState([]);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [form] = Form.useForm();
   const { IsMD } = useSelector(state => state.auth);
 
   useEffect(() => {
@@ -38,56 +40,63 @@ const PartyApproval = () => {
   };
 
   const handleApprove = async (record) => {
-    Modal.confirm({
-      title: 'Confirm Approval',
-      content: `Are you sure you want to approve ${record.partyName}?`,
-      onOk: async () => {
-        setLoading(true);
-        try {
-          const updateData = {
-            partyName: record.partyName,
-            partyCode: record.partyCode,
-            address1: record.address1,
-            address2: record.address2,
-            address3: record.address3,
-            address4: record.address4,
-            pincode: record.pincode,
-            district: record.district,
-            state: record.state,
-            mobileNo: record.mobileNo,
-            phoneNo: record.phoneNo,
-            email: record.email,
-            panNo: record.panNo,
-            tallyAccName: record.tallyAccName,
-            gstNo: record.gstNo,
-            creditDays: record.creditDays,
-            isApproval: 1,
-            creditAmount: record.creditAmount,
-            accountNo: record.accountNo,
-            bank: record.bank,
-            ifscCode: record.ifscCode,
-            branch: record.branch,
-            active: record.active,
-            partyTypeIds: record.partyTypes?.map(pt => pt.partyTypeId) || [],
-            contacts: record.contacts?.map(c => ({
-              name: c.name,
-              mobileNo: c.mobileNo,
-              email: c.email,
-              whatsappRequired: c.whatsappRequired,
-              mailRequired: c.mailRequired
-            })) || []
-          };
-          await updateParty(record.id, updateData);
-          message.success('Party approved successfully');
-          setSelectedRows([]);
-          loadParties();
-        } catch (error) {
-          message.error('Failed to approve party');
-        } finally {
-          setLoading(false);
-        }
-      }
+    setEditingRecord(record);
+    form.setFieldsValue({
+      creditDays: record.creditDays || 0,
+      creditAmount: record.creditAmount || 0
     });
+  };
+
+  const handleApprovalSubmit = async (values) => {
+    setLoading(true);
+    try {
+      const updateData = {
+        partyName: editingRecord.partyName,
+        partyCode: editingRecord.partyCode,
+        address1: editingRecord.address1,
+        address2: editingRecord.address2,
+        address3: editingRecord.address3,
+        address4: editingRecord.address4,
+        pincode: editingRecord.pincode,
+        district: editingRecord.district,
+        state: editingRecord.state,
+        mobileNo: editingRecord.mobileNo,
+        phoneNo: editingRecord.phoneNo,
+        email: editingRecord.email,
+        panNo: editingRecord.panNo,
+        tanNo: editingRecord.tanNo,
+        tallyAccName: editingRecord.tallyAccName,
+        gstNo: editingRecord.gstNo,
+        registered: editingRecord.registered,
+        againstPayment: editingRecord.againstPayment,
+        creditDays: values.creditDays,
+        isApproval: 1,
+        creditAmount: values.creditAmount,
+        accountNo: editingRecord.accountNo,
+        bank: editingRecord.bank,
+        ifscCode: editingRecord.ifscCode,
+        branch: editingRecord.branch,
+        active: editingRecord.active,
+        partyTypeIds: editingRecord.partyTypes?.map(pt => pt.partyTypeId) || [],
+        contacts: editingRecord.contacts?.map(c => ({
+          name: c.name,
+          mobileNo: c.mobileNo,
+          email: c.email,
+          whatsappRequired: c.whatsappRequired,
+          mailRequired: c.mailRequired
+        })) || []
+      };
+      await updateParty(editingRecord.id, updateData);
+      message.success('Party approved successfully');
+      setSelectedRows([]);
+      setEditingRecord(null);
+      form.resetFields();
+      loadParties();
+    } catch (error) {
+      message.error('Failed to approve party');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleView = (record) => {
@@ -243,6 +252,41 @@ const PartyApproval = () => {
         }}
         className="compact-table"
       />
+
+      <Modal
+        title="Approve Party"
+        open={!!editingRecord}
+        onCancel={() => {
+          setEditingRecord(null);
+          form.resetFields();
+        }}
+        onOk={() => form.submit()}
+        okText="Approve"
+        width={500}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleApprovalSubmit}
+        >
+          <p><strong>Party Name:</strong> {editingRecord?.partyName}</p>
+          <p><strong>GST No:</strong> {editingRecord?.gstNo || 'N/A'}</p>
+          <Form.Item
+            label="Credit Days"
+            name="creditDays"
+            rules={[{ required: true, message: 'Please enter credit days!' }]}
+          >
+            <InputNumber min={0} style={{ width: '100%' }} placeholder="Enter credit days" />
+          </Form.Item>
+          <Form.Item
+            label="Credit Amount"
+            name="creditAmount"
+            rules={[{ required: true, message: 'Please enter credit amount!' }]}
+          >
+            <InputNumber min={0} max={9999999999.99} precision={2} style={{ width: '100%' }} placeholder="Enter credit amount" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </Card>
   );
 };

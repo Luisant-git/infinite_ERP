@@ -102,7 +102,10 @@ const ProcessMaster = () => {
 
   const handleEdit = (record) => {
     setEditingProcess(record);
-    form.setFieldsValue(record);
+    form.setFieldsValue({
+      ...record,
+      productionExcess: parseFloat(record.productionExcess) || 0
+    });
     setIsModalVisible(true);
   };
 
@@ -166,13 +169,6 @@ const ProcessMaster = () => {
       dataIndex: 'notRequiredRate',
       key: 'notRequiredRate',
       width: 130,
-      render: (val) => <Checkbox checked={val} disabled />,
-    },
-    {
-      title: 'Wet Condition',
-      dataIndex: 'wetCondition',
-      key: 'wetCondition',
-      width: 110,
       render: (val) => <Checkbox checked={val} disabled />,
     },
     {
@@ -287,7 +283,7 @@ const ProcessMaster = () => {
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          initialValues={{ isActive: true, productionExcess: 0, notRequiredRate: false, wetCondition: false }}
+          initialValues={{ isActive: true, productionExcess: 0, notRequiredRate: false }}
         >
           <Form.Item
             label="Process Name"
@@ -320,11 +316,13 @@ const ProcessMaster = () => {
             label="Production Excess (%)"
             name="productionExcess"
             rules={[
-              { type: 'number', message: 'Please enter a valid number!' },
               { 
                 validator: (_, value) => {
-                  if (value !== null && value !== undefined && (value < 0 || value > 999.99)) {
-                    return Promise.reject('Value must be between 0 and 999.99');
+                  if (value !== null && value !== undefined && value !== '') {
+                    const num = parseFloat(value);
+                    if (isNaN(num) || num < 0 || num > 999.99) {
+                      return Promise.reject('Value must be between 0 and 999.99');
+                    }
                   }
                   return Promise.resolve();
                 }
@@ -351,10 +349,6 @@ const ProcessMaster = () => {
 
             <Form.Item name="notRequiredRate" valuePropName="checked">
               <Checkbox>Not Required Rate</Checkbox>
-            </Form.Item>
-
-            <Form.Item name="wetCondition" valuePropName="checked">
-              <Checkbox>Wet Condition</Checkbox>
             </Form.Item>
           </div>
         </Form>

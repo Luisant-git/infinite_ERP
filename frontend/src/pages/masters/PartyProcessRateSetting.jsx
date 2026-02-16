@@ -33,8 +33,6 @@ const PartyProcessRateSetting = () => {
         processName: process.processName,
         ratePerKg: 0,
         ratePerPiece: 0,
-        minAmount: 0,
-        minKgsProcess: 0,
       })));
     }
   }, [processes]);
@@ -78,8 +76,6 @@ const PartyProcessRateSetting = () => {
           processName: process.processName,
           ratePerKg: existingRate?.ratePerKg || 0,
           ratePerPiece: existingRate?.ratePerPiece || 0,
-          minAmount: existingRate?.minAmount || 0,
-          minKgsProcess: existingRate?.minKgsProcess || 0,
         };
       }));
     } catch (error) {
@@ -102,8 +98,8 @@ const PartyProcessRateSetting = () => {
           processId: rate.processId,
           ratePerKg: rate.ratePerKg || 0,
           ratePerPiece: rate.ratePerPiece || 0,
-          minAmount: rate.minAmount || 0,
-          minKgsProcess: rate.minKgsProcess || 0,
+          minAmount: 0,
+          minKgsProcess: 0,
         };
         await updatePartyProcessRate(rate.id, data);
       }
@@ -176,36 +172,6 @@ const PartyProcessRateSetting = () => {
           onChange={(v) => handleFieldChange(record.id, 'ratePerPiece', v)}
           style={{ width: '100%' }}
           precision={2}
-          controls={false}
-          disabled={!canEdit()}
-        />
-      ),
-    },
-    {
-      title: 'Min Amount',
-      dataIndex: 'minAmount',
-      width: 120,
-      render: (val, record) => (
-        <InputNumber
-          value={val}
-          onChange={(v) => handleFieldChange(record.id, 'minAmount', v)}
-          style={{ width: '100%' }}
-          precision={2}
-          controls={false}
-          disabled={!canEdit()}
-        />
-      ),
-    },
-    {
-      title: 'Min Kgs Process',
-      dataIndex: 'minKgsProcess',
-      width: 140,
-      render: (val, record) => (
-        <InputNumber
-          value={val}
-          onChange={(v) => handleFieldChange(record.id, 'minKgsProcess', v)}
-          style={{ width: '100%' }}
-          precision={3}
           controls={false}
           disabled={!canEdit()}
         />
