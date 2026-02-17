@@ -21,19 +21,24 @@ const PartyApproval = () => {
 
   const loadParties = async (page = 1, pageSize = 10) => {
     try {
-      const response = await getParties('', page, pageSize);
+      const response = await getParties('', 1, 1000);
       const customerParties = (response.data || response).filter(p => 
-        p.partyTypes?.some(pt => pt.partyType.partyTypeName.toLowerCase() === 'customer') && p.isApproval === 0
+        p.partyTypes?.some(pt => pt.partyType.partyTypeName.toLowerCase() === 'customer') && 
+        p.isApproval === 0 && 
+        p.id !== undefined
       );
-      setParties(customerParties);
       
-      if (response.pagination) {
-        setPagination({
-          current: response.pagination.page,
-          pageSize: response.pagination.limit,
-          total: customerParties.length
-        });
-      }
+      const total = customerParties.length;
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      const paginatedData = customerParties.slice(start, end);
+      
+      setParties(paginatedData);
+      setPagination({
+        current: page,
+        pageSize: pageSize,
+        total: total
+      });
     } catch (error) {
       console.error('Error loading parties:', error);
     }

@@ -81,16 +81,36 @@ const MasterData = () => {
       const values = await form.validateFields();
       setLoading(true);
 
+      const trimmedName = values.masterName.trim();
+      const currentData = currentType === 'Fabric' ? fabrics : 
+                          currentType === 'Color' ? colors : 
+                          currentType === 'Dia' ? dias : 
+                          currentType === 'UOM' ? uoms : employees;
+
+      const duplicate = currentData.find(m => 
+        m.masterName.trim().toLowerCase() === trimmedName.toLowerCase() && 
+        m.id !== editingMaster?.id
+      );
+
+      if (duplicate) {
+        Modal.error({
+          title: 'Duplicate Entry',
+          content: `${currentType} name already exists!`,
+        });
+        setLoading(false);
+        return;
+      }
+
       if (editingMaster) {
         await updateMaster(editingMaster.id, {
-          masterName: values.masterName,
+          masterName: trimmedName,
           isActive: values.isActive
         });
         message.success('Updated successfully');
       } else {
         await createMaster({
           masterType: currentType,
-          masterName: values.masterName,
+          masterName: trimmedName,
           isActive: values.isActive
         });
         message.success('Created successfully');
@@ -99,7 +119,7 @@ const MasterData = () => {
       setIsModalVisible(false);
       loadAllMasters();
     } catch (error) {
-      message.error('Failed to save');
+      message.error(error.response?.data?.message || 'Failed to save');
     } finally {
       setLoading(false);
     }

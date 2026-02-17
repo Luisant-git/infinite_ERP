@@ -327,7 +327,24 @@ const DesignMaster = () => {
       key: 'strikeOffRejected',
       width: 130,
       align: 'center',
-      render: (val) => <Checkbox checked={val === 1} disabled />,
+      render: (val, record) => (
+        <div>
+          <Checkbox checked={val === 1} disabled />
+          {val === 1 && record.strikeOffComment && (
+            <Button 
+              type="link" 
+              size="small" 
+              onClick={() => Modal.info({
+                title: 'Rejection Comment',
+                content: record.strikeOffComment
+              })}
+              style={{ padding: 0, marginLeft: 4 }}
+            >
+              View
+            </Button>
+          )}
+        </div>
+      ),
     },
     {
       title: 'Actions',
