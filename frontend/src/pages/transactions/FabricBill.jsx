@@ -17,7 +17,7 @@ const FabricBill = () => {
   const [fabricBills, setFabricBills] = useState([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const { adminUser: isAdmin } = useMenuPermissions();
+  const { adminUser: isAdmin, canAdd, canEdit, canDelete } = useMenuPermissions();
   
   const [parties, setParties] = useState([]);
   const [gstMasters, setGstMasters] = useState([]);
@@ -81,6 +81,10 @@ const FabricBill = () => {
   };
 
   const handleEdit = (record) => {
+    if (!canEdit('fabric_bill')) {
+      message.warning('You do not have permission to edit');
+      return;
+    }
     setEditingId(record.id);
     form.setFieldsValue({
       ...record,
@@ -92,6 +96,10 @@ const FabricBill = () => {
   };
 
   const handleDelete = (id) => {
+    if (!canDelete('fabric_bill')) {
+      message.warning('You do not have permission to delete');
+      return;
+    }
     Modal.confirm({
       title: 'Delete Fabric Bill',
       content: 'Are you sure?',
@@ -273,8 +281,12 @@ const FabricBill = () => {
       fixed: 'right',
       render: (_, r) => (
         <Space size="small">
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(r)} style={{ color: '#52c41a' }} />
-          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(r.id)} />
+          {canEdit('fabric_bill') && (
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(r)} style={{ color: '#52c41a' }} />
+          )}
+          {canDelete('fabric_bill') && (
+            <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(r.id)} />
+          )}
         </Space>
       )
     }
@@ -335,7 +347,7 @@ const FabricBill = () => {
               allowClear
               autoComplete="off"
             />
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleNew} disabled={!canAdd('fabric_bill')}>New</Button>
           </Space>
         )}
       </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Button, Table, Modal, InputNumber, message, Space, Select, Checkbox } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import { getGstMasters, createGstMaster, updateGstMaster, deleteGstMaster } from '../../api/gstMaster';
+import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 
 const { Option } = Select;
 
@@ -12,6 +13,7 @@ const GstMaster = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [searchText, setSearchText] = useState('');
+  const { canAdd, canEdit, canDelete } = useMenuPermissions();
 
   useEffect(() => {
     loadData();
@@ -136,8 +138,12 @@ const GstMaster = () => {
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
-          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+          {canEdit('gst_master') && (
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
+          )}
+          {canDelete('gst_master') && (
+            <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+          )}
         </Space>
       )
     }
@@ -182,7 +188,7 @@ const GstMaster = () => {
               allowClear
               autoComplete="off"
             />
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleNew} disabled={!canAdd('gst_master')}>New</Button>
           </Space>
         )}
       </div>

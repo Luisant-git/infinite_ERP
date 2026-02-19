@@ -18,7 +18,7 @@ const FabricReturn = () => {
   const [fabricReturns, setFabricReturns] = useState([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const { adminUser: isAdmin } = useMenuPermissions();
+  const { adminUser: isAdmin, canAdd, canEdit, canDelete } = useMenuPermissions();
   
   const [parties, setParties] = useState([]);
   const [allParties, setAllParties] = useState([]);
@@ -31,6 +31,7 @@ const FabricReturn = () => {
   const [details, setDetails] = useState([]);
   const [selectedProcesses, setSelectedProcesses] = useState([]);
   const [searchText, setSearchText] = useState('');
+  const [fabricType, setFabricType] = useState('');
 
   useEffect(() => {
     loadData();
@@ -89,6 +90,7 @@ const FabricReturn = () => {
         i.partyId === partyId && (i.isClosed === 0 || i.isClosed === false)
       );
       setInwards(filtered);
+      form.setFieldsValue({ deliveryTo: partyId });
     } catch (error) {
       console.error('Error loading inwards:', error);
     }
@@ -112,6 +114,10 @@ const FabricReturn = () => {
   };
 
   const handleEdit = (record) => {
+    if (!canEdit('fabric_return')) {
+      message.warning('You do not have permission to edit');
+      return;
+    }
     setEditingId(record.id);
     
     const dyeParty = allParties.find(p => p.id === record.dyeParty);
@@ -130,6 +136,10 @@ const FabricReturn = () => {
   };
 
   const handleDelete = (id) => {
+    if (!canDelete('fabric_return')) {
+      message.warning('You do not have permission to delete');
+      return;
+    }
     Modal.confirm({
       title: 'Delete Fabric Return',
       content: 'Are you sure?',
@@ -210,6 +220,7 @@ const FabricReturn = () => {
     const selectedInward = inwards.find(i => i.grnNo === inwardNo);
     if (selectedInward) {
       const dyeParty = allParties.find(p => p.id === selectedInward.dyeingPartyId);
+      setFabricType(selectedInward.fabricType || '');
       form.setFieldsValue({
         grnDate: selectedInward.grnDate ? dayjs(selectedInward.grnDate) : null,
         pdcNo: selectedInward.pdcNo,
@@ -336,30 +347,32 @@ const FabricReturn = () => {
         <Input value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} autoComplete="off" />
       )
     },
-    {
-      title: 'Design No',
-      dataIndex: 'designNo',
-      width: 100,
-      render: (val, record) => (
-        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'designNo', e.target.value)} autoComplete="off" />
-      )
-    },
-    {
-      title: 'Design Name',
-      dataIndex: 'designName',
-      width: 120,
-      render: (val, record) => (
-        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'designName', e.target.value)} autoComplete="off" />
-      )
-    },
-    {
-      title: 'No of Color',
-      dataIndex: 'noOfColor',
-      width: 80,
-      render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'noOfColor', v)} style={{ width: '100%' }} autoComplete="off" />
-      )
-    },
+    ...(fabricType === 'Print Lot' ? [
+      {
+        title: 'Design No',
+        dataIndex: 'designNo',
+        width: 100,
+        render: (val, record) => (
+          <Input value={val} onChange={(e) => handleDetailChange(record.key, 'designNo', e.target.value)} autoComplete="off" />
+        )
+      },
+      {
+        title: 'Design Name',
+        dataIndex: 'designName',
+        width: 120,
+        render: (val, record) => (
+          <Input value={val} onChange={(e) => handleDetailChange(record.key, 'designName', e.target.value)} autoComplete="off" />
+        )
+      },
+      {
+        title: 'No of Color',
+        dataIndex: 'noOfColor',
+        width: 80,
+        render: (val, record) => (
+          <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'noOfColor', v)} style={{ width: '100%' }} autoComplete="off" />
+        )
+      }
+    ] : []),
     {
       title: 'Weight',
       dataIndex: 'weight',
@@ -443,8 +456,12 @@ const FabricReturn = () => {
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
-          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+          {canEdit('fabric_return') && (
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
+          )}
+          {canDelete('fabric_return') && (
+            <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+          )}
         </Space>
       )
     }
@@ -510,7 +527,7 @@ const FabricReturn = () => {
               allowClear
               autoComplete="off"
             />
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleNew} disabled={!canAdd('fabric_return')}>New</Button>
           </Space>
         )}
       </div>
@@ -525,6 +542,11 @@ const FabricReturn = () => {
                 <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
+            <Col span={4}>
+              <Form.Item label="Date" name="dcDate" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
+                <DatePicker style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
+              </Form.Item>
+            </Col>
             <Col span={6}>
               <Form.Item label="Party" name="partyId" style={{ marginBottom: 6 }}>
                 <Select showSearch onChange={loadInwards} filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
@@ -537,11 +559,6 @@ const FabricReturn = () => {
                 <Select style={{ height: '32px' }} size="middle" onChange={handleInwardSelect}>
                   {inwards.map(i => <Option key={i.id} value={i.grnNo}>{i.grnNo}</Option>)}
                 </Select>
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item label="Date" name="dcDate" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
-                <DatePicker style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
               </Form.Item>
             </Col>
             <Col span={4}>

@@ -24,7 +24,7 @@ const FabricInward = () => {
   const [fabricInwards, setFabricInwards] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
-  const { adminUser: isAdmin } = useMenuPermissions();
+  const { adminUser: isAdmin, canAdd, canEdit, canDelete } = useMenuPermissions();
   const { selectedCompany, selectedYear } = useSelector(state => state.auth);
   
   const [parties, setParties] = useState([]);
@@ -624,8 +624,12 @@ const FabricInward = () => {
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} style={{ color: '#1890ff' }} />
           {/* <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRecord(record)} style={{ color: '#722ed1' }} /> */}
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
-          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+          {canEdit('fabric_inward') && (
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
+          )}
+          {canDelete('fabric_inward') && (
+            <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+          )}
         </Space>
       )
     }
@@ -708,7 +712,7 @@ const FabricInward = () => {
               allowClear
               autoComplete="off"
             />
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleNew} disabled={!canAdd('fabric_inward')}>New</Button>
           </Space>
         )}
       </div>

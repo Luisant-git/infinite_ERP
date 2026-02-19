@@ -29,7 +29,7 @@ const RateQuotation = () => {
   const [fileList, setFileList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const { selectedCompany, selectedCompanyId, selectedYear, IsMD } = useSelector(state => state.auth);
-  const { adminUser: isAdmin } = useMenuPermissions();
+  const { adminUser: isAdmin, canAdd, canEdit, canDelete } = useMenuPermissions();
   const isAdminOrMD = isAdmin || IsMD === 1;
 
   useEffect(() => {
@@ -359,10 +359,10 @@ const RateQuotation = () => {
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} />
-          {(record.isApproval === 0 || isAdminOrMD) && (
+          {(record.isApproval === 0 || isAdminOrMD) && canEdit('rate_quotation') && (
             <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
           )}
-          {(record.isApproval === 0 || isAdminOrMD) && (
+          {(record.isApproval === 0 || isAdminOrMD) && canDelete('rate_quotation') && (
             <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
           )}
           {(record.isApproval === 0 || isAdminOrMD) && (
@@ -420,7 +420,7 @@ const RateQuotation = () => {
             allowClear
             autoComplete="off"
           />
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleNew}>New</Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleNew} disabled={!canAdd('rate_quotation')}>New</Button>
         </Space>
         )}
       </div>

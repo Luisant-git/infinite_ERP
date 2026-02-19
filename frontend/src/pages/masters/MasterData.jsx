@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Button, Table, Modal, message, Space, Tabs, Checkbox, Typography } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getMastersByType, createMaster, updateMaster, deleteMaster } from '../../api/fabricInward';
+import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 
 const { TabPane } = Tabs;
 const { Title } = Typography;
@@ -12,6 +13,7 @@ const MasterData = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingMaster, setEditingMaster] = useState(null);
   const [currentType, setCurrentType] = useState('Fabric');
+  const { canAdd, canEdit, canDelete } = useMenuPermissions();
   
   const [fabrics, setFabrics] = useState([]);
   const [colors, setColors] = useState([]);
@@ -141,8 +143,12 @@ const MasterData = () => {
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record, type)} style={{ color: '#52c41a' }} />
-          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+          {canEdit('master_data') && (
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record, type)} style={{ color: '#52c41a' }} />
+          )}
+          {canDelete('master_data') && (
+            <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+          )}
         </Space>
       )
     }
@@ -176,31 +182,31 @@ const MasterData = () => {
       </div>
       <Tabs defaultActiveKey="Fabric">
         <TabPane tab="Fabric" key="Fabric">
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Fabric')} style={{ marginBottom: 16 }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Fabric')} style={{ marginBottom: 16 }} disabled={!canAdd('master_data')}>
             Add Fabric
           </Button>
           <Table columns={columns('Fabric')} dataSource={fabrics} rowKey="id" size="small" className="compact-table" />
         </TabPane>
         <TabPane tab="Color" key="Color">
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Color')} style={{ marginBottom: 16 }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Color')} style={{ marginBottom: 16 }} disabled={!canAdd('master_data')}>
             Add Color
           </Button>
           <Table columns={columns('Color')} dataSource={colors} rowKey="id" size="small" className="compact-table" />
         </TabPane>
         <TabPane tab="Dia" key="Dia">
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Dia')} style={{ marginBottom: 16 }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Dia')} style={{ marginBottom: 16 }} disabled={!canAdd('master_data')}>
             Add Dia
           </Button>
           <Table columns={columns('Dia')} dataSource={dias} rowKey="id" size="small" className="compact-table" />
         </TabPane>
         <TabPane tab="UOM" key="UOM">
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('UOM')} style={{ marginBottom: 16 }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('UOM')} style={{ marginBottom: 16 }} disabled={!canAdd('master_data')}>
             Add UOM
           </Button>
           <Table columns={columns('UOM')} dataSource={uoms} rowKey="id" size="small" className="compact-table" />
         </TabPane>
         <TabPane tab="Employee" key="Employee">
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Employee')} style={{ marginBottom: 16 }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Employee')} style={{ marginBottom: 16 }} disabled={!canAdd('master_data')}>
             Add Employee
           </Button>
           <Table columns={columns('Employee')} dataSource={employees} rowKey="id" size="small" className="compact-table" />
