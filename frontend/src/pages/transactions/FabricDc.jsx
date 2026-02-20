@@ -37,6 +37,7 @@ const FabricDc = () => {
   const [fabricType, setFabricType] = useState('');
   const [inwardQty, setInwardQty] = useState(0);
   const [pendingInward, setPendingInward] = useState(0);
+  const [isFinalDelivery, setIsFinalDelivery] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -115,6 +116,7 @@ const FabricDc = () => {
       setSelectedProcesses([]);
       setDcType('Fresh');
       setEditingId(null);
+      setIsFinalDelivery(false);
       setIsFormVisible(true);
     } catch (error) {
       message.error('Failed to generate DC number');
@@ -125,6 +127,7 @@ const FabricDc = () => {
     setEditingId(record.id);
     
     const dyeParty = allParties.find(p => p.id === record.dyeParty);
+    const isFinal = Boolean(record.isFinal);
     
     form.setFieldsValue({
       ...record,
@@ -133,11 +136,12 @@ const FabricDc = () => {
       grnDate: record.grnDate ? dayjs(record.grnDate) : null,
       dyeingDcDate: record.dyeingDcDate ? dayjs(record.dyeingDcDate) : null,
       dyeingPartyName: dyeParty?.partyName || '',
-      isFinal: Boolean(record.isFinal)
+      isFinal
     });
     setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
     setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
     setDcType(record.dcType || 'Fresh');
+    setIsFinalDelivery(isFinal);
     setIsFormVisible(true);
   };
 
@@ -437,7 +441,7 @@ const FabricDc = () => {
       dataIndex: 'processWeight',
       width: 100,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'processWeight', v)} style={{ width: '100%' }} precision={3} autoComplete="off" />
+        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'processWeight', v)} disabled={isFinalDelivery} style={{ width: '100%' }} precision={3} autoComplete="off" />
       )
     },
     {
@@ -728,7 +732,7 @@ const FabricDc = () => {
             </Col>
             <Col span={4}>
               <Form.Item name="isFinal" valuePropName="checked" style={{ marginTop: 28 }}>
-                <Checkbox>Final Delivery</Checkbox>
+                <Checkbox onChange={(e) => setIsFinalDelivery(e.target.checked)}>Final Delivery</Checkbox>
               </Form.Item>
             </Col>
           </Row>
