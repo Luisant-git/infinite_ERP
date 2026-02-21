@@ -104,7 +104,7 @@ const PartyMaster = () => {
         creditDays: values.creditDays || 0,
         isApproval: editingParty ? 
           ((values.creditDays !== editingParty.creditDays || values.creditAmount !== editingParty.creditAmount) ? 0 : editingParty.isApproval) 
-          : 1,
+          : 0,
         creditAmount: values.creditAmount || 0,
         registered: values.registered || 1,
         againstPayment: values.againstPayment ? 1 : 0

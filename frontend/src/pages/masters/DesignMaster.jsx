@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Button, Space, Table, Modal, Typography, Select, InputNumber, DatePicker, Row, Col, Upload, message, Checkbox } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, UploadOutlined, PrinterOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, UploadOutlined, PrinterOutlined, CloseCircleFilled } from '@ant-design/icons';
 import { getDesigns, createDesign, updateDesign, deleteDesign, getNextRefNo } from '../../api/design';
 import { getParties } from '../../api/party';
 import { getMastersByType } from '../../api/fabricInward';
@@ -124,9 +124,16 @@ const DesignMaster = () => {
       };
 
       if (editingDesign) {
+        // Reset approvals when editing
+        formData.isApproval = 0;
+        formData.strikeOffApproval = 0;
+        formData.strikeOffRejected = 0;
+        formData.strikeOffComment = null;
         await updateDesign(editingDesign.id, formData);
+        message.success('Design updated. Approvals reset - requires re-approval.');
       } else {
         await createDesign(formData);
+        message.success('Design created successfully');
       }
       
       setIsModalVisible(false);
@@ -329,7 +336,11 @@ const DesignMaster = () => {
       align: 'center',
       render: (val, record) => (
         <div>
-          <Checkbox checked={val === 1} disabled />
+          {val === 1 ? (
+            <CloseCircleFilled style={{ fontSize: 16, color: '#ff4d4f' }} />
+          ) : (
+            <Checkbox checked={false} disabled />
+          )}
           {val === 1 && record.strikeOffComment && (
             <Button 
               type="link" 
@@ -338,7 +349,7 @@ const DesignMaster = () => {
                 title: 'Rejection Comment',
                 content: record.strikeOffComment
               })}
-              style={{ padding: 0, marginLeft: 4 }}
+              style={{ padding: 0, marginLeft: 4, color: '#ff4d4f' }}
             >
               View
             </Button>
@@ -391,6 +402,10 @@ const DesignMaster = () => {
         }
         .compact-table .ant-space-item {
           line-height: 1 !important;
+        }
+        .rejected-checkbox .ant-checkbox-checked .ant-checkbox-inner {
+          background-color: #ff4d4f !important;
+          border-color: #ff4d4f !important;
         }
       `}</style>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
