@@ -302,25 +302,26 @@ const FabricDc = () => {
   };
 
   const handleAddDetail = () => {
+    const lastRow = details.length > 0 ? details[details.length - 1] : null;
     setDetails([...details, { 
       key: Date.now(),
-      fabricId: null,
-      colorId: null,
-      diaId: null,
-      inwFabricId: null,
-      inwColorId: null,
-      inwDiaId: null,
-      gsm: '',
-      designNo: '',
-      designName: '',
-      noOfColor: 0,
+      fabricId: lastRow?.fabricId || null,
+      colorId: lastRow?.colorId || null,
+      diaId: lastRow?.diaId || null,
+      inwFabricId: lastRow?.inwFabricId || null,
+      inwColorId: lastRow?.inwColorId || null,
+      inwDiaId: lastRow?.inwDiaId || null,
+      gsm: lastRow?.gsm || '',
+      designNo: lastRow?.designNo || '',
+      designName: lastRow?.designName || '',
+      noOfColor: lastRow?.noOfColor || 0,
       processWeight: 0,
       dcWeight: 0,
       weightLoss: 0,
       lossPercentage: 0,
-      rolls: 0,
-      uomId: null,
-      rate: 0,
+      rolls: lastRow?.rolls || 0,
+      uomId: lastRow?.uomId || null,
+      rate: lastRow?.rate || 0,
       amount: 0,
       remarks: ''
     }]);
@@ -437,7 +438,7 @@ const FabricDc = () => {
       }
     ] : []),
     {
-      title: 'INW Weight',
+      title: 'Process Weight',
       dataIndex: 'processWeight',
       width: 100,
       render: (val, record) => (
@@ -449,7 +450,7 @@ const FabricDc = () => {
       dataIndex: 'dcWeight',
       width: 100,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'dcWeight', v)} style={{ width: '100%' }} precision={3} autoComplete="off" />
+        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'dcWeight', v)} disabled={!isFinalDelivery} style={{ width: '100%' }} precision={3} autoComplete="off" />
       )
     },
     {
@@ -627,35 +628,41 @@ const FabricDc = () => {
       ) : (
         <Form form={form} layout="vertical" size="small">
           <Row gutter={8}>
-            <Col span={4}>
+            <Col span={3}>
               <Form.Item label="Dc No" name="dcNo" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
                 <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
-            <Col span={4}>
+            <Col span={3}>
               <Form.Item label="Date" name="dcDate" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
                 <DatePicker style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
               </Form.Item>
             </Col>
-            <Col span={6}>
+            <Col span={4}>
               <Form.Item label="Party" name="partyId" style={{ marginBottom: 6 }}>
                 <Select showSearch onChange={loadInwards} filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
                   {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={4}>
+            <Col span={7}>
               <Form.Item label="Inward No" name="grnNo" style={{ marginBottom: 6 }}>
-                <Select style={{ height: '32px' }} size="middle" onChange={handleInwardSelect}>
-                  {inwards.map(i => <Option key={i.id} value={i.grnNo}>{i.grnNo}</Option>)}
+                <Select style={{ height: '32px' }} size="middle" onChange={handleInwardSelect} showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}>
+                  {inwards.map(i => (
+                    <Option key={i.id} value={i.grnNo}>
+                      {`${i.grnNo} | ${dayjs(i.grnDate).format('DD-MM-YY')} | ${i.pdcNo || 'N/A'} | ${i.totalQty || 0}`}
+                    </Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={4}>
+            <Col span={3}>
               <Form.Item label="GRN Date" name="grnDate" style={{ marginBottom: 6 }}>
                 <DatePicker disabled style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
               </Form.Item>
             </Col>
+          </Row>
+          <Row gutter={8}>
             <Col span={6}>
               <Form.Item label="Delivery To" name="deliveryTo" style={{ marginBottom: 6 }}>
                 <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">

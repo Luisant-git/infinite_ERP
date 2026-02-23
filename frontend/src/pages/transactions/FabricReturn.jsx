@@ -264,19 +264,20 @@ const FabricReturn = () => {
   };
 
   const handleAddDetail = () => {
+    const lastRow = details.length > 0 ? details[details.length - 1] : null;
     setDetails([...details, { 
       key: Date.now(),
-      fabricId: null,
-      colorId: null,
-      diaId: null,
-      gsm: '',
-      designNo: '',
-      designName: '',
-      noOfColor: 0,
+      fabricId: lastRow?.fabricId || null,
+      colorId: lastRow?.colorId || null,
+      diaId: lastRow?.diaId || null,
+      gsm: lastRow?.gsm || '',
+      designNo: lastRow?.designNo || '',
+      designName: lastRow?.designName || '',
+      noOfColor: lastRow?.noOfColor || 0,
       weight: 0,
-      rolls: 0,
-      uomId: null,
-      rate: 0,
+      rolls: lastRow?.rolls || 0,
+      uomId: lastRow?.uomId || null,
+      rate: lastRow?.rate || 0,
       amount: 0,
       remarks: ''
     }]);
