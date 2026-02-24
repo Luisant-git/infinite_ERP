@@ -467,13 +467,22 @@ const FabricDc = () => {
           const processWeight = field === 'processWeight' ? value : d.processWeight;
           const dcWeight = field === 'dcWeight' ? value : d.dcWeight;
           
+          // Get inward weight from the inward detail
+          const inwardDetail = inwardDetails.find(id => 
+            id.fabricId === d.inwFabricId && 
+            id.colorId === d.inwColorId && 
+            id.diaId === d.inwDiaId
+          );
+          const inwardWeight = inwardDetail?.weight || 0;
+          
           // Auto-copy process weight to dc weight when process weight changes
           if (field === 'processWeight') {
             updated.dcWeight = value;
           }
           
-          updated.weightLoss = processWeight - (field === 'processWeight' ? value : dcWeight);
-          updated.lossPercentage = processWeight > 0 ? ((processWeight - (field === 'processWeight' ? value : dcWeight)) / processWeight * 100) : 0;
+          // Calculate weight loss: Inward Weight - Process Weight
+          updated.weightLoss = inwardWeight - processWeight;
+          updated.lossPercentage = inwardWeight > 0 ? ((inwardWeight - processWeight) / inwardWeight * 100) : 0;
         }
         
         // Calculate amount

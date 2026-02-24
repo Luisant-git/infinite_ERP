@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Button, Row, Col, Typography, Select, DatePicker, Table, Modal, InputNumber, message, Space } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getNextDcNo, getFabricReturns, createFabricReturn, updateFabricReturn, deleteFabricReturn } from '../../api/fabricReturn';
 import { getParties } from '../../api/party';
@@ -17,6 +17,7 @@ const FabricReturn = () => {
   const [loading, setLoading] = useState(false);
   const [fabricReturns, setFabricReturns] = useState([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isViewMode, setIsViewMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const { adminUser: isAdmin, canAdd, canEdit, canDelete } = useMenuPermissions();
   
@@ -112,6 +113,7 @@ const FabricReturn = () => {
       setDetails([]);
       setSelectedProcesses([]);
       setEditingId(null);
+      setIsViewMode(false);
       setInwards([]);
       setIsFormVisible(true);
     } catch (error) {
@@ -119,12 +121,9 @@ const FabricReturn = () => {
     }
   };
 
-  const handleEdit = (record) => {
-    if (!canEdit('fabric_return')) {
-      message.warning('You do not have permission to edit');
-      return;
-    }
+  const handleView = (record) => {
     setEditingId(record.id);
+    setIsViewMode(true);
     
     const dyeParty = allParties.find(p => p.id === record.dyeParty);
     
@@ -138,6 +137,31 @@ const FabricReturn = () => {
     });
     setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
     setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
+    setFabricType(record.fabricType || '');
+    setIsFormVisible(true);
+  };
+
+  const handleEdit = (record) => {
+    if (!canEdit('fabric_return')) {
+      message.warning('You do not have permission to edit');
+      return;
+    }
+    setEditingId(record.id);
+    setIsViewMode(false);
+    
+    const dyeParty = allParties.find(p => p.id === record.dyeParty);
+    
+    form.setFieldsValue({
+      ...record,
+      grnNo: record.inwardNo,
+      dcDate: dayjs(record.dcDate),
+      grnDate: record.grnDate ? dayjs(record.grnDate) : null,
+      dyeingDcDate: record.dyeingDcDate ? dayjs(record.dyeingDcDate) : null,
+      dyeingPartyName: dyeParty?.partyName || ''
+    });
+    setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
+    setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
+    setFabricType(record.fabricType || '');
     setIsFormVisible(true);
   };
 
@@ -449,6 +473,7 @@ const FabricReturn = () => {
       width: 200,
       render: (_, record) => (
         <Select 
+          disabled={isViewMode}
           value={record.fabricId && record.colorId && record.diaId ? `${record.diaId}-${record.fabricId}-${record.colorId}` : undefined}
           onChange={(val) => {
             const detail = inwardDetails.find(d => `${d.diaId}-${d.fabricId}-${d.colorId}` === val);
@@ -476,7 +501,7 @@ const FabricReturn = () => {
       dataIndex: 'fabricId',
       width: 120,
       render: (val, record) => (
-        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'fabricId', v)} style={{ width: '100%' }} showSearch>
+        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'fabricId', v)} style={{ width: '100%' }} showSearch>
           {fabrics.map(f => <Option key={f.id} value={f.id}>{f.masterName}</Option>)}
         </Select>
       )
@@ -486,7 +511,7 @@ const FabricReturn = () => {
       dataIndex: 'colorId',
       width: 120,
       render: (val, record) => (
-        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'colorId', v)} style={{ width: '100%' }} showSearch>
+        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'colorId', v)} style={{ width: '100%' }} showSearch>
           {colors.map(c => <Option key={c.id} value={c.id}>{c.masterName}</Option>)}
         </Select>
       )
@@ -496,7 +521,7 @@ const FabricReturn = () => {
       dataIndex: 'diaId',
       width: 80,
       render: (val, record) => (
-        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'diaId', v)} style={{ width: '100%' }}>
+        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'diaId', v)} style={{ width: '100%' }}>
           {dias.map(d => <Option key={d.id} value={d.id}>{d.masterName}</Option>)}
         </Select>
       )
@@ -506,7 +531,7 @@ const FabricReturn = () => {
       dataIndex: 'gsm',
       width: 80,
       render: (val, record) => (
-        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} autoComplete="off" />
+        <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} autoComplete="off" />
       )
     },
     ...(fabricType === 'Print Lot' ? [
@@ -515,7 +540,7 @@ const FabricReturn = () => {
         dataIndex: 'designNo',
         width: 100,
         render: (val, record) => (
-          <Input value={val} onChange={(e) => handleDetailChange(record.key, 'designNo', e.target.value)} autoComplete="off" />
+          <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'designNo', e.target.value)} autoComplete="off" />
         )
       },
       {
@@ -523,7 +548,7 @@ const FabricReturn = () => {
         dataIndex: 'designName',
         width: 120,
         render: (val, record) => (
-          <Input value={val} onChange={(e) => handleDetailChange(record.key, 'designName', e.target.value)} autoComplete="off" />
+          <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'designName', e.target.value)} autoComplete="off" />
         )
       },
       {
@@ -531,7 +556,7 @@ const FabricReturn = () => {
         dataIndex: 'noOfColor',
         width: 80,
         render: (val, record) => (
-          <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'noOfColor', v)} style={{ width: '100%' }} autoComplete="off" />
+          <InputNumber disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'noOfColor', v)} style={{ width: '100%' }} autoComplete="off" />
         )
       }
     ] : []),
@@ -540,7 +565,7 @@ const FabricReturn = () => {
       dataIndex: 'weight',
       width: 100,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'weight', v)} style={{ width: '100%' }} precision={3} autoComplete="off" />
+        <InputNumber disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'weight', v)} style={{ width: '100%' }} precision={3} autoComplete="off" />
       )
     },
     {
@@ -548,7 +573,7 @@ const FabricReturn = () => {
       dataIndex: 'rolls',
       width: 80,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'rolls', v)} style={{ width: '100%' }} autoComplete="off" />
+        <InputNumber disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'rolls', v)} style={{ width: '100%' }} autoComplete="off" />
       )
     },
     {
@@ -556,7 +581,7 @@ const FabricReturn = () => {
       dataIndex: 'uomId',
       width: 80,
       render: (val, record) => (
-        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'uomId', v)} style={{ width: '100%' }}>
+        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'uomId', v)} style={{ width: '100%' }}>
           {uoms.map(u => <Option key={u.id} value={u.id}>{u.masterName}</Option>)}
         </Select>
       )
@@ -566,7 +591,7 @@ const FabricReturn = () => {
       dataIndex: 'rate',
       width: 80,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'rate', v)} style={{ width: '100%' }} precision={2} autoComplete="off" />
+        <InputNumber disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'rate', v)} style={{ width: '100%' }} precision={2} autoComplete="off" />
       )
     },
     {
@@ -580,28 +605,28 @@ const FabricReturn = () => {
       dataIndex: 'remarks',
       width: 120,
       render: (val, record) => (
-        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'remarks', e.target.value)} autoComplete="off" />
+        <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'remarks', e.target.value)} autoComplete="off" />
       )
     },
-    {
+    ...(!isViewMode ? [{
       title: 'Action',
       width: 60,
       render: (_, record) => (
         <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDeleteDetail(record.key)} />
       )
-    }
+    }] : [])
   ];
 
   const processColumns = [
     { title: 'Sl.No', width: 80, render: (_, record, index) => index + 1 },
     { title: 'Process', dataIndex: 'processName', width: 200 },
-    {
+    ...(!isViewMode ? [{
       title: 'Action',
       width: 80,
       render: (_, record) => (
         <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDeleteProcess(record.key)} />
       )
-    }
+    }] : [])
   ];
 
   const listColumns = [
@@ -618,6 +643,7 @@ const FabricReturn = () => {
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} style={{ color: '#1890ff' }} />
           {canEdit('fabric_return') && (
             <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
           )}
@@ -730,24 +756,24 @@ const FabricReturn = () => {
           <Row gutter={8}>
             <Col span={4}>
               <Form.Item label="Dc No" name="dcNo" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
-                <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" autoComplete="off" />
+                <Input disabled={!isAdmin || isViewMode} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={4}>
               <Form.Item label="Date" name="dcDate" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
-                <DatePicker style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
+                <DatePicker disabled={isViewMode} style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
               </Form.Item>
             </Col>
             <Col span={4}>
               <Form.Item label="Party" name="partyId" style={{ marginBottom: 6 }}>
-                <Select showSearch onChange={loadInwards} filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
+                <Select disabled={isViewMode} showSearch onChange={loadInwards} filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
                   {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
             </Col>
             <Col span={7}>
               <Form.Item label="Inward No" name="grnNo" style={{ marginBottom: 6 }}>
-                <Select style={{ height: '32px' }} size="middle" onChange={handleInwardSelect} showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}>
+                <Select disabled={isViewMode} style={{ height: '32px' }} size="middle" onChange={handleInwardSelect} showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}>
                   {inwards.map(i => (
                     <Option key={i.id} value={i.grnNo}>
                       {`${i.grnNo} | ${dayjs(i.grnDate).format('DD-MM-YY')} | ${i.pdcNo || 'N/A'} | ${Number(i.totalQty || 0).toFixed(2)}`}
@@ -765,7 +791,7 @@ const FabricReturn = () => {
           <Row gutter={8}>
             <Col span={6}>
               <Form.Item label="Delivery To" name="deliveryTo" style={{ marginBottom: 6 }}>
-                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
+                <Select disabled={isViewMode} showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
                   {allParties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
@@ -856,7 +882,7 @@ const FabricReturn = () => {
           <div style={{ marginTop: 4 }}>
             <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
               <Title level={5} style={{ margin: 0, fontSize: '14px' }}>Details</Title>
-              <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAddDetail} style={{ backgroundColor: '#031d38', color: '#fff', borderColor: '#031d38' }}>Add Row</Button>
+              <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAddDetail} disabled={isViewMode} style={{ backgroundColor: '#031d38', color: '#fff', borderColor: '#031d38' }}>Add Row</Button>
             </div>
             <Table 
               columns={detailColumns} 
@@ -883,22 +909,22 @@ const FabricReturn = () => {
           <Row gutter={8} style={{ marginTop: 4 }}>
             <Col span={6}>
               <Form.Item label="Remarks" name="remarks" style={{ marginBottom: 6 }}>
-                <TextArea rows={1} autoComplete="off" />
+                <TextArea disabled={isViewMode} rows={1} autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={4}>
               <Form.Item label="Rec Name" name="receivedName" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
+                <Input disabled={isViewMode} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={4}>
               <Form.Item label="HSN Code" name="hsnCode" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
+                <Input disabled={isViewMode} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={4}>
               <Form.Item label="Vehicle No" name="vehicleNo" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
+                <Input disabled={isViewMode} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={3}>
@@ -917,8 +943,8 @@ const FabricReturn = () => {
 
           <div style={{ marginTop: 4, textAlign: 'right' }}>
             <Space>
-              <Button icon={<CloseOutlined />} onClick={() => setIsFormVisible(false)}>Cancel</Button>
-              <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={handleSubmit}>Save</Button>
+              <Button icon={<CloseOutlined />} onClick={() => { setIsFormVisible(false); setIsViewMode(false); }}>Cancel</Button>
+              {!isViewMode && <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={handleSubmit}>Save</Button>}
             </Space>
           </div>
         </Form>
