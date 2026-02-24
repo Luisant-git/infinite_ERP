@@ -776,6 +776,8 @@ const FabricDc = () => {
           .page-header { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
           .page-header .ant-space { width: 100% !important; }
           .section-header { flex-direction: column !important; gap: 8px !important; align-items: flex-start !important; }
+          .info-container { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; }
+          .info-item { min-width: 120px !important; }
         }
       `}</style>
       <div className="page-header" style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -846,43 +848,43 @@ const FabricDc = () => {
             <Col span={18}>
               <div style={{ marginBottom: 6 }}>
                 <label style={{ fontSize: '11px', color: '#666', display: 'block', marginBottom: 2 }}>Info</label>
-                <div style={{ display: 'inline-flex', padding: '6px 8px', backgroundColor: '#f5f5f5', borderRadius: '4px', height: '32px', alignItems: 'center' }}>
-                  <div style={{ paddingLeft: '4px' }}>
+                <div className="info-container" style={{ display: 'inline-flex', padding: '6px 8px', backgroundColor: '#f5f5f5', borderRadius: '4px', minHeight: '32px', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                  <div className="info-item" style={{ paddingLeft: '4px' }}>
                     <div style={{ fontSize: '11px', color: '#666' }}>PDC No</div>
                     <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('pdcNo') || '-'}</div>
                   </div>
-                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
-                  <div style={{ paddingLeft: '4px' }}>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px', display: 'none' }} className="info-divider"></div>
+                  <div className="info-item" style={{ paddingLeft: '4px' }}>
                     <div style={{ fontSize: '11px', color: '#666' }}>Dye Party</div>
                     <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('dyeingPartyName') || '-'}</div>
                   </div>
-                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
-                  <div style={{ paddingLeft: '4px' }}>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px', display: 'none' }} className="info-divider"></div>
+                  <div className="info-item" style={{ paddingLeft: '4px' }}>
                     <div style={{ fontSize: '11px', color: '#666' }}>Dye Dc No</div>
                     <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('dyeingDcNo') || '-'}</div>
                   </div>
-                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
-                  <div style={{ paddingLeft: '4px' }}>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px', display: 'none' }} className="info-divider"></div>
+                  <div className="info-item" style={{ paddingLeft: '4px' }}>
                     <div style={{ fontSize: '11px', color: '#666' }}>Dye Dc Date</div>
                     <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('dyeingDcDate') ? form.getFieldValue('dyeingDcDate').format('DD-MM-YYYY') : '-'}</div>
                   </div>
-                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
-                  <div style={{ paddingLeft: '4px' }}>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px', display: 'none' }} className="info-divider"></div>
+                  <div className="info-item" style={{ paddingLeft: '4px' }}>
                     <div style={{ fontSize: '11px', color: '#666' }}>Order No</div>
                     <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('orderNo') || '-'}</div>
                   </div>
-                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
-                  <div style={{ paddingLeft: '4px' }}>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px', display: 'none' }} className="info-divider"></div>
+                  <div className="info-item" style={{ paddingLeft: '4px' }}>
                     <div style={{ fontSize: '11px', color: '#666' }}>PO No</div>
                     <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('poNo') || '-'}</div>
                   </div>
-                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
-                  <div style={{ paddingLeft: '4px' }}>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px', display: 'none' }} className="info-divider"></div>
+                  <div className="info-item" style={{ paddingLeft: '4px' }}>
                     <div style={{ fontSize: '11px', color: '#666' }}>Fabric Type</div>
                     <div style={{ fontSize: '12px', fontWeight: 500 }}>{form.getFieldValue('fabricType') || '-'}</div>
                   </div>
-                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px' }}></div>
-                  <div style={{ paddingLeft: '4px' }}>
+                  <div style={{ width: '1px', backgroundColor: '#d9d9d9', margin: '0 4px', display: 'none' }} className="info-divider"></div>
+                  <div className="info-item" style={{ paddingLeft: '4px' }}>
                     <div style={{ fontSize: '11px', color: '#666' }}>DC Type</div>
                     <div style={{ fontSize: '12px', fontWeight: 500 }}>{dcType || '-'}</div>
                   </div>
