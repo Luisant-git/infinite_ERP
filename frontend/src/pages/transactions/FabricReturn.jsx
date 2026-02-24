@@ -32,6 +32,11 @@ const FabricReturn = () => {
   const [selectedProcesses, setSelectedProcesses] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [fabricType, setFabricType] = useState('');
+  const [inwardQty, setInwardQty] = useState(0);
+  const [pendingInward, setPendingInward] = useState(0);
+  const [dcRemaining, setDcRemaining] = useState(0);
+  const [returnRemaining, setReturnRemaining] = useState(0);
+  const [inwardDetails, setInwardDetails] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -107,6 +112,7 @@ const FabricReturn = () => {
       setDetails([]);
       setSelectedProcesses([]);
       setEditingId(null);
+      setInwards([]);
       setIsFormVisible(true);
     } catch (error) {
       message.error('Failed to generate DC number');
@@ -216,11 +222,35 @@ const FabricReturn = () => {
     }
   };
 
-  const handleInwardSelect = (inwardNo) => {
+  const handleInwardSelect = async (inwardNo) => {
     const selectedInward = inwards.find(i => i.grnNo === inwardNo);
     if (selectedInward) {
       const dyeParty = allParties.find(p => p.id === selectedInward.dyeingPartyId);
       setFabricType(selectedInward.fabricType || '');
+      
+      const totalInwardQty = Number(selectedInward.totalQty) || 0;
+      setInwardQty(totalInwardQty);
+      
+      // Fetch fresh DC and Return data
+      const [dcResponse, returnResponse] = await Promise.all([
+        import('../../api/fabricDc').then(m => m.getFabricDcs('', 1, 1000)),
+        getFabricReturns('', 1, 1000)
+      ]);
+      
+      const allDcs = dcResponse.data || [];
+      const allReturns = returnResponse.data || [];
+      
+      // Calculate used weight from existing DCs and Returns (excluding current edit)
+      const existingDcs = allDcs.filter(dc => dc.inwardNo === inwardNo);
+      const existingReturns = allReturns.filter(ret => ret.inwardNo === inwardNo && ret.id !== editingId);
+      
+      const usedInDc = existingDcs.reduce((sum, dc) => sum + (Number(dc.totalQty) || 0), 0);
+      const usedInReturn = existingReturns.reduce((sum, ret) => sum + (Number(ret.totalQty) || 0), 0);
+      
+      setPendingInward(totalInwardQty - usedInDc - usedInReturn);
+      setDcRemaining(totalInwardQty - usedInDc - usedInReturn);
+      setReturnRemaining(totalInwardQty - usedInDc - usedInReturn);
+      
       form.setFieldsValue({
         grnDate: selectedInward.grnDate ? dayjs(selectedInward.grnDate) : null,
         pdcNo: selectedInward.pdcNo,
@@ -234,22 +264,52 @@ const FabricReturn = () => {
         fabricType: selectedInward.fabricType
       });
       
+      // Auto-load details from inward with remaining weights
       if (selectedInward.details && selectedInward.details.length > 0) {
-        const loadedDetails = selectedInward.details.map((d, idx) => ({
-          key: Date.now() + idx,
-          fabricId: d.fabricId,
-          colorId: d.colorId,
-          diaId: d.diaId,
-          gsm: d.gsm,
-          designNo: d.designNo || '',
-          designName: d.designName,
-          noOfColor: d.noOfColor,
-          weight: 0,
-          rolls: d.rolls || 0,
-          uomId: d.uomId,
-          rate: 0,
-          amount: 0,
-          remarks: d.remarks || ''
+        setInwardDetails(selectedInward.details);
+        
+        const loadedDetails = await Promise.all(selectedInward.details.map(async (d, idx) => {
+          let usedWeightFromDcs = 0;
+          existingDcs.forEach(dc => {
+            if (dc.details && dc.details.length > 0) {
+              dc.details.forEach(detail => {
+                if (detail.inwFabricId === d.fabricId && detail.inwColorId === d.colorId && detail.inwDiaId === d.diaId) {
+                  usedWeightFromDcs += Number(detail.processWeight) || 0;
+                }
+              });
+            }
+          });
+          
+          let usedWeightFromReturns = 0;
+          existingReturns.forEach(ret => {
+            if (ret.details && ret.details.length > 0) {
+              ret.details.forEach(detail => {
+                if (detail.fabricId === d.fabricId && detail.colorId === d.colorId && detail.diaId === d.diaId) {
+                  usedWeightFromReturns += Number(detail.weight) || 0;
+                }
+              });
+            }
+          });
+          
+          const totalUsed = usedWeightFromDcs + usedWeightFromReturns;
+          const remainingWeight = (d.weight || 0) - totalUsed;
+          
+          return {
+            key: Date.now() + idx,
+            fabricId: d.fabricId,
+            colorId: d.colorId,
+            diaId: d.diaId,
+            gsm: d.gsm,
+            designNo: d.designNo || '',
+            designName: d.designName,
+            noOfColor: d.noOfColor,
+            weight: remainingWeight > 0 ? remainingWeight : 0,
+            rolls: d.rolls || 0,
+            uomId: d.uomId,
+            rate: 0,
+            amount: 0,
+            remarks: d.remarks || ''
+          };
         }));
         setDetails(loadedDetails);
       }
@@ -264,23 +324,97 @@ const FabricReturn = () => {
   };
 
   const handleAddDetail = () => {
-    const lastRow = details.length > 0 ? details[details.length - 1] : null;
     setDetails([...details, { 
       key: Date.now(),
-      fabricId: lastRow?.fabricId || null,
-      colorId: lastRow?.colorId || null,
-      diaId: lastRow?.diaId || null,
-      gsm: lastRow?.gsm || '',
-      designNo: lastRow?.designNo || '',
-      designName: lastRow?.designName || '',
-      noOfColor: lastRow?.noOfColor || 0,
+      fabricId: null,
+      colorId: null,
+      diaId: null,
+      gsm: '',
+      designNo: '',
+      designName: '',
+      noOfColor: 0,
       weight: 0,
-      rolls: lastRow?.rolls || 0,
-      uomId: lastRow?.uomId || null,
-      rate: lastRow?.rate || 0,
+      rolls: 0,
+      uomId: null,
+      rate: 0,
       amount: 0,
       remarks: ''
     }]);
+  };
+
+  const handleInwardDetailSelect = async (key, inwardDetailId) => {
+    const selectedDetail = inwardDetails.find(d => d.id === inwardDetailId);
+    if (selectedDetail) {
+      // Fetch fresh DC and Return data
+      const [dcResponse, returnResponse] = await Promise.all([
+        import('../../api/fabricDc').then(m => m.getFabricDcs('', 1, 1000)),
+        getFabricReturns('', 1, 1000)
+      ]);
+      
+      const allDcs = dcResponse.data || [];
+      const allReturns = returnResponse.data || [];
+      
+      const currentInwardNo = form.getFieldValue('grnNo');
+      
+      const existingDcs = allDcs.filter(dc => dc.inwardNo === currentInwardNo);
+      const existingReturns = allReturns.filter(ret => ret.inwardNo === currentInwardNo && ret.id !== editingId);
+      
+      let usedWeightFromDcs = 0;
+      existingDcs.forEach(dc => {
+        if (dc.details && dc.details.length > 0) {
+          dc.details.forEach(detail => {
+            if (detail.inwFabricId === selectedDetail.fabricId && 
+                detail.inwColorId === selectedDetail.colorId && 
+                detail.inwDiaId === selectedDetail.diaId) {
+              usedWeightFromDcs += Number(detail.processWeight) || 0;
+            }
+          });
+        }
+      });
+      
+      let usedWeightFromReturns = 0;
+      existingReturns.forEach(ret => {
+        if (ret.details && ret.details.length > 0) {
+          ret.details.forEach(detail => {
+            if (detail.fabricId === selectedDetail.fabricId && 
+                detail.colorId === selectedDetail.colorId && 
+                detail.diaId === selectedDetail.diaId) {
+              usedWeightFromReturns += Number(detail.weight) || 0;
+            }
+          });
+        }
+      });
+      
+      const usedWeightInForm = details
+        .filter(d => d.key !== key && 
+                d.fabricId === selectedDetail.fabricId && 
+                d.colorId === selectedDetail.colorId && 
+                d.diaId === selectedDetail.diaId)
+        .reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
+      
+      const totalUsed = usedWeightFromDcs + usedWeightFromReturns + usedWeightInForm;
+      const remainingWeight = (selectedDetail.weight || 0) - totalUsed;
+      
+      setDetails(details.map(d => {
+        if (d.key === key) {
+          return {
+            ...d,
+            fabricId: selectedDetail.fabricId,
+            colorId: selectedDetail.colorId,
+            diaId: selectedDetail.diaId,
+            gsm: selectedDetail.gsm,
+            designNo: selectedDetail.designNo || '',
+            designName: selectedDetail.designName,
+            noOfColor: selectedDetail.noOfColor,
+            rolls: selectedDetail.rolls || 0,
+            uomId: selectedDetail.uomId,
+            weight: remainingWeight > 0 ? remainingWeight : 0,
+            amount: 0
+          };
+        }
+        return d;
+      }));
+    }
   };
 
   const handleDeleteDetail = (key) => {
@@ -310,6 +444,33 @@ const FabricReturn = () => {
 
   const detailColumns = [
     { title: 'Sl.No', width: 50, render: (_, record, index) => index + 1 },
+    {
+      title: 'Inward (Dia/Fabric/Color)',
+      width: 200,
+      render: (_, record) => (
+        <Select 
+          value={record.fabricId && record.colorId && record.diaId ? `${record.diaId}-${record.fabricId}-${record.colorId}` : undefined}
+          onChange={(val) => {
+            const detail = inwardDetails.find(d => `${d.diaId}-${d.fabricId}-${d.colorId}` === val);
+            if (detail) handleInwardDetailSelect(record.key, detail.id);
+          }}
+          style={{ width: '100%' }}
+          showSearch
+          filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+        >
+          {inwardDetails.map(d => {
+            const dia = dias.find(dia => dia.id === d.diaId)?.masterName || '';
+            const fabric = fabrics.find(f => f.id === d.fabricId)?.masterName || '';
+            const color = colors.find(c => c.id === d.colorId)?.masterName || '';
+            return (
+              <Option key={d.id} value={`${d.diaId}-${d.fabricId}-${d.colorId}`}>
+                {`${dia}/${fabric}/${color}`}
+              </Option>
+            );
+          })}
+        </Select>
+      )
+    },
     {
       title: 'Fabric',
       dataIndex: 'fabricId',
@@ -471,6 +632,35 @@ const FabricReturn = () => {
   const totalQty = details.reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
   const totalRolls = details.reduce((sum, d) => sum + (d.rolls || 0), 0);
 
+  useEffect(() => {
+    const updateRemaining = async () => {
+      if (inwardQty > 0 && form.getFieldValue('grnNo')) {
+        const [dcResponse, returnResponse] = await Promise.all([
+          import('../../api/fabricDc').then(m => m.getFabricDcs('', 1, 1000)),
+          getFabricReturns('', 1, 1000)
+        ]);
+        
+        const allDcs = dcResponse.data || [];
+        const allReturns = returnResponse.data || [];
+        const currentInwardNo = form.getFieldValue('grnNo');
+        
+        const existingDcs = allDcs.filter(dc => dc.inwardNo === currentInwardNo);
+        const existingReturns = allReturns.filter(ret => ret.inwardNo === currentInwardNo && ret.id !== editingId);
+        
+        const usedInDc = existingDcs.reduce((sum, dc) => sum + (Number(dc.totalQty) || 0), 0);
+        const usedInReturn = existingReturns.reduce((sum, ret) => sum + (Number(ret.totalQty) || 0), 0);
+        
+        setPendingInward(inwardQty - usedInDc - usedInReturn);
+        
+        const remaining = inwardQty - usedInDc - usedInReturn - totalQty;
+        setDcRemaining(remaining);
+        setReturnRemaining(remaining);
+      }
+    };
+    
+    updateRemaining();
+  }, [totalQty, inwardQty, editingId, form]);
+
   const filteredFabricReturns = fabricReturns.filter(item => {
     if (!searchText) return true;
     const search = searchText.toLowerCase();
@@ -548,25 +738,31 @@ const FabricReturn = () => {
                 <DatePicker style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
               </Form.Item>
             </Col>
-            <Col span={6}>
+            <Col span={4}>
               <Form.Item label="Party" name="partyId" style={{ marginBottom: 6 }}>
                 <Select showSearch onChange={loadInwards} filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
                   {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={4}>
+            <Col span={7}>
               <Form.Item label="Inward No" name="grnNo" style={{ marginBottom: 6 }}>
-                <Select style={{ height: '32px' }} size="middle" onChange={handleInwardSelect}>
-                  {inwards.map(i => <Option key={i.id} value={i.grnNo}>{i.grnNo}</Option>)}
+                <Select style={{ height: '32px' }} size="middle" onChange={handleInwardSelect} showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}>
+                  {inwards.map(i => (
+                    <Option key={i.id} value={i.grnNo}>
+                      {`${i.grnNo} | ${dayjs(i.grnDate).format('DD-MM-YY')} | ${i.pdcNo || 'N/A'} | ${Number(i.totalQty || 0).toFixed(2)}`}
+                    </Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={4}>
+            <Col span={3}>
               <Form.Item label="GRN Date" name="grnDate" style={{ marginBottom: 6 }}>
                 <DatePicker disabled style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
               </Form.Item>
             </Col>
+          </Row>
+          <Row gutter={8}>
             <Col span={6}>
               <Form.Item label="Delivery To" name="deliveryTo" style={{ marginBottom: 6 }}>
                 <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
@@ -628,6 +824,32 @@ const FabricReturn = () => {
               <Form.Item name="poNo" hidden><Input /></Form.Item>
               <Form.Item name="fabricType" hidden><Input /></Form.Item>
               <Form.Item name="dcType" hidden><Input /></Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={8}>
+            <Col span={3}>
+              <div style={{ marginBottom: 6 }}>
+                <label style={{ fontSize: '12px' }}>Inward Qty</label>
+                <InputNumber value={inwardQty} disabled style={{ width: '100%', height: '32px', backgroundColor: '#ffc0cb' }} precision={3} autoComplete="off" />
+              </div>
+            </Col>
+            <Col span={3}>
+              <div style={{ marginBottom: 6 }}>
+                <label style={{ fontSize: '12px' }}>Pending Inward</label>
+                <InputNumber value={pendingInward} disabled style={{ width: '100%', height: '32px', backgroundColor: '#add8e6' }} precision={3} autoComplete="off" />
+              </div>
+            </Col>
+            <Col span={3}>
+              <div style={{ marginBottom: 6 }}>
+                <label style={{ fontSize: '12px' }}>DC Remaining</label>
+                <InputNumber value={dcRemaining} disabled style={{ width: '100%', height: '32px', backgroundColor: '#90ee90' }} precision={3} autoComplete="off" />
+              </div>
+            </Col>
+            <Col span={3}>
+              <div style={{ marginBottom: 6 }}>
+                <label style={{ fontSize: '12px' }}>Return Remaining</label>
+                <InputNumber value={returnRemaining} disabled style={{ width: '100%', height: '32px', backgroundColor: '#ffeb9c' }} precision={3} autoComplete="off" />
+              </div>
             </Col>
           </Row>
 

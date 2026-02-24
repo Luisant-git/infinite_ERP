@@ -18,6 +18,7 @@ const FabricDc = () => {
   const [loading, setLoading] = useState(false);
   const [fabricDcs, setFabricDcs] = useState([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isViewMode, setIsViewMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const { adminUser: isAdmin, canAdd, canEdit, canDelete } = useMenuPermissions();
   const { selectedCompany, selectedYear } = useSelector(state => state.auth);
@@ -37,7 +38,9 @@ const FabricDc = () => {
   const [fabricType, setFabricType] = useState('');
   const [inwardQty, setInwardQty] = useState(0);
   const [pendingInward, setPendingInward] = useState(0);
-  const [isFinalDelivery, setIsFinalDelivery] = useState(false);
+  const [dcRemaining, setDcRemaining] = useState(0);
+  const [returnRemaining, setReturnRemaining] = useState(0);
+  const [inwardDetails, setInwardDetails] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -116,15 +119,17 @@ const FabricDc = () => {
       setSelectedProcesses([]);
       setDcType('Fresh');
       setEditingId(null);
-      setIsFinalDelivery(false);
+      setIsViewMode(false);
+      setInwards([]);
       setIsFormVisible(true);
     } catch (error) {
       message.error('Failed to generate DC number');
     }
   };
 
-  const handleEdit = (record) => {
+  const handleView = (record) => {
     setEditingId(record.id);
+    setIsViewMode(true);
     
     const dyeParty = allParties.find(p => p.id === record.dyeParty);
     const isFinal = Boolean(record.isFinal);
@@ -141,7 +146,29 @@ const FabricDc = () => {
     setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
     setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
     setDcType(record.dcType || 'Fresh');
-    setIsFinalDelivery(isFinal);
+    setFabricType(record.fabricType || '');
+    setIsFormVisible(true);
+  };
+
+  const handleEdit = (record) => {
+    setEditingId(record.id);
+    setIsViewMode(false);
+    
+    const dyeParty = allParties.find(p => p.id === record.dyeParty);
+    const isFinal = Boolean(record.isFinal);
+    
+    form.setFieldsValue({
+      ...record,
+      grnNo: record.inwardNo,
+      dcDate: dayjs(record.dcDate),
+      grnDate: record.grnDate ? dayjs(record.grnDate) : null,
+      dyeingDcDate: record.dyeingDcDate ? dayjs(record.dyeingDcDate) : null,
+      dyeingPartyName: dyeParty?.partyName || '',
+      isFinal
+    });
+    setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
+    setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
+    setDcType(record.dcType || 'Fresh');
     setIsFormVisible(true);
   };
 
@@ -240,7 +267,7 @@ const FabricDc = () => {
     }
   };
 
-  const handleInwardSelect = (inwardNo) => {
+  const handleInwardSelect = async (inwardNo) => {
     const selectedInward = inwards.find(i => i.grnNo === inwardNo);
     if (selectedInward) {
       const dyeParty = allParties.find(p => p.id === selectedInward.dyeingPartyId);
@@ -248,6 +275,21 @@ const FabricDc = () => {
       
       const totalInwardQty = Number(selectedInward.totalQty) || 0;
       setInwardQty(totalInwardQty);
+      
+      // Fetch fresh DC data to calculate used weight
+      const dcResponse = await getFabricDcs('', 1, 1000);
+      const allDcs = dcResponse.data || [];
+      
+      // Calculate used weight from existing DCs (excluding current edit)
+      const existingDcs = allDcs.filter(dc => 
+        dc.inwardNo === inwardNo && dc.id !== editingId
+      );
+      const usedInDc = existingDcs.reduce((sum, dc) => 
+        sum + (Number(dc.totalQty) || 0), 0
+      );
+      
+      setDcRemaining(totalInwardQty - usedInDc);
+      setReturnRemaining(totalInwardQty - usedInDc);
       
       form.setFieldsValue({
         grnDate: selectedInward.grnDate ? dayjs(selectedInward.grnDate) : null,
@@ -264,29 +306,50 @@ const FabricDc = () => {
       
       setDcType(selectedInward.dcType || 'Fresh');
       
-      // Auto-load details from inward
+      // Auto-load details from inward with remaining weights
       if (selectedInward.details && selectedInward.details.length > 0) {
-        const loadedDetails = selectedInward.details.map((d, idx) => ({
-          key: Date.now() + idx,
-          fabricId: d.fabricId,
-          colorId: d.colorId,
-          diaId: d.diaId,
-          inwFabricId: d.fabricId,
-          inwColorId: d.colorId,
-          inwDiaId: d.diaId,
-          gsm: d.gsm,
-          designNo: d.designNo || '',
-          designName: d.designName,
-          noOfColor: d.noOfColor,
-          processWeight: d.weight || 0,
-          dcWeight: 0,
-          weightLoss: 0,
-          lossPercentage: 0,
-          rolls: d.rolls || 0,
-          uomId: d.uomId,
-          rate: 0,
-          amount: 0,
-          remarks: d.remarks || ''
+        setInwardDetails(selectedInward.details);
+        
+        // Calculate remaining weight for each detail
+        const loadedDetails = await Promise.all(selectedInward.details.map(async (d, idx) => {
+          // Calculate used weight from existing DCs for this specific detail
+          let usedWeightFromDcs = 0;
+          existingDcs.forEach(dc => {
+            if (dc.details && dc.details.length > 0) {
+              dc.details.forEach(detail => {
+                if (detail.inwFabricId === d.fabricId && 
+                    detail.inwColorId === d.colorId && 
+                    detail.inwDiaId === d.diaId) {
+                  usedWeightFromDcs += Number(detail.processWeight) || 0;
+                }
+              });
+            }
+          });
+          
+          const remainingWeight = (d.weight || 0) - usedWeightFromDcs;
+          
+          return {
+            key: Date.now() + idx,
+            fabricId: d.fabricId,
+            colorId: d.colorId,
+            diaId: d.diaId,
+            inwFabricId: d.fabricId,
+            inwColorId: d.colorId,
+            inwDiaId: d.diaId,
+            gsm: d.gsm,
+            designNo: d.designNo || '',
+            designName: d.designName,
+            noOfColor: d.noOfColor,
+            processWeight: remainingWeight > 0 ? remainingWeight : 0,
+            dcWeight: remainingWeight > 0 ? remainingWeight : 0,
+            weightLoss: 0,
+            lossPercentage: 0,
+            rolls: d.rolls || 0,
+            uomId: d.uomId,
+            rate: 0,
+            amount: 0,
+            remarks: d.remarks || ''
+          };
         }));
         setDetails(loadedDetails);
       }
@@ -302,26 +365,25 @@ const FabricDc = () => {
   };
 
   const handleAddDetail = () => {
-    const lastRow = details.length > 0 ? details[details.length - 1] : null;
     setDetails([...details, { 
       key: Date.now(),
-      fabricId: lastRow?.fabricId || null,
-      colorId: lastRow?.colorId || null,
-      diaId: lastRow?.diaId || null,
-      inwFabricId: lastRow?.inwFabricId || null,
-      inwColorId: lastRow?.inwColorId || null,
-      inwDiaId: lastRow?.inwDiaId || null,
-      gsm: lastRow?.gsm || '',
-      designNo: lastRow?.designNo || '',
-      designName: lastRow?.designName || '',
-      noOfColor: lastRow?.noOfColor || 0,
+      fabricId: null,
+      colorId: null,
+      diaId: null,
+      inwFabricId: null,
+      inwColorId: null,
+      inwDiaId: null,
+      gsm: '',
+      designNo: '',
+      designName: '',
+      noOfColor: 0,
       processWeight: 0,
       dcWeight: 0,
       weightLoss: 0,
       lossPercentage: 0,
-      rolls: lastRow?.rolls || 0,
-      uomId: lastRow?.uomId || null,
-      rate: lastRow?.rate || 0,
+      rolls: 0,
+      uomId: null,
+      rate: 0,
       amount: 0,
       remarks: ''
     }]);
@@ -329,6 +391,70 @@ const FabricDc = () => {
 
   const handleDeleteDetail = (key) => {
     setDetails(details.filter(d => d.key !== key));
+  };
+
+  const handleInwardDetailSelect = async (key, inwardDetailId) => {
+    const selectedDetail = inwardDetails.find(d => d.id === inwardDetailId);
+    if (selectedDetail) {
+      // Fetch fresh DC data
+      const dcResponse = await getFabricDcs('', 1, 1000);
+      const allDcs = dcResponse.data || [];
+      
+      // Get current inward number
+      const currentInwardNo = form.getFieldValue('grnNo');
+      
+      // Calculate used weight from existing DCs for this specific detail (excluding current edit)
+      const existingDcs = allDcs.filter(dc => 
+        dc.inwardNo === currentInwardNo && dc.id !== editingId
+      );
+      
+      let usedWeightFromDcs = 0;
+      existingDcs.forEach(dc => {
+        if (dc.details && dc.details.length > 0) {
+          dc.details.forEach(detail => {
+            if (detail.inwFabricId === selectedDetail.fabricId && 
+                detail.inwColorId === selectedDetail.colorId && 
+                detail.inwDiaId === selectedDetail.diaId) {
+              usedWeightFromDcs += Number(detail.processWeight) || 0;
+            }
+          });
+        }
+      });
+      
+      // Calculate used weight in current form (other rows)
+      const usedWeightInForm = details
+        .filter(d => d.key !== key && 
+                d.inwFabricId === selectedDetail.fabricId && 
+                d.inwColorId === selectedDetail.colorId && 
+                d.inwDiaId === selectedDetail.diaId)
+        .reduce((sum, d) => sum + (Number(d.processWeight) || 0), 0);
+      
+      const totalUsed = usedWeightFromDcs + usedWeightInForm;
+      const remainingWeight = (selectedDetail.weight || 0) - totalUsed;
+      
+      setDetails(details.map(d => {
+        if (d.key === key) {
+          return {
+            ...d,
+            inwFabricId: selectedDetail.fabricId,
+            inwColorId: selectedDetail.colorId,
+            inwDiaId: selectedDetail.diaId,
+            fabricId: selectedDetail.fabricId,
+            colorId: selectedDetail.colorId,
+            diaId: selectedDetail.diaId,
+            gsm: selectedDetail.gsm,
+            rolls: selectedDetail.rolls || 0,
+            uomId: selectedDetail.uomId,
+            processWeight: remainingWeight > 0 ? remainingWeight : 0,
+            dcWeight: remainingWeight > 0 ? remainingWeight : 0,
+            weightLoss: 0,
+            lossPercentage: 0,
+            amount: 0
+          };
+        }
+        return d;
+      }));
+    }
   };
 
   const handleDetailChange = (key, field, value) => {
@@ -340,13 +466,19 @@ const FabricDc = () => {
         if (field === 'processWeight' || field === 'dcWeight') {
           const processWeight = field === 'processWeight' ? value : d.processWeight;
           const dcWeight = field === 'dcWeight' ? value : d.dcWeight;
-          updated.weightLoss = processWeight - dcWeight;
-          updated.lossPercentage = processWeight > 0 ? ((processWeight - dcWeight) / processWeight * 100) : 0;
+          
+          // Auto-copy process weight to dc weight when process weight changes
+          if (field === 'processWeight') {
+            updated.dcWeight = value;
+          }
+          
+          updated.weightLoss = processWeight - (field === 'processWeight' ? value : dcWeight);
+          updated.lossPercentage = processWeight > 0 ? ((processWeight - (field === 'processWeight' ? value : dcWeight)) / processWeight * 100) : 0;
         }
         
         // Calculate amount
-        if (field === 'dcWeight' || field === 'rate') {
-          const dcWeight = field === 'dcWeight' ? value : d.dcWeight;
+        if (field === 'dcWeight' || field === 'rate' || field === 'processWeight') {
+          const dcWeight = field === 'dcWeight' ? value : (field === 'processWeight' ? value : d.dcWeight);
           const rate = field === 'rate' ? value : d.rate;
           updated.amount = dcWeight * rate;
         }
@@ -366,19 +498,37 @@ const FabricDc = () => {
     {
       title: 'Inward (Dia/Fabric/Color)',
       width: 200,
-      render: (_, record) => {
-        const dia = dias.find(d => d.id === record.inwDiaId)?.masterName || '';
-        const fabric = fabrics.find(f => f.id === record.inwFabricId)?.masterName || '';
-        const color = colors.find(c => c.id === record.inwColorId)?.masterName || '';
-        return <Input value={`${dia}/${fabric}/${color}`} disabled style={{ width: '100%' }} />;
-      }
+      render: (_, record) => (
+        <Select 
+          disabled={isViewMode}
+          value={record.inwFabricId && record.inwColorId && record.inwDiaId ? `${record.inwDiaId}-${record.inwFabricId}-${record.inwColorId}` : undefined}
+          onChange={(val) => {
+            const detail = inwardDetails.find(d => `${d.diaId}-${d.fabricId}-${d.colorId}` === val);
+            if (detail) handleInwardDetailSelect(record.key, detail.id);
+          }}
+          style={{ width: '100%' }}
+          showSearch
+          filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+        >
+          {inwardDetails.map(d => {
+            const dia = dias.find(dia => dia.id === d.diaId)?.masterName || '';
+            const fabric = fabrics.find(f => f.id === d.fabricId)?.masterName || '';
+            const color = colors.find(c => c.id === d.colorId)?.masterName || '';
+            return (
+              <Option key={d.id} value={`${d.diaId}-${d.fabricId}-${d.colorId}`}>
+                {`${dia}/${fabric}/${color}`}
+              </Option>
+            );
+          })}
+        </Select>
+      )
     },
     {
       title: 'Dc Dia',
       dataIndex: 'diaId',
       width: 80,
       render: (val, record) => (
-        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'diaId', v)} style={{ width: '100%' }}>
+        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'diaId', v)} style={{ width: '100%' }}>
           {dias.map(d => <Option key={d.id} value={d.id}>{d.masterName}</Option>)}
         </Select>
       )
@@ -388,7 +538,7 @@ const FabricDc = () => {
       dataIndex: 'fabricId',
       width: 120,
       render: (val, record) => (
-        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'fabricId', v)} style={{ width: '100%' }} showSearch>
+        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'fabricId', v)} style={{ width: '100%' }} showSearch>
           {fabrics.map(f => <Option key={f.id} value={f.id}>{f.masterName}</Option>)}
         </Select>
       )
@@ -398,7 +548,7 @@ const FabricDc = () => {
       dataIndex: 'colorId',
       width: 120,
       render: (val, record) => (
-        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'colorId', v)} style={{ width: '100%' }} showSearch>
+        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'colorId', v)} style={{ width: '100%' }} showSearch>
           {colors.map(c => <Option key={c.id} value={c.id}>{c.masterName}</Option>)}
         </Select>
       )
@@ -408,7 +558,7 @@ const FabricDc = () => {
       dataIndex: 'gsm',
       width: 80,
       render: (val, record) => (
-        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} autoComplete="off" />
+        <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} autoComplete="off" />
       )
     },
     ...(fabricType === 'Print Lot' ? [
@@ -417,7 +567,7 @@ const FabricDc = () => {
         dataIndex: 'designNo',
         width: 100,
         render: (val, record) => (
-          <Input value={val} onChange={(e) => handleDetailChange(record.key, 'designNo', e.target.value)} autoComplete="off" />
+          <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'designNo', e.target.value)} autoComplete="off" />
         )
       },
       {
@@ -425,7 +575,7 @@ const FabricDc = () => {
         dataIndex: 'designName',
         width: 120,
         render: (val, record) => (
-          <Input value={val} onChange={(e) => handleDetailChange(record.key, 'designName', e.target.value)} autoComplete="off" />
+          <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'designName', e.target.value)} autoComplete="off" />
         )
       },
       {
@@ -433,7 +583,7 @@ const FabricDc = () => {
         dataIndex: 'noOfColor',
         width: 80,
         render: (val, record) => (
-          <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'noOfColor', v)} style={{ width: '100%' }} autoComplete="off" />
+          <InputNumber disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'noOfColor', v)} style={{ width: '100%' }} autoComplete="off" />
         )
       }
     ] : []),
@@ -442,7 +592,7 @@ const FabricDc = () => {
       dataIndex: 'processWeight',
       width: 100,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'processWeight', v)} disabled={isFinalDelivery} style={{ width: '100%' }} precision={3} autoComplete="off" />
+        <InputNumber disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'processWeight', v)} style={{ width: '100%' }} precision={3} autoComplete="off" />
       )
     },
     {
@@ -450,7 +600,7 @@ const FabricDc = () => {
       dataIndex: 'dcWeight',
       width: 100,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'dcWeight', v)} disabled={!isFinalDelivery} style={{ width: '100%' }} precision={3} autoComplete="off" />
+        <InputNumber disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'dcWeight', v)} style={{ width: '100%' }} precision={3} autoComplete="off" />
       )
     },
     {
@@ -470,7 +620,7 @@ const FabricDc = () => {
       dataIndex: 'rolls',
       width: 80,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'rolls', v)} style={{ width: '100%' }} autoComplete="off" />
+        <InputNumber disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'rolls', v)} style={{ width: '100%' }} autoComplete="off" />
       )
     },
     {
@@ -478,7 +628,7 @@ const FabricDc = () => {
       dataIndex: 'uomId',
       width: 80,
       render: (val, record) => (
-        <Select value={val} onChange={(v) => handleDetailChange(record.key, 'uomId', v)} style={{ width: '100%' }}>
+        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'uomId', v)} style={{ width: '100%' }}>
           {uoms.map(u => <Option key={u.id} value={u.id}>{u.masterName}</Option>)}
         </Select>
       )
@@ -488,7 +638,7 @@ const FabricDc = () => {
       dataIndex: 'rate',
       width: 80,
       render: (val, record) => (
-        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'rate', v)} style={{ width: '100%' }} precision={2} autoComplete="off" />
+        <InputNumber disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'rate', v)} style={{ width: '100%' }} precision={2} autoComplete="off" />
       )
     },
     {
@@ -502,16 +652,16 @@ const FabricDc = () => {
       dataIndex: 'remarks',
       width: 120,
       render: (val, record) => (
-        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'remarks', e.target.value)} autoComplete="off" />
+        <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'remarks', e.target.value)} autoComplete="off" />
       )
     },
-    {
+    ...(!isViewMode ? [{
       title: 'Action',
       width: 60,
       render: (_, record) => (
         <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDeleteDetail(record.key)} />
       )
-    }
+    }] : [])
   ];
 
   const processColumns = [
@@ -537,10 +687,11 @@ const FabricDc = () => {
     { title: 'Total Rolls', dataIndex: 'totalRolls', width: 100 },
     {
       title: 'Actions',
-      width: 120,
+      width: 150,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} style={{ color: '#1890ff' }} />
           {canEdit('fabric_dc') && (
             <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
           )}
@@ -557,9 +708,22 @@ const FabricDc = () => {
 
   useEffect(() => {
     if (inwardQty > 0) {
-      setPendingInward(inwardQty - totalQty);
+      // Pending Inward = Inward Qty - Already saved DCs (not including current form)
+      const existingDcs = fabricDcs.filter(dc => 
+        dc.inwardNo === form.getFieldValue('grnNo') && dc.id !== editingId
+      );
+      const usedInDc = existingDcs.reduce((sum, dc) => 
+        sum + (Number(dc.totalQty) || 0), 0
+      );
+      
+      setPendingInward(inwardQty - usedInDc);
+      
+      // DC and Return remaining = Pending - Current form's totalQty
+      const remaining = inwardQty - usedInDc - totalQty;
+      setDcRemaining(remaining);
+      setReturnRemaining(remaining);
     }
-  }, [totalQty, inwardQty]);
+  }, [totalQty, inwardQty, fabricDcs, editingId, form]);
 
   const filteredFabricDcs = fabricDcs.filter(item => {
     if (!searchText) return true;
@@ -630,27 +794,27 @@ const FabricDc = () => {
           <Row gutter={8}>
             <Col span={3}>
               <Form.Item label="Dc No" name="dcNo" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
-                <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" autoComplete="off" />
+                <Input disabled={!isAdmin || isViewMode} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={3}>
               <Form.Item label="Date" name="dcDate" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
-                <DatePicker style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
+                <DatePicker disabled={isViewMode} style={{ width: '100%', height: '32px' }} format="DD-MM-YYYY" size="middle" />
               </Form.Item>
             </Col>
             <Col span={4}>
               <Form.Item label="Party" name="partyId" style={{ marginBottom: 6 }}>
-                <Select showSearch onChange={loadInwards} filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
+                <Select disabled={isViewMode} showSearch onChange={loadInwards} filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
                   {parties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
             </Col>
             <Col span={7}>
               <Form.Item label="Inward No" name="grnNo" style={{ marginBottom: 6 }}>
-                <Select style={{ height: '32px' }} size="middle" onChange={handleInwardSelect} showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}>
+                <Select disabled={isViewMode} style={{ height: '32px' }} size="middle" onChange={handleInwardSelect} showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}>
                   {inwards.map(i => (
                     <Option key={i.id} value={i.grnNo}>
-                      {`${i.grnNo} | ${dayjs(i.grnDate).format('DD-MM-YY')} | ${i.pdcNo || 'N/A'} | ${i.totalQty || 0}`}
+                      {`${i.grnNo} | ${dayjs(i.grnDate).format('DD-MM-YY')} | ${i.pdcNo || 'N/A'} | ${Number(i.totalQty || 0).toFixed(2)}`}
                     </Option>
                   ))}
                 </Select>
@@ -665,7 +829,7 @@ const FabricDc = () => {
           <Row gutter={8}>
             <Col span={6}>
               <Form.Item label="Delivery To" name="deliveryTo" style={{ marginBottom: 6 }}>
-                <Select showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
+                <Select disabled={isViewMode} showSearch filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())} style={{ height: '32px' }} size="middle">
                   {allParties.map(p => <Option key={p.id} value={p.id}>{p.partyName}</Option>)}
                 </Select>
               </Form.Item>
@@ -725,29 +889,36 @@ const FabricDc = () => {
               <Form.Item name="fabricType" hidden><Input /></Form.Item>
               <Form.Item name="dcType" hidden><Input /></Form.Item>
             </Col>
-            <Col span={4}>
+            <Col span={3}>
               <div style={{ marginBottom: 6 }}>
                 <label style={{ fontSize: '12px' }}>Inward Qty</label>
                 <InputNumber value={inwardQty} disabled style={{ width: '100%', height: '32px', backgroundColor: '#ffc0cb' }} precision={3} autoComplete="off" />
               </div>
             </Col>
-            <Col span={4}>
+            <Col span={3}>
               <div style={{ marginBottom: 6 }}>
                 <label style={{ fontSize: '12px' }}>Pending Inward</label>
                 <InputNumber value={pendingInward} disabled style={{ width: '100%', height: '32px', backgroundColor: '#add8e6' }} precision={3} autoComplete="off" />
               </div>
             </Col>
-            <Col span={4}>
-              <Form.Item name="isFinal" valuePropName="checked" style={{ marginTop: 28 }}>
-                <Checkbox onChange={(e) => setIsFinalDelivery(e.target.checked)}>Final Delivery</Checkbox>
-              </Form.Item>
+            <Col span={3}>
+              <div style={{ marginBottom: 6 }}>
+                <label style={{ fontSize: '12px' }}>DC Remaining</label>
+                <InputNumber value={dcRemaining} disabled style={{ width: '100%', height: '32px', backgroundColor: '#90ee90' }} precision={3} autoComplete="off" />
+              </div>
+            </Col>
+            <Col span={3}>
+              <div style={{ marginBottom: 6 }}>
+                <label style={{ fontSize: '12px' }}>Return Remaining</label>
+                <InputNumber value={returnRemaining} disabled style={{ width: '100%', height: '32px', backgroundColor: '#ffeb9c' }} precision={3} autoComplete="off" />
+              </div>
             </Col>
           </Row>
 
           <div style={{ marginTop: 4 }}>
             <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
               <Title level={5} style={{ margin: 0, fontSize: '14px' }}>Details</Title>
-              <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAddDetail} style={{ backgroundColor: '#031d38', color: '#fff', borderColor: '#031d38' }}>Add Row</Button>
+              <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAddDetail} disabled={isViewMode} style={{ backgroundColor: '#031d38', color: '#fff', borderColor: '#031d38' }}>Add Row</Button>
             </div>
             <Table 
               columns={detailColumns} 
@@ -774,22 +945,22 @@ const FabricDc = () => {
           <Row gutter={8} style={{ marginTop: 4 }}>
             <Col span={6}>
               <Form.Item label="Remarks" name="remarks" style={{ marginBottom: 6 }}>
-                <TextArea rows={1} autoComplete="off" />
+                <TextArea disabled={isViewMode} rows={1} autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={4}>
               <Form.Item label="Rec Name" name="receivedName" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
+                <Input disabled={isViewMode} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={4}>
               <Form.Item label="HSN Code" name="hsnCode" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
+                <Input disabled={isViewMode} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={4}>
               <Form.Item label="Vehicle No" name="vehicleNo" style={{ marginBottom: 6 }}>
-                <Input style={{ height: '32px' }} size="middle" autoComplete="off" />
+                <Input disabled={isViewMode} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={3}>
@@ -808,8 +979,8 @@ const FabricDc = () => {
 
           <div style={{ marginTop: 4, textAlign: 'right' }}>
             <Space>
-              <Button icon={<CloseOutlined />} onClick={() => setIsFormVisible(false)}>Cancel</Button>
-              <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={handleSubmit}>Save</Button>
+              <Button icon={<CloseOutlined />} onClick={() => { setIsFormVisible(false); setIsViewMode(false); }}>Cancel</Button>
+              {!isViewMode && <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={handleSubmit}>Save</Button>}
             </Space>
           </div>
         </Form>
