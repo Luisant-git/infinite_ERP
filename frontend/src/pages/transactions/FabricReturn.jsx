@@ -35,8 +35,7 @@ const FabricReturn = () => {
   const [fabricType, setFabricType] = useState('');
   const [inwardQty, setInwardQty] = useState(0);
   const [pendingInward, setPendingInward] = useState(0);
-  const [dcRemaining, setDcRemaining] = useState(0);
-  const [returnRemaining, setReturnRemaining] = useState(0);
+  const [balance, setBalance] = useState(0);
   const [inwardDetails, setInwardDetails] = useState([]);
 
   useEffect(() => {
@@ -272,8 +271,7 @@ const FabricReturn = () => {
       const usedInReturn = existingReturns.reduce((sum, ret) => sum + (Number(ret.totalQty) || 0), 0);
       
       setPendingInward(totalInwardQty - usedInDc - usedInReturn);
-      setDcRemaining(totalInwardQty - usedInDc - usedInReturn);
-      setReturnRemaining(totalInwardQty - usedInDc - usedInReturn);
+      setBalance(totalInwardQty - usedInDc - usedInReturn);
       
       form.setFieldsValue({
         grnDate: selectedInward.grnDate ? dayjs(selectedInward.grnDate) : null,
@@ -317,6 +315,7 @@ const FabricReturn = () => {
           
           const totalUsed = usedWeightFromDcs + usedWeightFromReturns;
           const remainingWeight = (d.weight || 0) - totalUsed;
+          const returnWt = remainingWeight > 0 ? remainingWeight : 0;
           
           return {
             key: Date.now() + idx,
@@ -325,9 +324,9 @@ const FabricReturn = () => {
             diaId: d.diaId,
             gsm: d.gsm,
             designNo: d.designNo || '',
-            designName: d.designName,
-            noOfColor: d.noOfColor,
-            weight: remainingWeight > 0 ? remainingWeight : 0,
+            designName: d.designName || '',
+            noOfColor: d.noOfColor || 0,
+            weight: returnWt,
             rolls: d.rolls || 0,
             uomId: d.uomId,
             rate: 0,
@@ -418,6 +417,7 @@ const FabricReturn = () => {
       
       const totalUsed = usedWeightFromDcs + usedWeightFromReturns + usedWeightInForm;
       const remainingWeight = (selectedDetail.weight || 0) - totalUsed;
+      const returnWt = remainingWeight > 0 ? remainingWeight : 0;
       
       setDetails(details.map(d => {
         if (d.key === key) {
@@ -428,11 +428,11 @@ const FabricReturn = () => {
             diaId: selectedDetail.diaId,
             gsm: selectedDetail.gsm,
             designNo: selectedDetail.designNo || '',
-            designName: selectedDetail.designName,
-            noOfColor: selectedDetail.noOfColor,
+            designName: selectedDetail.designName || '',
+            noOfColor: selectedDetail.noOfColor || 0,
             rolls: selectedDetail.rolls || 0,
             uomId: selectedDetail.uomId,
-            weight: remainingWeight > 0 ? remainingWeight : 0,
+            weight: returnWt,
             amount: 0
           };
         }
@@ -487,9 +487,12 @@ const FabricReturn = () => {
             const dia = dias.find(dia => dia.id === d.diaId)?.masterName || '';
             const fabric = fabrics.find(f => f.id === d.fabricId)?.masterName || '';
             const color = colors.find(c => c.id === d.colorId)?.masterName || '';
+            const designInfo = d.designNo ? ` | ${d.designNo}` : '';
+            const designName = d.designName ? ` | ${d.designName}` : '';
+            const colorCount = d.noOfColor ? ` | ${d.noOfColor}` : '';
             return (
               <Option key={d.id} value={`${d.diaId}-${d.fabricId}-${d.colorId}`}>
-                {`${dia}/${fabric}/${color}`}
+                {`${dia}/${fabric}/${color}${designInfo}${designName}${colorCount}`}
               </Option>
             );
           })}
@@ -540,7 +543,7 @@ const FabricReturn = () => {
         dataIndex: 'designNo',
         width: 100,
         render: (val, record) => (
-          <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'designNo', e.target.value)} autoComplete="off" />
+          <Input disabled value={val} autoComplete="off" />
         )
       },
       {
@@ -548,7 +551,7 @@ const FabricReturn = () => {
         dataIndex: 'designName',
         width: 120,
         render: (val, record) => (
-          <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'designName', e.target.value)} autoComplete="off" />
+          <Input disabled value={val} autoComplete="off" />
         )
       },
       {
@@ -556,7 +559,7 @@ const FabricReturn = () => {
         dataIndex: 'noOfColor',
         width: 80,
         render: (val, record) => (
-          <InputNumber disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'noOfColor', v)} style={{ width: '100%' }} autoComplete="off" />
+          <InputNumber disabled value={val} style={{ width: '100%' }} autoComplete="off" />
         )
       }
     ] : []),
@@ -679,8 +682,7 @@ const FabricReturn = () => {
         setPendingInward(inwardQty - usedInDc - usedInReturn);
         
         const remaining = inwardQty - usedInDc - usedInReturn - totalQty;
-        setDcRemaining(remaining);
-        setReturnRemaining(remaining);
+        setBalance(remaining);
       }
     };
     
@@ -869,14 +871,8 @@ const FabricReturn = () => {
             </Col>
             <Col span={3}>
               <div style={{ marginBottom: 6 }}>
-                <label style={{ fontSize: '12px' }}>DC Remaining</label>
-                <InputNumber value={dcRemaining} disabled style={{ width: '100%', height: '32px', backgroundColor: '#90ee90' }} precision={3} autoComplete="off" />
-              </div>
-            </Col>
-            <Col span={3}>
-              <div style={{ marginBottom: 6 }}>
-                <label style={{ fontSize: '12px' }}>Return Remaining</label>
-                <InputNumber value={returnRemaining} disabled style={{ width: '100%', height: '32px', backgroundColor: '#ffeb9c' }} precision={3} autoComplete="off" />
+                <label style={{ fontSize: '12px' }}>Balance</label>
+                <InputNumber value={balance} disabled style={{ width: '100%', height: '32px', backgroundColor: '#90ee90' }} precision={3} autoComplete="off" />
               </div>
             </Col>
           </Row>

@@ -38,8 +38,7 @@ const FabricDc = () => {
   const [fabricType, setFabricType] = useState('');
   const [inwardQty, setInwardQty] = useState(0);
   const [pendingInward, setPendingInward] = useState(0);
-  const [dcRemaining, setDcRemaining] = useState(0);
-  const [returnRemaining, setReturnRemaining] = useState(0);
+  const [balance, setBalance] = useState(0);
   const [inwardDetails, setInwardDetails] = useState([]);
 
   useEffect(() => {
@@ -143,7 +142,13 @@ const FabricDc = () => {
       dyeingPartyName: dyeParty?.partyName || '',
       isFinal
     });
-    setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
+    setDetails(record.details?.map(d => ({ 
+      ...d, 
+      key: d.id,
+      inwardWeight: d.processWeight || 0,
+      weightLoss: (d.processWeight || 0) - (d.dcWeight || 0),
+      lossPercentage: (d.processWeight || 0) > 0 ? (((d.processWeight || 0) - (d.dcWeight || 0)) / (d.processWeight || 0) * 100) : 0
+    })) || []);
     setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
     setDcType(record.dcType || 'Fresh');
     setFabricType(record.fabricType || '');
@@ -166,7 +171,13 @@ const FabricDc = () => {
       dyeingPartyName: dyeParty?.partyName || '',
       isFinal
     });
-    setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
+    setDetails(record.details?.map(d => ({ 
+      ...d, 
+      key: d.id,
+      inwardWeight: d.processWeight || 0,
+      weightLoss: (d.processWeight || 0) - (d.dcWeight || 0),
+      lossPercentage: (d.processWeight || 0) > 0 ? (((d.processWeight || 0) - (d.dcWeight || 0)) / (d.processWeight || 0) * 100) : 0
+    })) || []);
     setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
     setDcType(record.dcType || 'Fresh');
     setIsFormVisible(true);
@@ -194,6 +205,16 @@ const FabricDc = () => {
       
       if (details.length === 0) {
         message.error('Please add at least one detail row');
+        return;
+      }
+      
+      // Check if all process weights and dc weights are 0
+      const hasValidWeight = details.some(d => 
+        (Number(d.processWeight) || 0) > 0 || (Number(d.dcWeight) || 0) > 0
+      );
+      
+      if (!hasValidWeight) {
+        message.error('Cannot save! Process Weight & DC Weight cannot be 0');
         return;
       }
       
@@ -288,8 +309,7 @@ const FabricDc = () => {
         sum + (Number(dc.totalQty) || 0), 0
       );
       
-      setDcRemaining(totalInwardQty - usedInDc);
-      setReturnRemaining(totalInwardQty - usedInDc);
+      setBalance(totalInwardQty - usedInDc);
       
       form.setFieldsValue({
         grnDate: selectedInward.grnDate ? dayjs(selectedInward.grnDate) : null,
@@ -327,6 +347,10 @@ const FabricDc = () => {
           });
           
           const remainingWeight = (d.weight || 0) - usedWeightFromDcs;
+          const processWt = remainingWeight > 0 ? remainingWeight : 0;
+          const dcWt = remainingWeight > 0 ? remainingWeight : 0;
+          const weightLoss = processWt - dcWt;
+          const lossPerc = processWt > 0 ? ((processWt - dcWt) / processWt * 100) : 0;
           
           return {
             key: Date.now() + idx,
@@ -338,12 +362,13 @@ const FabricDc = () => {
             inwDiaId: d.diaId,
             gsm: d.gsm,
             designNo: d.designNo || '',
-            designName: d.designName,
-            noOfColor: d.noOfColor,
-            processWeight: remainingWeight > 0 ? remainingWeight : 0,
-            dcWeight: remainingWeight > 0 ? remainingWeight : 0,
-            weightLoss: 0,
-            lossPercentage: 0,
+            designName: d.designName || '',
+            noOfColor: d.noOfColor || 0,
+            inwardWeight: processWt,
+            processWeight: processWt,
+            dcWeight: dcWt,
+            weightLoss: weightLoss,
+            lossPercentage: lossPerc,
             rolls: d.rolls || 0,
             uomId: d.uomId,
             rate: 0,
@@ -377,6 +402,7 @@ const FabricDc = () => {
       designNo: '',
       designName: '',
       noOfColor: 0,
+      inwardWeight: 0,
       processWeight: 0,
       dcWeight: 0,
       weightLoss: 0,
@@ -431,6 +457,10 @@ const FabricDc = () => {
       
       const totalUsed = usedWeightFromDcs + usedWeightInForm;
       const remainingWeight = (selectedDetail.weight || 0) - totalUsed;
+      const processWt = remainingWeight > 0 ? remainingWeight : 0;
+      const dcWt = remainingWeight > 0 ? remainingWeight : 0;
+      const weightLoss = processWt - dcWt;
+      const lossPerc = processWt > 0 ? ((processWt - dcWt) / processWt * 100) : 0;
       
       setDetails(details.map(d => {
         if (d.key === key) {
@@ -443,12 +473,16 @@ const FabricDc = () => {
             colorId: selectedDetail.colorId,
             diaId: selectedDetail.diaId,
             gsm: selectedDetail.gsm,
+            designNo: selectedDetail.designNo || '',
+            designName: selectedDetail.designName || '',
+            noOfColor: selectedDetail.noOfColor || 0,
             rolls: selectedDetail.rolls || 0,
             uomId: selectedDetail.uomId,
-            processWeight: remainingWeight > 0 ? remainingWeight : 0,
-            dcWeight: remainingWeight > 0 ? remainingWeight : 0,
-            weightLoss: 0,
-            lossPercentage: 0,
+            inwardWeight: processWt,
+            processWeight: processWt,
+            dcWeight: dcWt,
+            weightLoss: weightLoss,
+            lossPercentage: lossPerc,
             amount: 0
           };
         }
@@ -458,31 +492,30 @@ const FabricDc = () => {
   };
 
   const handleDetailChange = (key, field, value) => {
+    console.log('handleDetailChange called:', { key, field, value });
     setDetails(details.map(d => {
       if (d.key === key) {
+        console.log('Current detail:', d);
         const updated = { ...d, [field]: value };
         
         // Calculate weight loss and percentage
         if (field === 'processWeight' || field === 'dcWeight') {
-          const processWeight = field === 'processWeight' ? value : d.processWeight;
-          const dcWeight = field === 'dcWeight' ? value : d.dcWeight;
-          
-          // Get inward weight from the inward detail
-          const inwardDetail = inwardDetails.find(id => 
-            id.fabricId === d.inwFabricId && 
-            id.colorId === d.inwColorId && 
-            id.diaId === d.inwDiaId
-          );
-          const inwardWeight = inwardDetail?.weight || 0;
-          
           // Auto-copy process weight to dc weight when process weight changes
           if (field === 'processWeight') {
             updated.dcWeight = value;
+            updated.inwardWeight = value;
           }
           
-          // Calculate weight loss: Inward Weight - Process Weight
-          updated.weightLoss = inwardWeight - processWeight;
-          updated.lossPercentage = inwardWeight > 0 ? ((inwardWeight - processWeight) / inwardWeight * 100) : 0;
+          const processWeight = field === 'processWeight' ? value : d.processWeight;
+          const dcWeight = field === 'dcWeight' ? value : (field === 'processWeight' ? value : d.dcWeight);
+          
+          console.log('Calculating:', { processWeight, dcWeight });
+          
+          // Calculate weight loss: Process Weight - DC Weight
+          updated.weightLoss = processWeight - dcWeight;
+          updated.lossPercentage = processWeight > 0 ? ((processWeight - dcWeight) / processWeight * 100) : 0;
+          
+          console.log('Result:', { weightLoss: updated.weightLoss, lossPercentage: updated.lossPercentage });
         }
         
         // Calculate amount
@@ -523,9 +556,12 @@ const FabricDc = () => {
             const dia = dias.find(dia => dia.id === d.diaId)?.masterName || '';
             const fabric = fabrics.find(f => f.id === d.fabricId)?.masterName || '';
             const color = colors.find(c => c.id === d.colorId)?.masterName || '';
+            const designInfo = d.designNo ? ` | ${d.designNo}` : '';
+            const designName = d.designName ? ` | ${d.designName}` : '';
+            const colorCount = d.noOfColor ? ` | ${d.noOfColor}` : '';
             return (
               <Option key={d.id} value={`${d.diaId}-${d.fabricId}-${d.colorId}`}>
-                {`${dia}/${fabric}/${color}`}
+                {`${dia}/${fabric}/${color}${designInfo}${designName}${colorCount}`}
               </Option>
             );
           })}
@@ -576,7 +612,7 @@ const FabricDc = () => {
         dataIndex: 'designNo',
         width: 100,
         render: (val, record) => (
-          <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'designNo', e.target.value)} autoComplete="off" />
+          <Input disabled value={val} autoComplete="off" />
         )
       },
       {
@@ -584,7 +620,7 @@ const FabricDc = () => {
         dataIndex: 'designName',
         width: 120,
         render: (val, record) => (
-          <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'designName', e.target.value)} autoComplete="off" />
+          <Input disabled value={val} autoComplete="off" />
         )
       },
       {
@@ -592,7 +628,7 @@ const FabricDc = () => {
         dataIndex: 'noOfColor',
         width: 80,
         render: (val, record) => (
-          <InputNumber disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'noOfColor', v)} style={{ width: '100%' }} autoComplete="off" />
+          <InputNumber disabled value={val} style={{ width: '100%' }} autoComplete="off" />
         )
       }
     ] : []),
@@ -713,6 +749,7 @@ const FabricDc = () => {
   ];
 
   const totalQty = details.reduce((sum, d) => sum + (Number(d.dcWeight) || 0), 0);
+  const totalProcessWeight = details.reduce((sum, d) => sum + (Number(d.processWeight) || 0), 0);
   const totalRolls = details.reduce((sum, d) => sum + (d.rolls || 0), 0);
 
   useEffect(() => {
@@ -721,18 +758,24 @@ const FabricDc = () => {
       const existingDcs = fabricDcs.filter(dc => 
         dc.inwardNo === form.getFieldValue('grnNo') && dc.id !== editingId
       );
-      const usedInDc = existingDcs.reduce((sum, dc) => 
-        sum + (Number(dc.totalQty) || 0), 0
-      );
       
-      setPendingInward(inwardQty - usedInDc);
+      // Calculate used process weight from existing DCs
+      let usedProcessWeight = 0;
+      existingDcs.forEach(dc => {
+        if (dc.details && dc.details.length > 0) {
+          usedProcessWeight += dc.details.reduce((sum, detail) => 
+            sum + (Number(detail.processWeight) || 0), 0
+          );
+        }
+      });
       
-      // DC and Return remaining = Pending - Current form's totalQty
-      const remaining = inwardQty - usedInDc - totalQty;
-      setDcRemaining(remaining);
-      setReturnRemaining(remaining);
+      setPendingInward(inwardQty - usedProcessWeight);
+      
+      // Balance = Pending - Current form's total process weight
+      const remaining = inwardQty - usedProcessWeight - totalProcessWeight;
+      setBalance(remaining);
     }
-  }, [totalQty, inwardQty, fabricDcs, editingId, form]);
+  }, [totalProcessWeight, inwardQty, fabricDcs, editingId, form]);
 
   const filteredFabricDcs = fabricDcs.filter(item => {
     if (!searchText) return true;
@@ -914,14 +957,8 @@ const FabricDc = () => {
             </Col>
             <Col span={3}>
               <div style={{ marginBottom: 6 }}>
-                <label style={{ fontSize: '12px' }}>DC Remaining</label>
-                <InputNumber value={dcRemaining} disabled style={{ width: '100%', height: '32px', backgroundColor: '#90ee90' }} precision={3} autoComplete="off" />
-              </div>
-            </Col>
-            <Col span={3}>
-              <div style={{ marginBottom: 6 }}>
-                <label style={{ fontSize: '12px' }}>Return Remaining</label>
-                <InputNumber value={returnRemaining} disabled style={{ width: '100%', height: '32px', backgroundColor: '#ffeb9c' }} precision={3} autoComplete="off" />
+                <label style={{ fontSize: '12px' }}>Balance</label>
+                <InputNumber value={balance} disabled style={{ width: '100%', height: '32px', backgroundColor: '#90ee90' }} precision={3} autoComplete="off" />
               </div>
             </Col>
           </Row>
