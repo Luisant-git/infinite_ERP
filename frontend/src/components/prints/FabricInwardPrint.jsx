@@ -5,6 +5,11 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
   const getFabricName = (id) => fabrics.find(f => f.id === id)?.masterName || '-';
   const getColorName = (id) => colors.find(c => c.id === id)?.masterName || '-';
   const getDiaName = (id) => dias.find(d => d.id === id)?.masterName || '-';
+  
+  // Always show 5 rows total
+  const totalRows = 5;
+  const emptyRowsCount = totalRows - (data.details?.length || 0);
+  const emptyRows = Array(emptyRowsCount > 0 ? emptyRowsCount : 0).fill(null);
 
   return (
     <div ref={ref} style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
@@ -37,6 +42,8 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
         .details-table th { font-weight: bold; background: #f5f5f5; text-align: center; }
         .details-table td { text-align: center; vertical-align: top; }
         .details-table tbody tr:not(.process-row):not(.remarks-row) { height: auto; min-height: 30px; }
+        .details-table tbody tr:not(.process-row):not(.remarks-row) td { border-top: none !important; }
+        .details-table tbody tr:not(.process-row):not(.remarks-row):first-child td { border-top: 1px solid #000 !important; }
         .text-left { text-align: left !important; }
         .process-row { border-top: 2px solid #000; }
         .remarks-row { }
@@ -112,6 +119,17 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
                 <td>{getDiaName(detail.diaId)}</td>
                 <td>{detail.rolls || ''}</td>
                 <td>{detail.weight ? `${Number(detail.weight).toFixed(3)} Kgs` : ''}</td>
+              </tr>
+            ))}
+            {emptyRows.map((_, index) => (
+              <tr key={`empty-${index}`} className="empty-row">
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
               </tr>
             ))}
             <tr className="process-row">

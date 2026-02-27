@@ -3,6 +3,11 @@ import dayjs from 'dayjs';
 
 const RateQuotationPrint = React.forwardRef(({ data, processes }, ref) => {
   const getProcessName = (id) => processes.find(p => p.id === id)?.processName || '-';
+  
+  // Always show 5 rows total
+  const totalRows = 5;
+  const emptyRowsCount = totalRows - (data.details?.length || 0);
+  const emptyRows = Array(emptyRowsCount > 0 ? emptyRowsCount : 0).fill(null);
 
   return (
     <div ref={ref} style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
@@ -28,6 +33,8 @@ const RateQuotationPrint = React.forwardRef(({ data, processes }, ref) => {
         .details-table th { font-weight: bold; background: #f5f5f5; text-align: center; }
         .details-table td { text-align: center; vertical-align: top; }
         .details-table tbody tr { height: auto; min-height: 30px; }
+        .details-table tbody tr td { border-top: none !important; }
+        .details-table tbody tr:first-child td { border-top: 1px solid #000 !important; }
         .text-left { text-align: left !important; }
         .payment-section { padding: 10px; font-size: 10px; min-height: 100px; border-left: none !important; border-right: none !important; border-bottom: none !important; }
         .footer-section { display: flex; border-top: 2px solid #000; min-height: 60px; }
@@ -89,6 +96,15 @@ const RateQuotationPrint = React.forwardRef(({ data, processes }, ref) => {
                 <td>{Number(detail.rate || 0).toFixed(2)}</td>
                 <td>{Number(detail.confirmRate || 0).toFixed(2)}</td>
                 <td className="text-left">{detail.remarks || ''}</td>
+              </tr>
+            ))}
+            {emptyRows.map((_, index) => (
+              <tr key={`empty-${index}`} className="empty-row">
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
               </tr>
             ))}
           </tbody>
