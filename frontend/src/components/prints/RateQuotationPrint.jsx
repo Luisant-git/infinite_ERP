@@ -27,7 +27,7 @@ const RateQuotationPrint = React.forwardRef(({ data, processes }, ref) => {
         .details-table th, .details-table td { border: 1px solid #000; padding: 4px; font-size: 10px; }
         .details-table th { font-weight: bold; background: #f5f5f5; text-align: center; }
         .details-table td { text-align: center; vertical-align: top; }
-        .details-table tbody tr { height: 150px; }
+        .details-table tbody tr { height: auto; min-height: 30px; }
         .text-left { text-align: left !important; }
         .payment-section { padding: 10px; font-size: 10px; min-height: 100px; border-left: none !important; border-right: none !important; border-bottom: none !important; }
         .footer-section { display: flex; border-top: 2px solid #000; min-height: 60px; }
