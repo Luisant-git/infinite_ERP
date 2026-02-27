@@ -20,6 +20,7 @@ import DesignApproval from './pages/masters/DesignApproval';
 import StrikeOffApproval from './pages/masters/StrikeOffApproval';
 import MasterData from './pages/masters/MasterData';
 import GstMaster from './pages/masters/GstMaster';
+import Settings from './pages/masters/Settings';
 import FabricInward from './pages/transactions/FabricInward';
 import FabricDc from './pages/transactions/FabricDc';
 import FabricReturn from './pages/transactions/FabricReturn';
@@ -70,7 +71,7 @@ function App() {
                     <Route path={ROUTES.DC_ENTRY} element={<div>DC Entry</div>} />
                     <Route path={ROUTES.DC_CLOSE} element={<div>DC Close</div>} />
                     <Route path={ROUTES.REPORTS} element={<div>Reports</div>} />
-                    <Route path={ROUTES.SETTINGS} element={<div>Settings</div>} />
+                    <Route path={ROUTES.SETTINGS} element={<Settings />} />
                   </Routes>
                 </AppLayout>
               </ProtectedRoute>

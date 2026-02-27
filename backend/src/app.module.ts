@@ -18,9 +18,10 @@ import { FabricReturnModule } from './fabric-return/fabric-return.module';
 import { GstMasterModule } from './gst-master/gst-master.module';
 import { FabricBillModule } from './fabric-bill/fabric-bill.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule, MasterModule, FabricInwardModule, RateQuotationModule, FabricDcModule, FabricReturnModule, GstMasterModule, FabricBillModule, DashboardModule],
+  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule, MasterModule, FabricInwardModule, RateQuotationModule, FabricDcModule, FabricReturnModule, GstMasterModule, FabricBillModule, DashboardModule, SettingsModule],
   controllers: [AppController],
   providers: [AppService],
 })

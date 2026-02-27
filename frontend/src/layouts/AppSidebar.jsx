@@ -166,7 +166,13 @@ const AppSidebar = ({ collapsed, isMobile }) => {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
-      children: []
+      children: [
+        {
+          key: ROUTES.SETTINGS,
+          icon: <SettingOutlined />,
+          label: 'General Settings'
+        }
+      ]
     }
   ];
 

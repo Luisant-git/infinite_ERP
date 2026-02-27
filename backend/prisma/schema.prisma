@@ -45,6 +45,7 @@ model Tenant {
   fabricDcs FabricDcHeader[]
   fabricReturns FabricReturnHeader[]
   fabricBills FabricBillHeader[]
+  settings Settings?
   
   @@unique([concernId, financialYear])
   @@map("tenants")
@@ -728,4 +729,16 @@ model FabricBillTax {
   taxMaster  Master?          @relation("BillTaxMaster", fields: [taxName], references: [id])
   
   @@map("fabric_bill_taxes")
+}
+
+model Settings {
+  id                      Int      @id @default(autoincrement())
+  tenantId                Int      @unique
+  enableProcessDelete     Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  
+  @@map("settings")
 }

@@ -6,6 +6,7 @@ import { getNextDcNo, getFabricDcs, createFabricDc, updateFabricDc, deleteFabric
 import { getParties } from '../../api/party';
 import { getFabricInwards } from '../../api/fabricInward';
 import { getMastersByType } from '../../api/fabricInward';
+import { getSettings } from '../../api/settings';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 import { useSelector } from 'react-redux';
 
@@ -40,11 +41,13 @@ const FabricDc = () => {
   const [pendingInward, setPendingInward] = useState(0);
   const [balance, setBalance] = useState(0);
   const [inwardDetails, setInwardDetails] = useState([]);
+  const [enableProcessDelete, setEnableProcessDelete] = useState(false);
 
   useEffect(() => {
     loadData();
     loadMasters();
     loadAllInwards();
+    loadSettings();
   }, []);
 
   const loadAllInwards = async () => {
@@ -54,6 +57,15 @@ const FabricDc = () => {
       setInwards(filtered);
     } catch (error) {
       console.error('Error loading inwards:', error);
+    }
+  };
+
+  const loadSettings = async () => {
+    try {
+      const settings = await getSettings();
+      setEnableProcessDelete(settings.enableProcessDelete || false);
+    } catch (error) {
+      console.error('Error loading settings:', error);
     }
   };
 
@@ -713,13 +725,13 @@ const FabricDc = () => {
     { title: 'Sl.No', width: 80, render: (_, record, index) => index + 1 },
     { title: 'Process', dataIndex: 'processName', width: 200 },
     { title: 'Remarks', dataIndex: 'remarks', width: 200 },
-    {
+    ...(enableProcessDelete && !isViewMode ? [{
       title: 'Action',
       width: 80,
       render: (_, record) => (
         <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDeleteProcess(record.key)} />
       )
-    }
+    }] : [])
   ];
 
   const listColumns = [
