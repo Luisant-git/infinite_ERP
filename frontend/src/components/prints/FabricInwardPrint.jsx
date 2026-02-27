@@ -44,6 +44,7 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
         .details-table tbody tr:not(.process-row):not(.remarks-row) { height: auto; min-height: 30px; }
         .details-table tbody tr:not(.process-row):not(.remarks-row):first-child td { border-top: 1px solid #000; }
         .details-table tbody tr.empty-row:last-of-type td { border-bottom: 1px solid #000; }
+        .process-row td { border-top: 2px solid #000 !important; border-bottom: 1px solid #000 !important; }
         .text-left { text-align: left !important; }
         .process-row { border-top: 2px solid #000; }
         .remarks-row { }
