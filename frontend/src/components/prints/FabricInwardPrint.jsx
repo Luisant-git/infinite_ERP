@@ -38,12 +38,12 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
         .party-info-row { display: flex; justify-content: space-between; margin-top: 5px; }
         .party-info-item { font-size: 10px; }
         .details-table { width: 100%; border-collapse: collapse; }
-        .details-table th, .details-table td { border: 1px solid #000; padding: 4px; font-size: 10px; }
-        .details-table th { font-weight: bold; background: #f5f5f5; text-align: center; }
+        .details-table th, .details-table td { border-left: 1px solid #000; border-right: 1px solid #000; padding: 4px; font-size: 10px; }
+        .details-table th { font-weight: bold; background: #f5f5f5; text-align: center; border-top: 1px solid #000; border-bottom: 1px solid #000; }
         .details-table td { text-align: center; vertical-align: top; }
         .details-table tbody tr:not(.process-row):not(.remarks-row) { height: auto; min-height: 30px; }
-        .details-table tbody tr:not(.process-row):not(.remarks-row) td { border-top: none !important; }
-        .details-table tbody tr:not(.process-row):not(.remarks-row):first-child td { border-top: 1px solid #000 !important; }
+        .details-table tbody tr:not(.process-row):not(.remarks-row):first-child td { border-top: 1px solid #000; }
+        .details-table tbody tr.empty-row:last-of-type td { border-bottom: 1px solid #000; }
         .text-left { text-align: left !important; }
         .process-row { border-top: 2px solid #000; }
         .remarks-row { }

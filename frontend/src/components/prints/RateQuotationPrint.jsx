@@ -29,12 +29,12 @@ const RateQuotationPrint = React.forwardRef(({ data, processes }, ref) => {
         .party-label { font-size: 10px; font-weight: bold; margin-bottom: 3px; }
         .party-details { font-size: 10px; line-height: 1.4; }
         .details-table { width: 100%; border-collapse: collapse; }
-        .details-table th, .details-table td { border: 1px solid #000; padding: 4px; font-size: 10px; }
-        .details-table th { font-weight: bold; background: #f5f5f5; text-align: center; }
+        .details-table th, .details-table td { border-left: 1px solid #000; border-right: 1px solid #000; padding: 4px; font-size: 10px; }
+        .details-table th { font-weight: bold; background: #f5f5f5; text-align: center; border-top: 1px solid #000; border-bottom: 1px solid #000; }
         .details-table td { text-align: center; vertical-align: top; }
         .details-table tbody tr { height: auto; min-height: 30px; }
-        .details-table tbody tr td { border-top: none !important; }
-        .details-table tbody tr:first-child td { border-top: 1px solid #000 !important; }
+        .details-table tbody tr:first-child td { border-top: 1px solid #000; }
+        .details-table tbody tr:last-child td { border-bottom: 1px solid #000; }
         .text-left { text-align: left !important; }
         .payment-section { padding: 10px; font-size: 10px; min-height: 100px; border-left: none !important; border-right: none !important; border-bottom: none !important; }
         .footer-section { display: flex; border-top: 2px solid #000; min-height: 60px; }
