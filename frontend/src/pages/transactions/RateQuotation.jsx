@@ -188,7 +188,7 @@ const RateQuotation = () => {
     });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (shouldPrint = false) => {
     try {
       const values = await form.validateFields();
       
@@ -222,16 +222,22 @@ const RateQuotation = () => {
         }))
       };
 
+      let savedRecord;
       if (editingId) {
-        await updateRateQuotation(editingId, data);
+        savedRecord = await updateRateQuotation(editingId, data);
         message.success('Updated successfully - Sent for approval');
       } else {
-        await createRateQuotation(data);
+        savedRecord = await createRateQuotation(data);
         message.success('Created successfully');
       }
       
       setIsFormVisible(false);
       loadData();
+      
+      if (shouldPrint && savedRecord) {
+        setPrintData(savedRecord);
+        setTimeout(() => handlePrint(), 500);
+      }
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'Failed to save';
       Modal.error({
@@ -529,7 +535,8 @@ const RateQuotation = () => {
           <div style={{ marginTop: 4, textAlign: 'right' }}>
             <Space>
               <Button icon={<CloseOutlined />} onClick={() => setIsFormVisible(false)}>Cancel</Button>
-              <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={handleSubmit}>Save</Button>
+              <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={() => handleSubmit(false)}>Save</Button>
+              <Button type="primary" icon={<PrinterOutlined />} loading={loading} onClick={() => handleSubmit(true)}>Save & Print</Button>
             </Space>
           </div>
         </Form>
