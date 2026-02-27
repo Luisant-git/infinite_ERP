@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Form, Input, Button, Row, Col, Typography, Select, DatePicker, Table, Modal, InputNumber, message, Space, Upload, Checkbox } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, UploadOutlined, EyeOutlined, PrinterOutlined } from '@ant-design/icons';
+import { useReactToPrint } from 'react-to-print';
 import dayjs from 'dayjs';
 import { getNextQuotNo, getRateQuotations, createRateQuotation, updateRateQuotation, deleteRateQuotation } from '../../api/rateQuotation';
 import { getParties } from '../../api/party';
@@ -8,6 +9,7 @@ import { getProcesses } from '../../api/process';
 import { getConcerns } from '../../api/concern';
 import { getMastersByType } from '../../api/fabricInward';
 import { uploadImage } from '../../api/upload';
+import RateQuotationPrint from '../../components/prints/RateQuotationPrint';
 import { useSelector } from 'react-redux';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 
@@ -28,9 +30,15 @@ const RateQuotation = () => {
   const [details, setDetails] = useState([]);
   const [fileList, setFileList] = useState([]);
   const [searchText, setSearchText] = useState('');
+  const [printData, setPrintData] = useState(null);
+  const printRef = useRef();
   const { selectedCompany, selectedCompanyId, selectedYear, IsMD } = useSelector(state => state.auth);
   const { adminUser: isAdmin, canAdd, canEdit, canDelete } = useMenuPermissions();
   const isAdminOrMD = isAdmin || IsMD === 1;
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+  });
 
   useEffect(() => {
     loadData();
@@ -152,6 +160,11 @@ const RateQuotation = () => {
         </div>
       ),
     });
+  };
+
+  const handlePrintRecord = (record) => {
+    setPrintData(record);
+    setTimeout(() => handlePrint(), 100);
   };
 
   const handleDelete = (id) => {
@@ -366,7 +379,7 @@ const RateQuotation = () => {
             <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
           )}
           {(record.isApproval === 0 || isAdminOrMD) && (
-            <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => message.info('Print functionality')} />
+            <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRecord(record)} style={{ color: '#722ed1' }} />
           )}
         </Space>
       )
@@ -521,6 +534,28 @@ const RateQuotation = () => {
           </div>
         </Form>
       )}
+      
+      <div style={{ display: 'none' }}>
+        {printData && (
+          <RateQuotationPrint 
+            ref={printRef} 
+            data={{
+              ...printData,
+              partyName: parties.find(p => p.id === printData.partyId)?.partyName,
+              address1: parties.find(p => p.id === printData.partyId)?.address1,
+              address2: parties.find(p => p.id === printData.partyId)?.address2,
+              address3: parties.find(p => p.id === printData.partyId)?.address3,
+              address4: parties.find(p => p.id === printData.partyId)?.address4,
+              district: parties.find(p => p.id === printData.partyId)?.district,
+              state: parties.find(p => p.id === printData.partyId)?.state,
+              pincode: parties.find(p => p.id === printData.partyId)?.pincode,
+              gstNo: parties.find(p => p.id === printData.partyId)?.gstNo,
+              stateCode: '33'
+            }} 
+            processes={processes}
+          />
+        )}
+      </div>
     </Card>
   );
 };

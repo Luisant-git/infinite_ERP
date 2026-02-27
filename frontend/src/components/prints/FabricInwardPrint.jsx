@@ -12,6 +12,8 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
         @media print {
           @page { margin: 10mm; size: A4; }
           body { margin: 0; }
+          body::before, body::after { display: none !important; }
+          @page { margin: 0; }
         }
         .original-label { text-align: right; font-size: 11px; font-weight: bold; margin-bottom: 5px; }
         .print-container { width: 100%; border: 2px solid #000; }
