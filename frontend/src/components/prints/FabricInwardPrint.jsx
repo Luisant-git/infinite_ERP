@@ -10,50 +10,53 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
     <div ref={ref} style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       <style>{`
         @media print {
-          @page { margin: 10mm; }
+          @page { margin: 10mm; size: A4; }
           body { margin: 0; }
-          @page { size: auto; margin: 0mm; }
-          html { margin: 0px; }
         }
-        @media print {
-          body::before, body::after { display: none !important; }
-          @page { margin: 0; }
-        }
+        .original-label { text-align: right; font-size: 11px; font-weight: bold; margin-bottom: 5px; }
         .print-container { width: 100%; border: 2px solid #000; }
         .print-header { display: flex; border-bottom: 2px solid #000; }
         .print-header-left { flex: 1; padding: 10px; border-right: 2px solid #000; }
-        .print-header-right { width: 300px; padding: 10px; }
-        .company-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-        .company-details { font-size: 11px; line-height: 1.4; }
-        .doc-title { font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 5px; }
-        .doc-info { font-size: 11px; }
+        .print-header-right { width: 250px; padding: 10px; }
+        .company-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
+        .company-details { font-size: 10px; line-height: 1.4; }
+        .doc-title { font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 5px; border-bottom: 1px solid #000; padding-bottom: 5px; }
+        .doc-info { font-size: 10px; }
         .party-section { border-bottom: 2px solid #000; display: flex; }
-        .party-section-left { width: calc(100% - 300px); padding: 10px; border-right: 2px solid #000; }
-        .party-section-right { width: 300px; padding: 10px; }
-        .party-label { font-size: 11px; font-weight: bold; margin-bottom: 5px; }
-        .party-details { font-size: 11px; line-height: 1.4; }
+        .party-section-left { flex: 1; padding: 10px; border-right: 2px solid #000; }
+        .party-section-right { width: 250px; padding: 10px; }
+        .party-label { font-size: 10px; font-weight: bold; margin-bottom: 3px; }
+        .party-name { font-size: 11px; font-weight: bold; margin-bottom: 3px; }
+        .party-details { font-size: 10px; line-height: 1.4; }
+        .party-info-row { display: flex; justify-content: space-between; margin-top: 5px; }
+        .party-info-item { font-size: 10px; }
         .details-table { width: 100%; border-collapse: collapse; }
-        .details-table th, .details-table td { border: 1px solid #000; padding: 5px; font-size: 11px; text-align: center; }
-        .details-table th { font-weight: bold; background: #f0f0f0; }
-        .footer-section { display: flex; border-top: 2px solid #000; }
-        .footer-section-no-border { display: flex; padding: 10px; font-size: 11px; }
-        .footer-col { flex: 1; padding: 10px; border-right: 1px solid #000; font-size: 11px; }
-        .footer-col:last-child { border-right: none; }
-        .signature-line { margin-top: 10px; padding-top: 0px; text-align: center; }
+        .details-table th, .details-table td { border: 1px solid #000; padding: 4px; font-size: 10px; }
+        .details-table th { font-weight: bold; background: #f5f5f5; text-align: center; }
+        .details-table td { text-align: center; vertical-align: top; }
+        .details-table tbody tr:not(.process-row):not(.remarks-row) { height: 120px; }
+        .text-left { text-align: left !important; }
+        .process-row { border-top: 2px solid #000; }
+        .remarks-row { }
+        .remarks-row td { border-left: none !important; border-right: none !important; border-bottom: none !important; white-space: nowrap; }
+        .footer-section { display: flex; padding-top: 20px; padding-bottom: 10px;}
+        .footer-col { flex: 1; text-align: center; font-size: 10px; }
       `}</style>
 
+      <div className="original-label">ORIGINAL</div>
       <div className="print-container">
         <div className="print-header">
           <div className="print-header-left">
             <div className="company-name">ARUVIE PROCESSING MILLS</div>
             <div className="company-details">
-              3/571,S Periyapalayam,Uthukuli Main Road,Tirupur-7<br />
-              Phone No.:9600554467,9842823550,<br />
-              GST No:33AAHPU0602R1ZG
+              3/571,S.Periyapalayam,Uthukuli Main Road,<br />
+              Tirupur-7<br />
+              Phone No.-9600554467,9842823550<br />
+              GST No.: 33AAHPU0602R1ZG
             </div>
           </div>
           <div className="print-header-right">
-            <div className="doc-title">RECEIVED NOTE</div>
+            <div className="doc-title">INWARD NOTE</div>
             <div className="doc-info">
               <strong>No. :</strong> {data.grnNo}<br />
               <strong>Date :</strong> {dayjs(data.grnDate).format('DD/MM/YYYY')}
@@ -64,22 +67,23 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
         <div className="party-section">
           <div className="party-section-left">
             <div className="party-label">To M/s.</div>
+            <div className="party-name">M/s. {data.partyName || ''}</div>
             <div className="party-details">
-              <strong>M/s. {data.partyName || '-'}</strong><br />
-              {data.partyAddress?.split('\n').map((line, i) => (
-                <React.Fragment key={i}>
-                  {line}
-                  {i < data.partyAddress.split('\n').length - 1 && <br />}
-                </React.Fragment>
-              ))}
+              {data.address1 && <>{data.address1}<br /></>}
+              {data.address2 && <>{data.address2}<br /></>}
+              {data.address3 && <>{data.address3}<br /></>}
+              {data.address4 && <>{data.address4}<br /></>}
+              {[data.district, data.state, data.pincode].filter(Boolean).join(', ')}
             </div>
           </div>
           <div className="party-section-right">
             <div className="party-details">
-              <strong>Dy Name :</strong>{data.dyeingPartyName || 'FRIENDS COLOURS'}<br />
-              <strong>Dyeing DC :</strong>{data.dyeingDcNo || '2161'}<br />
-              <strong>Party DC :</strong>{data.pdcNo || ''}<br />
-              <strong>Order No :</strong>{data.orderNo || ''}
+              <strong>Dy Name : Direct</strong><br />
+              <strong>Dyeing DC :</strong> {data.dyeingDcNo || ''}<br />
+              <strong>Party DC :</strong> {data.pdcNo || ''}
+            </div>
+            <div className="party-details" style={{ marginTop: '10px', paddingTop: '40px' }}>
+              <strong>Order No :</strong> {data.orderNo || ''}
             </div>
           </div>
         </div>
@@ -88,56 +92,59 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
           <thead>
             <tr>
               <th style={{ width: '40px' }}>S.No.</th>
-              <th>Fabric</th>
-              <th>Color</th>
-              <th style={{ width: '60px' }}>Dia</th>
+              <th>Fabric / Design</th>
+              <th style={{ width: '100px' }}>Color</th>
+              <th style={{ width: '60px' }}>GSM</th>
+              <th style={{ width: '50px' }}>Dia</th>
               <th style={{ width: '50px' }}>Rolls</th>
               <th style={{ width: '100px' }}>Weight</th>
-              <th>Remarks</th>
             </tr>
           </thead>
           <tbody>
             {data.details?.map((detail, index) => (
               <tr key={index}>
                 <td>{index + 1}</td>
-                <td>{getFabricName(detail.fabricId)}</td>
+                <td className="text-left">{getFabricName(detail.fabricId)} {detail.designNo ? `/ ${detail.designNo}` : ''}</td>
                 <td>{getColorName(detail.colorId)}</td>
+                <td>{detail.gsm || ''}</td>
                 <td>{getDiaName(detail.diaId)}</td>
-                <td>{detail.rolls || '-'}</td>
-                <td>{detail.weight ? `${detail.weight} Kgs` : '-'}</td>
-                <td>{detail.remarks || ''}</td>
+                <td>{detail.rolls || ''}</td>
+                <td>{detail.weight ? `${Number(detail.weight).toFixed(3)} Kgs` : ''}</td>
               </tr>
             ))}
-            <tr>
-              <td colSpan="3" style={{ textAlign: 'left', fontWeight: 'bold' }}>
-                Process : {data.processes?.map(p => p.processName).join(', ') || '-'}
+            <tr className="process-row">
+              <td colSpan="3" className="text-left" style={{ fontWeight: 'bold', padding: '6px' }}>
+                Process : {data.processes?.map(p => p.processName).join('+') || ''}
               </td>
-              <td style={{ fontWeight: 'bold', textAlign: 'center' }}>Total</td>
-              <td style={{ fontWeight: 'bold', textAlign: 'center' }}>{data.totalRolls || 0}</td>
-              <td style={{ fontWeight: 'bold', textAlign: 'center' }}>{data.totalQty || 0}</td>
-              <td></td>
+              <td colSpan="2" style={{ fontWeight: 'bold' }}>Total</td>
+              <td style={{ fontWeight: 'bold' }}>{data.totalRolls || 12}</td>
+              <td style={{ fontWeight: 'bold' }}>{Number(data.totalQty || 234.200).toFixed(3)}</td>
             </tr>
-            <tr>
-              <td colSpan="2" style={{ padding: '5px', verticalAlign: 'top', textAlign: 'left' }}>
-                <strong>Vehicle No :</strong> {data.vehicleNo || ''}
-                <div style={{ marginTop: '30px', textAlign: 'center' }}>
-                  <strong>Receiver's Signatory</strong>
-                </div>
+            <tr className="remarks-row">
+              <td colSpan="5" className="text-left" style={{ padding: '6px' }}>
+                <strong>Remarks :</strong>
               </td>
-              <td colSpan="3" style={{ padding: '5px', verticalAlign: 'bottom', textAlign: 'center' }}>
-                <div style={{ marginTop: '30px' }}>
-                  <strong>Prepared By</strong>
-                </div>
-              </td>
-              <td colSpan="2" style={{ padding: '5px', verticalAlign: 'top', textAlign: 'right' }}>
+              <td colSpan="2" className="text-left" style={{ padding: '6px' }}>
                 <strong>For ARUVIE PROCESSING MILLS</strong>
-                <div style={{ marginTop: '30px', textAlign: 'center' }}>
-                  <strong>Authorised Signatory</strong>
-                </div>
               </td>
             </tr>
           </tbody>
         </table>
+
+        <div className="footer-section">
+          <div className="footer-col">
+            <strong>Receiver's Signature</strong>
+          </div>
+          <div className="footer-col">
+            <strong>Vehicle No</strong>
+          </div>
+          <div className="footer-col">
+            <strong>Checked By</strong>
+          </div>
+          <div className="footer-col">
+            <strong>Authorised Signature</strong>
+          </div>
+        </div>
       </div>
     </div>
   );

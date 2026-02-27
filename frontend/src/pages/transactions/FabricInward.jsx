@@ -623,7 +623,7 @@ const FabricInward = () => {
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} style={{ color: '#1890ff' }} />
-          {/* <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRecord(record)} style={{ color: '#722ed1' }} /> */}
+          <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRecord(record)} style={{ color: '#722ed1' }} />
           {canEdit('fabric_inward') && (
             <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
           )}
@@ -857,7 +857,7 @@ const FabricInward = () => {
               {!isViewMode && (
                 <>
                   <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={() => handleSubmit(false)}>Save</Button>
-                  {/* <Button type="primary" icon={<PrinterOutlined />} loading={loading} onClick={() => handleSubmit(true)}>Save & Print</Button> */}
+                  <Button type="primary" icon={<PrinterOutlined />} loading={loading} onClick={() => handleSubmit(true)}>Save & Print</Button>
                 </>
               )}
             </Space>
@@ -872,14 +872,13 @@ const FabricInward = () => {
             data={{
               ...printData,
               partyName: parties.find(p => p.id === printData.partyId)?.partyName,
-              partyAddress: (() => {
-                const party = parties.find(p => p.id === printData.partyId);
-                if (!party) return '';
-                const addressLine = party.address1 || party.address2 || party.address3 || party.address4 || '';
-                const locationParts = [party.district, party.state, party.pincode].filter(Boolean);
-                const locationLine = locationParts.join(', ');
-                return addressLine && locationLine ? `${addressLine}\n${locationLine}` : addressLine || locationLine;
-              })(),
+              address1: parties.find(p => p.id === printData.partyId)?.address1,
+              address2: parties.find(p => p.id === printData.partyId)?.address2,
+              address3: parties.find(p => p.id === printData.partyId)?.address3,
+              address4: parties.find(p => p.id === printData.partyId)?.address4,
+              district: parties.find(p => p.id === printData.partyId)?.district,
+              state: parties.find(p => p.id === printData.partyId)?.state,
+              pincode: parties.find(p => p.id === printData.partyId)?.pincode,
               dyeingPartyName: dyeingParties.find(p => p.id === printData.dyeingPartyId)?.partyName
             }} 
             fabrics={fabrics}
