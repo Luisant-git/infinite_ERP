@@ -253,6 +253,40 @@ const FabricReturn = () => {
       }
       
       if (shouldPrint) {
+        const party = parties.find(p => p.id === values.partyId);
+        const deliveryParty = allParties.find(p => p.id === values.deliveryTo);
+        const dyeParty = allParties.find(p => p.id === values.dyeParty);
+        const targetParty = deliveryParty || party;
+        
+        setPrintData({
+          dcNo: values.dcNo,
+          dcDate: values.dcDate,
+          partyName: targetParty?.partyName || '',
+          address1: targetParty?.address1 || '',
+          address2: targetParty?.address2 || '',
+          address3: targetParty?.address3 || '',
+          address4: targetParty?.address4 || '',
+          district: targetParty?.district || '',
+          pincode: targetParty?.pincode || '',
+          state: targetParty?.state || '',
+          stateCode: targetParty?.stateCode || '',
+          gstNo: targetParty?.gstNo || '',
+          dyeParty: dyeParty?.partyName || '',
+          dyeDcNo: values.dyeingDcNo || '',
+          pdcNo: values.pdcNo || '',
+          orderNo: values.orderNo || '',
+          inwardNo: values.grnNo || '',
+          recWeight: inwardQty || '',
+          remarks: values.remarks || '',
+          items: details.map(d => ({
+            fabric: fabrics.find(f => f.id === d.fabricId)?.masterName || '',
+            color: colors.find(c => c.id === d.colorId)?.masterName || '',
+            dia: dias.find(dia => dia.id === d.diaId)?.masterName || '',
+            rolls: d.rolls || '',
+            weight: d.weight || ''
+          }))
+        });
+        
         setTimeout(() => {
           handlePrint();
         }, 500);
