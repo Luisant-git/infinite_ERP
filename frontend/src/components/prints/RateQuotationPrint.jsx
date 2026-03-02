@@ -18,6 +18,7 @@ const RateQuotationPrint = React.forwardRef(({ data, processes }, ref) => {
           body::before, body::after { display: none !important; }
           @page { margin: 0; }
         }
+        @page { size: auto; margin: 0mm; }
         .print-title { text-align: center; font-size: 14px; font-weight: bold; margin-bottom: 5px; }
         .print-container { width: 100%; border: 2px solid #000; }
         .company-section { text-align: center; padding: 10px; border-bottom: 2px solid #000; }

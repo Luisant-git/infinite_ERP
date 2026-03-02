@@ -2,13 +2,23 @@ import React from 'react';
 import dayjs from 'dayjs';
 
 const FabricDCPrint = React.forwardRef(({ data }, ref) => {
+  const itemsPerPage = 5;
+  const items = data.items || [data];
+  const pages = [];
+  
+  for (let i = 0; i < items.length; i += itemsPerPage) {
+    const pageItems = items.slice(i, i + itemsPerPage);
+    const emptyRows = Array(itemsPerPage - pageItems.length).fill(null);
+    pages.push({ items: pageItems, emptyRows });
+  }
+
   return (
-    <div ref={ref} style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }} data-print-content>
+    <div ref={ref} style={{ fontFamily: 'Arial, sans-serif' }} data-print-content>
       <style>{`
         @media print {
           @page { 
             margin: 10mm; 
-            size: A4; 
+            size: A5; 
           }
           body { 
             margin: 0; 
@@ -17,6 +27,9 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
             display: none !important;
           }
         }
+        @page { size: auto; margin: 0mm; }
+        .page-container { padding: 20px; page-break-after: always; }
+        .page-container:last-child { page-break-after: auto; }
         .original-label { text-align: right; font-size: 10px; font-weight: bold; margin-bottom: 5px; }
         .print-container { width: 100%; border: 2px solid #000; }
         .header-section { display: flex; border-bottom: 2px solid #000; }
@@ -52,9 +65,11 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
         .footer-col:last-child { border-right: none; }
       `}</style>
 
-      <div className="original-label">(ORIGINAL)</div>
+      {pages.map((page, pageIndex) => (
+        <div key={pageIndex} className="page-container">
+          <div className="original-label">(ORIGINAL)</div>
 
-      <div className="print-container">
+          <div className="print-container">
         <div className="header-section">
           <div className="header-left">
             <div className="company-name">ARUVIE PROCESSING MILLS</div>
@@ -115,14 +130,23 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
             </tr>
           </thead>
           <tbody>
-            {(data.items || [data]).map((item, index) => (
+            {page.items.map((item, index) => (
               <tr key={index}>
                 <td className="text-left">{item.fabric || '-'}</td>
                 <td className="text-left">{item.color || '-'}</td>
                 <td>{item.dia || '-'}</td>
                 <td>{item.rolls || ''}</td>
                 <td>{item.weight || ''}</td>
-                {index === 0 && <td className="text-left" rowSpan={(data.items || [data]).length}>&nbsp;</td>}
+                {index === 0 && <td className="text-left" rowSpan={page.items.length + page.emptyRows.length}>&nbsp;</td>}
+              </tr>
+            ))}
+            {page.emptyRows.map((_, index) => (
+              <tr key={`empty-${index}`}>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
               </tr>
             ))}
           </tbody>
@@ -134,8 +158,8 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
               <td style={{ width: '15%', border: 'none', borderLeft: '1px solid #000' }}>&nbsp;</td>
               <td style={{ width: '12%', border: 'none' }}>&nbsp;</td>
               <td style={{ width: '10%', textAlign: 'center', borderLeft: '1px solid #000', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>Total</td>
-              <td style={{ width: '10%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>{(data.items || [data]).reduce((sum, item) => sum + (parseFloat(item.rolls) || 0), 0)}</td>
-              <td style={{ width: '12%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000', borderRight: '1px solid #000' }}>{(data.items || [data]).reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0)}</td>
+              <td style={{ width: '10%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.rolls) || 0), 0)}</td>
+              <td style={{ width: '12%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000', borderRight: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0)}</td>
               <td style={{ border: 'none', borderRight: '1px solid #000' }}>&nbsp;</td>
             </tr>
           </tbody>
@@ -169,6 +193,8 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
           </div>
         </div>
       </div>
+        </div>
+      ))}
     </div>
   );
 });

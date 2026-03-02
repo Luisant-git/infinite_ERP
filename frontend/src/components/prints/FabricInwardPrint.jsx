@@ -6,20 +6,27 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
   const getColorName = (id) => colors.find(c => c.id === id)?.masterName || '-';
   const getDiaName = (id) => dias.find(d => d.id === id)?.masterName || '-';
   
-  // Always show 5 rows total
-  const totalRows = 5;
-  const emptyRowsCount = totalRows - (data.details?.length || 0);
-  const emptyRows = Array(emptyRowsCount > 0 ? emptyRowsCount : 0).fill(null);
+  const itemsPerPage = 5;
+  const details = data.details || [];
+  const pages = [];
+  
+  for (let i = 0; i < details.length; i += itemsPerPage) {
+    const pageDetails = details.slice(i, i + itemsPerPage);
+    const emptyRows = Array(itemsPerPage - pageDetails.length).fill(null);
+    pages.push({ details: pageDetails, emptyRows, startIndex: i });
+  }
 
   return (
-    <div ref={ref} style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+    <div ref={ref} style={{ fontFamily: 'Arial, sans-serif' }}>
       <style>{`
         @media print {
-          @page { margin: 10mm; size: A4; }
+          @page { margin: 10mm; size: A5; }
           body { margin: 0; }
           body::before, body::after { display: none !important; }
-          @page { margin: 0; }
         }
+        @page { size: auto; margin: 0mm; }
+        .page-container { padding: 20px; page-break-after: always; }
+        .page-container:last-child { page-break-after: auto; }
         .original-label { text-align: right; font-size: 11px; font-weight: bold; margin-bottom: 5px; }
         .print-container { width: 100%; border: 2px solid #000; }
         .print-header { display: flex; border-bottom: 2px solid #000; }
@@ -53,8 +60,10 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
         .footer-col { flex: 1; text-align: center; font-size: 10px; }
       `}</style>
 
-      <div className="original-label">ORIGINAL</div>
-      <div className="print-container">
+      {pages.map((page, pageIndex) => (
+        <div key={pageIndex} className="page-container">
+          <div className="original-label">ORIGINAL</div>
+          <div className="print-container">
         <div className="print-header">
           <div className="print-header-left">
             <div className="company-name">ARUVIE PROCESSING MILLS</div>
@@ -111,9 +120,9 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
             </tr>
           </thead>
           <tbody>
-            {data.details?.map((detail, index) => (
+            {page.details.map((detail, index) => (
               <tr key={index}>
-                <td>{index + 1}</td>
+                <td>{page.startIndex + index + 1}</td>
                 <td className="text-left">{getFabricName(detail.fabricId)} {detail.designNo ? `/ ${detail.designNo}` : ''}</td>
                 <td>{getColorName(detail.colorId)}</td>
                 <td>{detail.gsm || ''}</td>
@@ -122,7 +131,7 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
                 <td>{detail.weight ? `${Number(detail.weight).toFixed(3)} Kgs` : ''}</td>
               </tr>
             ))}
-            {emptyRows.map((_, index) => (
+            {page.emptyRows.map((_, index) => (
               <tr key={`empty-${index}`} className="empty-row">
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
@@ -138,8 +147,8 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
                 Process : {data.processes?.map(p => p.processName).join('+') || ''}
               </td>
               <td colSpan="2" style={{ fontWeight: 'bold' }}>Total</td>
-              <td style={{ fontWeight: 'bold' }}>{data.totalRolls || 12}</td>
-              <td style={{ fontWeight: 'bold' }}>{Number(data.totalQty || 234.200).toFixed(3)}</td>
+              <td style={{ fontWeight: 'bold' }}>{page.details.reduce((sum, d) => sum + (parseFloat(d.rolls) || 0), 0)}</td>
+              <td style={{ fontWeight: 'bold' }}>{page.details.reduce((sum, d) => sum + (parseFloat(d.weight) || 0), 0).toFixed(3)}</td>
             </tr>
             <tr className="remarks-row">
               <td colSpan="5" className="text-left" style={{ padding: '6px' }}>
@@ -167,6 +176,8 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
           </div>
         </div>
       </div>
+        </div>
+      ))}
     </div>
   );
 });
