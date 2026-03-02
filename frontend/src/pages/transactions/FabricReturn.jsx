@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Form, Input, Button, Row, Col, Typography, Select, DatePicker, Table, Modal, InputNumber, message, Space } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, EyeOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, EyeOutlined, PrinterOutlined } from '@ant-design/icons';
+import { useReactToPrint } from 'react-to-print';
 import dayjs from 'dayjs';
+import FabricReturnPrint from '../../components/prints/FabricReturnPrint';
 import { getNextDcNo, getFabricReturns, createFabricReturn, updateFabricReturn, deleteFabricReturn } from '../../api/fabricReturn';
 import { getParties } from '../../api/party';
 import { getFabricInwards } from '../../api/fabricInward';
@@ -16,6 +18,8 @@ const { TextArea } = Input;
 const FabricReturn = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const printRef = useRef();
+  const [printData, setPrintData] = useState(null);
   const [fabricReturns, setFabricReturns] = useState([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isViewMode, setIsViewMode] = useState(false);
@@ -196,7 +200,7 @@ const FabricReturn = () => {
     });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (shouldPrint = false) => {
     try {
       const values = await form.validateFields();
       
@@ -248,6 +252,12 @@ const FabricReturn = () => {
         message.success('Created successfully');
       }
       
+      if (shouldPrint) {
+        setTimeout(() => {
+          handlePrint();
+        }, 500);
+      }
+      
       setIsFormVisible(false);
       loadData();
     } catch (error) {
@@ -255,6 +265,94 @@ const FabricReturn = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePrintRecord = (record) => {
+    const party = parties.find(p => p.id === record.partyId);
+    const deliveryParty = allParties.find(p => p.id === record.deliveryTo);
+    const dyeParty = allParties.find(p => p.id === record.dyeParty);
+    const targetParty = deliveryParty || party;
+    
+    const data = {
+      dcNo: record.dcNo,
+      dcDate: dayjs(record.dcDate),
+      partyName: targetParty?.partyName || '',
+      address1: targetParty?.address1 || '',
+      address2: targetParty?.address2 || '',
+      address3: targetParty?.address3 || '',
+      address4: targetParty?.address4 || '',
+      district: targetParty?.district || '',
+      pincode: targetParty?.pincode || '',
+      state: targetParty?.state || '',
+      stateCode: targetParty?.stateCode || '',
+      gstNo: targetParty?.gstNo || '',
+      dyeParty: dyeParty?.partyName || '',
+      dyeDcNo: record.dyeingDcNo || '',
+      pdcNo: record.pdcNo || '',
+      orderNo: record.orderNo || '',
+      inwardNo: record.inwardNo || '',
+      recWeight: record.totalQty || '',
+      remarks: record.remarks || '',
+      items: (record.details || []).map(d => ({
+        fabric: fabrics.find(f => f.id === d.fabricId)?.masterName || '',
+        color: colors.find(c => c.id === d.colorId)?.masterName || '',
+        dia: dias.find(dia => dia.id === d.diaId)?.masterName || '',
+        rolls: d.rolls || '',
+        weight: d.weight || ''
+      }))
+    };
+    
+    setPrintData(data);
+    setTimeout(() => {
+      if (printRef.current) {
+        handlePrint();
+      }
+    }, 100);
+  };
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+  });
+
+  const getPrintData = () => {
+    const values = form.getFieldsValue();
+    const party = parties.find(p => p.id === values.partyId);
+    const deliveryParty = allParties.find(p => p.id === values.deliveryTo);
+    const dyeParty = allParties.find(p => p.id === values.dyeParty);
+    const targetParty = deliveryParty || party;
+    
+    return {
+      dcNo: values.dcNo,
+      dcDate: values.dcDate,
+      partyName: targetParty?.partyName || '',
+      address1: targetParty?.address1 || '',
+      address2: targetParty?.address2 || '',
+      address3: targetParty?.address3 || '',
+      address4: targetParty?.address4 || '',
+      district: targetParty?.district || '',
+      pincode: targetParty?.pincode || '',
+      state: targetParty?.state || '',
+      stateCode: targetParty?.stateCode || '',
+      gstNo: targetParty?.gstNo || '',
+      dyeParty: dyeParty?.partyName || '',
+      dyeDcNo: values.dyeingDcNo || '',
+      pdcNo: values.pdcNo || '',
+      orderNo: values.orderNo || '',
+      inwardNo: values.grnNo || '',
+      recWeight: inwardQty || '',
+      remarks: values.remarks || '',
+      items: details.map(d => ({
+        fabric: fabrics.find(f => f.id === d.fabricId)?.masterName || '',
+        color: colors.find(c => c.id === d.colorId)?.masterName || '',
+        dia: dias.find(dia => dia.id === d.diaId)?.masterName || '',
+        rolls: d.rolls || '',
+        weight: d.weight || ''
+      }))
+    };
+  };
+
+  const getDisplayData = () => {
+    return printData || getPrintData();
   };
 
   const handleInwardSelect = async (inwardNo) => {
@@ -654,7 +752,7 @@ const FabricReturn = () => {
     { title: 'Total Rolls', dataIndex: 'totalRolls', width: 100 },
     {
       title: 'Actions',
-      width: 120,
+      width: 150,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
@@ -665,6 +763,7 @@ const FabricReturn = () => {
           {canDelete('fabric_return') && (
             <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
           )}
+          <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRecord(record)} style={{ color: '#722ed1' }} />
         </Space>
       )
     }
@@ -713,6 +812,14 @@ const FabricReturn = () => {
 
   return (
     <Card>
+      <div style={{ display: 'none' }}>
+        {printData && (
+          <FabricReturnPrint 
+            ref={printRef}
+            data={printData}
+          />
+        )}
+      </div>
       <style>{`
         .compact-table .ant-table-thead > tr > th {
           padding: 4px 6px !important;
@@ -954,7 +1061,12 @@ const FabricReturn = () => {
           <div style={{ marginTop: 4, textAlign: 'right' }}>
             <Space>
               <Button icon={<CloseOutlined />} onClick={() => { setIsFormVisible(false); setIsViewMode(false); }}>Cancel</Button>
-              {!isViewMode && <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={handleSubmit}>Save</Button>}
+              {!isViewMode && (
+                <>
+                  <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={() => handleSubmit(false)}>Save</Button>
+                  <Button type="primary" icon={<PrinterOutlined />} loading={loading} onClick={() => handleSubmit(true)}>Save & Print</Button>
+                </>
+              )}
             </Space>
           </div>
         </Form>
