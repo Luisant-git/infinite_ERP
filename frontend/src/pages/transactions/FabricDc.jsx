@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Form, Input, Button, Row, Col, Typography, Select, DatePicker, Table, Modal, InputNumber, message, Space, Radio, Checkbox } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, EyeOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, EyeOutlined, PrinterOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { useReactToPrint } from 'react-to-print';
 import { getNextDcNo, getFabricDcs, createFabricDc, updateFabricDc, deleteFabricDc } from '../../api/fabricDc';
 import { getParties } from '../../api/party';
 import { getFabricInwards } from '../../api/fabricInward';
@@ -9,6 +10,7 @@ import { getMastersByType } from '../../api/fabricInward';
 import { getSettings } from '../../api/settings';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 import { useSelector } from 'react-redux';
+import FabricDCPrint from '../../components/prints/FabricDCPrint';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -23,6 +25,7 @@ const FabricDc = () => {
   const [editingId, setEditingId] = useState(null);
   const { adminUser: isAdmin, canAdd, canEdit, canDelete } = useMenuPermissions();
   const { selectedCompany, selectedYear } = useSelector(state => state.auth);
+  const printRef = useRef();
   
   const [parties, setParties] = useState([]);
   const [allParties, setAllParties] = useState([]);
@@ -42,6 +45,7 @@ const FabricDc = () => {
   const [balance, setBalance] = useState(0);
   const [inwardDetails, setInwardDetails] = useState([]);
   const [enableProcessDelete, setEnableProcessDelete] = useState(false);
+  const [printData, setPrintData] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -144,6 +148,32 @@ const FabricDc = () => {
     
     const dyeParty = allParties.find(p => p.id === record.dyeParty);
     const isFinal = Boolean(record.isFinal);
+    const party = allParties.find(p => p.id === record.deliveryTo);
+    const firstDetail = record.details?.[0] || {};
+    
+    // Set print data for view mode
+    setPrintData({
+      dcNo: record.dcNo,
+      dcDate: record.dcDate,
+      partyName: party?.partyName || '',
+      address: party?.address1 || '',
+      dyeParty: dyeParty?.partyName || '-',
+      dyeDcNo: record.dyeingDcNo || '',
+      pdcNo: record.pdcNo || '',
+      orderNo: record.orderNo || '',
+      jobNo: record.inwardNo || '',
+      recWeight: Number(record.inwardQty || 0).toFixed(3),
+      items: (record.details || []).map(d => ({
+        fabric: fabrics.find(f => f.id === d.fabricId)?.masterName || '-',
+        color: colors.find(c => c.id === d.colorId)?.masterName || '-',
+        dia: dias.find(d => d.id === d.diaId)?.masterName || '-',
+        rolls: d.rolls || 0,
+        weight: Number(d.dcWeight || 0).toFixed(3)
+      })),
+      process: record.processes?.map(p => p.processName).join(', ') || '',
+      vehicleNo: record.vehicleNo || '',
+      remarks: record.remarks || '-'
+    });
     
     form.setFieldsValue({
       ...record,
@@ -211,7 +241,7 @@ const FabricDc = () => {
     });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (shouldPrint = false) => {
     try {
       const values = await form.validateFields();
       
@@ -283,12 +313,44 @@ const FabricDc = () => {
         }))
       };
 
+      let savedRecord;
       if (editingId) {
-        await updateFabricDc(editingId, data);
+        savedRecord = await updateFabricDc(editingId, data);
         message.success('Updated successfully');
       } else {
-        await createFabricDc(data);
+        savedRecord = await createFabricDc(data);
         message.success('Created successfully');
+      }
+      
+      if (shouldPrint) {
+        const party = allParties.find(p => p.id === values.deliveryTo);
+        
+        setPrintData({
+          dcNo: values.dcNo,
+          dcDate: values.dcDate,
+          partyName: party?.partyName || '',
+          address: party?.address1 || '',
+          dyeParty: values.dyeingPartyName || '-',
+          dyeDcNo: values.dyeingDcNo || '',
+          pdcNo: values.pdcNo || '',
+          orderNo: values.orderNo || '',
+          jobNo: values.grnNo || '',
+          recWeight: inwardQty.toFixed(3),
+          items: details.map(d => ({
+            fabric: fabrics.find(f => f.id === d.fabricId)?.masterName || '-',
+            color: colors.find(c => c.id === d.colorId)?.masterName || '-',
+            dia: dias.find(dia => dia.id === d.diaId)?.masterName || '-',
+            rolls: d.rolls || 0,
+            weight: Number(d.dcWeight || 0).toFixed(3)
+          })),
+          process: selectedProcesses.map(p => p.processName).join(', '),
+          vehicleNo: values.vehicleNo || '',
+          remarks: values.remarks || '-'
+        });
+        
+        setTimeout(() => {
+          handlePrint();
+        }, 500);
       }
       
       setIsFormVisible(false);
@@ -298,6 +360,39 @@ const FabricDc = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+  });
+
+  const handlePrintRecord = (record) => {
+    const party = allParties.find(p => p.id === record.deliveryTo);
+    
+    setPrintData({
+      dcNo: record.dcNo,
+      dcDate: record.dcDate,
+      partyName: party?.partyName || '',
+      address: party?.address1 || '',
+      dyeParty: allParties.find(p => p.id === record.dyeParty)?.partyName || '-',
+      dyeDcNo: record.dyeingDcNo || '',
+      pdcNo: record.pdcNo || '',
+      orderNo: record.orderNo || '',
+      jobNo: record.inwardNo || '',
+      recWeight: Number(record.inwardQty || 0).toFixed(3),
+      items: (record.details || []).map(d => ({
+        fabric: fabrics.find(f => f.id === d.fabricId)?.masterName || '-',
+        color: colors.find(c => c.id === d.colorId)?.masterName || '-',
+        dia: dias.find(dia => dia.id === d.diaId)?.masterName || '-',
+        rolls: d.rolls || 0,
+        weight: Number(d.dcWeight || 0).toFixed(3)
+      })),
+      process: record.processes?.map(p => p.processName).join(', ') || '',
+      vehicleNo: record.vehicleNo || '',
+      remarks: record.remarks || '-'
+    });
+    
+    setTimeout(() => handlePrint(), 100);
   };
 
   const handleInwardSelect = async (inwardNo) => {
@@ -744,8 +839,7 @@ const FabricDc = () => {
     { title: 'Total Rolls', dataIndex: 'totalRolls', width: 100 },
     {
       title: 'Actions',
-      width: 150,
-      fixed: 'right',
+      width: 180,
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} style={{ color: '#1890ff' }} />
@@ -755,6 +849,7 @@ const FabricDc = () => {
           {canDelete('fabric_dc') && (
             <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
           )}
+          <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRecord(record)} style={{ color: '#722ed1' }} />
         </Space>
       )
     }
@@ -1040,11 +1135,26 @@ const FabricDc = () => {
           <div style={{ marginTop: 4, textAlign: 'right' }}>
             <Space>
               <Button icon={<CloseOutlined />} onClick={() => { setIsFormVisible(false); setIsViewMode(false); }}>Cancel</Button>
-              {!isViewMode && <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={handleSubmit}>Save</Button>}
+              {!isViewMode && (
+                <>
+                  <Button type="primary" icon={<SaveOutlined />} loading={loading} onClick={() => handleSubmit(false)}>Save</Button>
+                  <Button type="primary" icon={<PrinterOutlined />} loading={loading} onClick={() => handleSubmit(true)} style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}>Save & Print</Button>
+                </>
+              )}
+              {isViewMode && <Button type="primary" icon={<PrinterOutlined />} onClick={handlePrint}>Print</Button>}
             </Space>
           </div>
         </Form>
       )}
+
+      <div style={{ display: 'none' }}>
+        {printData && (
+          <FabricDCPrint 
+            ref={printRef}
+            data={printData}
+          />
+        )}
+      </div>
     </Card>
   );
 };
