@@ -160,7 +160,7 @@ const FabricDc = () => {
         if (d.processes) {
           try {
             const processes = JSON.parse(d.processes);
-            processes.forEach(p => itemProcesses.add(p.processName));
+            processes.forEach(p => itemProcesses.add(p));
           } catch (e) {
             console.error('Error parsing item processes:', e);
           }
