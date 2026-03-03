@@ -152,6 +152,26 @@ const FabricDc = () => {
     const firstDetail = record.details?.[0] || {};
     
     // Set print data for view mode
+    let processText = '';
+    if (enableItemWiseProcess) {
+      // When item-wise process is enabled, get processes from item details
+      const itemProcesses = new Set();
+      (record.details || []).forEach(d => {
+        if (d.processes) {
+          try {
+            const processes = JSON.parse(d.processes);
+            processes.forEach(p => itemProcesses.add(p.processName));
+          } catch (e) {
+            console.error('Error parsing item processes:', e);
+          }
+        }
+      });
+      processText = Array.from(itemProcesses).join(', ');
+    } else {
+      // Use main record processes
+      processText = record.processes?.map(p => p.processName).join(', ') || '';
+    }
+    
     setPrintData({
       dcNo: record.dcNo,
       dcDate: record.dcDate,
@@ -170,7 +190,7 @@ const FabricDc = () => {
         rolls: d.rolls || 0,
         weight: Number(d.dcWeight || 0).toFixed(3)
       })),
-      process: record.processes?.map(p => p.processName).join(', ') || '',
+      process: processText,
       vehicleNo: record.vehicleNo || '',
       remarks: record.remarks || '-'
     });
