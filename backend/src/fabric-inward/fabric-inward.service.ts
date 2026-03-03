@@ -148,6 +148,7 @@ export class FabricInwardService {
             weight: d.weight || 0,
             rolls: d.rolls || 0,
             uomId: d.uomId,
+            processes: d.processes,
             remarks: d.remarks
           })) || []
         },
@@ -223,6 +224,7 @@ export class FabricInwardService {
             weight: d.weight || 0,
             rolls: d.rolls || 0,
             uomId: d.uomId,
+            processes: d.processes,
             remarks: d.remarks
           })) || []
         },

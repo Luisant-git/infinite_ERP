@@ -12,7 +12,7 @@ export class SettingsService {
     });
     if (!settings) {
       settings = await this.prisma.settings.create({
-        data: { tenantId, enableProcessDelete: false },
+        data: { tenantId, enableItemWiseProcess: false },
       });
     }
     return settings;

@@ -15,7 +15,7 @@ const Settings = () => {
     try {
       const data = await getSettings();
       form.setFieldsValue({
-        enableProcessDelete: data.enableProcessDelete
+        enableItemWiseProcess: data.enableItemWiseProcess
       });
     } catch (error) {
       message.error('Failed to load settings');
@@ -43,10 +43,10 @@ const Settings = () => {
 
       <Form form={form} layout="vertical" style={{ maxWidth: 600 }}>
         <Form.Item 
-          label="Enable Process Delete" 
-          name="enableProcessDelete" 
+          label="Enable Item Wise Process" 
+          name="enableItemWiseProcess" 
           valuePropName="checked"
-          tooltip="When enabled, delete icon will be shown for process removal from DC and Return"
+          tooltip="When enabled, processes can be managed at item level"
         >
           <Switch />
         </Form.Item>

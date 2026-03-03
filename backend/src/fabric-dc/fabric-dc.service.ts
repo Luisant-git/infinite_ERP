@@ -109,6 +109,7 @@ export class FabricDcService {
             uomId: d.uomId,
             rate: d.rate || 0,
             amount: d.amount || 0,
+            processes: d.processes,
             remarks: d.remarks
           })) || []
         },
@@ -176,6 +177,7 @@ export class FabricDcService {
             uomId: d.uomId,
             rate: d.rate || 0,
             amount: d.amount || 0,
+            processes: d.processes,
             remarks: d.remarks
           })) || []
         },

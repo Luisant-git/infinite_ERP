@@ -44,8 +44,8 @@ const FabricDc = () => {
   const [pendingInward, setPendingInward] = useState(0);
   const [balance, setBalance] = useState(0);
   const [inwardDetails, setInwardDetails] = useState([]);
-  const [enableProcessDelete, setEnableProcessDelete] = useState(false);
   const [printData, setPrintData] = useState(null);
+  const [enableItemWiseProcess, setEnableItemWiseProcess] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -54,6 +54,15 @@ const FabricDc = () => {
     loadSettings();
   }, []);
 
+  const loadSettings = async () => {
+    try {
+      const settings = await getSettings();
+      setEnableItemWiseProcess(settings.enableItemWiseProcess || false);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
+
   const loadAllInwards = async () => {
     try {
       const response = await getFabricInwards('', 1, 1000);
@@ -61,15 +70,6 @@ const FabricDc = () => {
       setInwards(filtered);
     } catch (error) {
       console.error('Error loading inwards:', error);
-    }
-  };
-
-  const loadSettings = async () => {
-    try {
-      const settings = await getSettings();
-      setEnableProcessDelete(settings.enableProcessDelete || false);
-    } catch (error) {
-      console.error('Error loading settings:', error);
     }
   };
 
@@ -189,7 +189,8 @@ const FabricDc = () => {
       key: d.id,
       inwardWeight: d.processWeight || 0,
       weightLoss: (d.processWeight || 0) - (d.dcWeight || 0),
-      lossPercentage: (d.processWeight || 0) > 0 ? (((d.processWeight || 0) - (d.dcWeight || 0)) / (d.processWeight || 0) * 100) : 0
+      lossPercentage: (d.processWeight || 0) > 0 ? (((d.processWeight || 0) - (d.dcWeight || 0)) / (d.processWeight || 0) * 100) : 0,
+      processes: d.processes ? JSON.parse(d.processes) : []
     })) || []);
     setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
     setDcType(record.dcType || 'Fresh');
@@ -218,7 +219,8 @@ const FabricDc = () => {
       key: d.id,
       inwardWeight: d.processWeight || 0,
       weightLoss: (d.processWeight || 0) - (d.dcWeight || 0),
-      lossPercentage: (d.processWeight || 0) > 0 ? (((d.processWeight || 0) - (d.dcWeight || 0)) / (d.processWeight || 0) * 100) : 0
+      lossPercentage: (d.processWeight || 0) > 0 ? (((d.processWeight || 0) - (d.dcWeight || 0)) / (d.processWeight || 0) * 100) : 0,
+      processes: d.processes ? JSON.parse(d.processes) : []
     })) || []);
     setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
     setDcType(record.dcType || 'Fresh');
@@ -306,6 +308,7 @@ const FabricDc = () => {
           uomId: d.uomId,
           rate: Number(d.rate) || 0,
           amount: Number(d.amount) || 0,
+          processes: enableItemWiseProcess && d.processes ? JSON.stringify(d.processes) : null,
           remarks: d.remarks
         })),
         processes: selectedProcesses.map(p => ({
@@ -480,6 +483,7 @@ const FabricDc = () => {
             uomId: d.uomId,
             rate: 0,
             amount: 0,
+            processes: d.processes ? JSON.parse(d.processes) : [],
             remarks: d.remarks || ''
           };
         }));
@@ -518,6 +522,7 @@ const FabricDc = () => {
       uomId: null,
       rate: 0,
       amount: 0,
+      processes: [],
       remarks: ''
     }]);
   };
@@ -590,6 +595,7 @@ const FabricDc = () => {
             dcWeight: dcWt,
             weightLoss: weightLoss,
             lossPercentage: lossPerc,
+            processes: selectedDetail.processes ? JSON.parse(selectedDetail.processes) : [],
             amount: 0
           };
         }
@@ -799,6 +805,30 @@ const FabricDc = () => {
       width: 100,
       render: (val) => <InputNumber value={val} disabled style={{ width: '100%' }} precision={2} autoComplete="off" />
     },
+    ...(enableItemWiseProcess ? [{
+      title: 'Process',
+      dataIndex: 'processes',
+      width: 200,
+      render: (val, record) => {
+        // Get processes from the selected inward detail or use current processes
+        const availableProcesses = record.inwFabricId ? 
+          (inwardDetails.find(d => d.fabricId === record.inwFabricId && d.colorId === record.inwColorId && d.diaId === record.inwDiaId)?.processes ? 
+            JSON.parse(inwardDetails.find(d => d.fabricId === record.inwFabricId && d.colorId === record.inwColorId && d.diaId === record.inwDiaId).processes) : []) : [];
+        
+        return (
+          <Select
+            mode="multiple"
+            disabled={isViewMode}
+            value={val || []}
+            onChange={(v) => handleDetailChange(record.key, 'processes', v)}
+            style={{ width: '100%' }}
+            placeholder="Select processes"
+          >
+            {availableProcesses.map((p, idx) => <Option key={idx} value={p}>{p}</Option>)}
+          </Select>
+        );
+      }
+    }] : []),
     {
       title: 'Remarks',
       dataIndex: 'remarks',
@@ -819,14 +849,7 @@ const FabricDc = () => {
   const processColumns = [
     { title: 'Sl.No', width: 80, render: (_, record, index) => index + 1 },
     { title: 'Process', dataIndex: 'processName', width: 200 },
-    { title: 'Remarks', dataIndex: 'remarks', width: 200 },
-    ...(enableProcessDelete && !isViewMode ? [{
-      title: 'Action',
-      width: 80,
-      render: (_, record) => (
-        <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDeleteProcess(record.key)} />
-      )
-    }] : [])
+    { title: 'Remarks', dataIndex: 'remarks', width: 200 }
   ];
 
   const listColumns = [
@@ -1086,6 +1109,7 @@ const FabricDc = () => {
             />
           </div>
 
+          {!enableItemWiseProcess && (
           <div style={{ marginTop: 4 }}>
             <Title level={5} style={{ margin: 0, marginBottom: 4, fontSize: '14px' }}>Process</Title>
             <Table 
@@ -1096,6 +1120,7 @@ const FabricDc = () => {
               className="compact-table"
             />
           </div>
+          )}
 
           <Row gutter={8} style={{ marginTop: 4 }}>
             <Col span={6}>

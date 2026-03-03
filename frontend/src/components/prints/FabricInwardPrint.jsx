@@ -144,7 +144,9 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
             ))}
             <tr className="process-row">
               <td colSpan="3" className="text-left" style={{ fontWeight: 'bold', padding: '6px' }}>
-                Process : {data.processes?.map(p => p.processName).join('+') || ''}
+                Process : {data.enableItemWiseProcess 
+                  ? page.details.map(d => d.processes ? JSON.parse(d.processes) : []).flat().filter((v, i, a) => a.indexOf(v) === i).join('+') 
+                  : (data.processes?.map(p => p.processName).join('+') || '')}
               </td>
               <td colSpan="2" style={{ fontWeight: 'bold' }}>Total</td>
               <td style={{ fontWeight: 'bold' }}>{page.details.reduce((sum, d) => sum + (parseFloat(d.rolls) || 0), 0)}</td>

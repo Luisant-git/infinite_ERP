@@ -11,6 +11,7 @@ import { getParties } from '../../api/party';
 import { getDesigns } from '../../api/design';
 import { getProcesses } from '../../api/process';
 import { getPartyProcessRates } from '../../api/partyProcessRate';
+import { getSettings } from '../../api/settings';
 import FabricInwardPrint from '../../components/prints/FabricInwardPrint';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 import { useSelector } from 'react-redux';
@@ -45,6 +46,7 @@ const FabricInward = () => {
   const printRef = useRef();
   const [searchText, setSearchText] = useState('');
   const [isViewMode, setIsViewMode] = useState(false);
+  const [enableItemWiseProcess, setEnableItemWiseProcess] = useState(false);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -53,7 +55,17 @@ const FabricInward = () => {
   useEffect(() => {
     loadData();
     loadMasters();
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const settings = await getSettings();
+      setEnableItemWiseProcess(settings.enableItemWiseProcess || false);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -131,7 +143,12 @@ const FabricInward = () => {
     });
     setDetails(record.details?.map(d => {
       const design = designs.find(des => des.id === d.designId);
-      return { ...d, key: d.id, designNo: design?.designNo || d.designNo };
+      return { 
+        ...d, 
+        key: d.id, 
+        designNo: design?.designNo || d.designNo,
+        processes: d.processes ? JSON.parse(d.processes) : []
+      };
     }) || []);
     
     const processesWithIds = record.processes?.map(p => {
@@ -161,7 +178,12 @@ const FabricInward = () => {
     });
     setDetails(record.details?.map(d => {
       const design = designs.find(des => des.id === d.designId);
-      return { ...d, key: d.id, designNo: design?.designNo || d.designNo };
+      return { 
+        ...d, 
+        key: d.id, 
+        designNo: design?.designNo || d.designNo,
+        processes: d.processes ? JSON.parse(d.processes) : []
+      };
     }) || []);
     
     const processesWithIds = record.processes?.map(p => {
@@ -226,9 +248,20 @@ const FabricInward = () => {
         return;
       }
       
-      if (selectedProcesses.length === 0) {
-        message.error('Please select at least one process');
-        return;
+      // Validate processes based on setting
+      if (enableItemWiseProcess) {
+        // Check if at least one detail has processes selected
+        const hasProcesses = details.some(d => d.processes && d.processes.length > 0);
+        if (!hasProcesses) {
+          message.error('Please select at least one process for at least one item');
+          return;
+        }
+      } else {
+        // Check header-level processes
+        if (selectedProcesses.length === 0) {
+          message.error('Please select at least one process');
+          return;
+        }
       }
       
       if (!editingId) {
@@ -280,6 +313,7 @@ const FabricInward = () => {
           weight: Number(d.weight) || 0,
           rolls: d.rolls || 0,
           uomId: d.uomId,
+          processes: enableItemWiseProcess && d.processes && d.processes.length > 0 ? JSON.stringify(d.processes) : null,
           remarks: d.remarks
         })),
         processes: selectedProcesses.map(p => ({
@@ -306,7 +340,15 @@ const FabricInward = () => {
       loadData();
       
       if (shouldPrint && savedRecord) {
-        setPrintData(savedRecord);
+        // Prepare print data with processes
+        const printRecord = {
+          ...savedRecord,
+          enableItemWiseProcess,
+          processes: enableItemWiseProcess 
+            ? [] // For item-wise, processes are in details
+            : selectedProcesses.map(p => ({ processName: p.processName }))
+        };
+        setPrintData(printRecord);
         setTimeout(() => handlePrint(), 500);
       }
     } catch (error) {
@@ -336,6 +378,7 @@ const FabricInward = () => {
       weight: 0,
       rolls: 0,
       uomId: null,
+      processes: [],
       remarks: ''
     }]);
   };
@@ -521,6 +564,22 @@ const FabricInward = () => {
         />
       )
     },
+    ...(enableItemWiseProcess ? [{
+      title: 'Process',
+      dataIndex: 'processes',
+      width: 200,
+      render: (val, record) => (
+        <Select
+          mode="multiple"
+          value={val || []}
+          onChange={(v) => handleDetailChange(record.key, 'processes', v)}
+          style={{ width: '100%' }}
+          placeholder="Select processes"
+        >
+          {processes.map(p => <Option key={p.id} value={p.processName}>{p.processName}</Option>)}
+        </Select>
+      )
+    }] : []),
     {
       title: 'Remarks',
       dataIndex: 'remarks',
@@ -831,6 +890,7 @@ const FabricInward = () => {
             />
           </div>
 
+          {!enableItemWiseProcess && (
           <div style={{ marginTop: 4 }}>
             <Title level={5} style={{ margin: 0, marginBottom: 4, fontSize: '14px' }}>Process Selection</Title>
             <Select
@@ -850,6 +910,7 @@ const FabricInward = () => {
               className="compact-table"
             />
           </div>
+          )}
 
           <div style={{ marginTop: 4, textAlign: 'right' }}>
             <Space>

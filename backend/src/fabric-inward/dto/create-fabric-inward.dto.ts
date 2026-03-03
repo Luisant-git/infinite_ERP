@@ -52,6 +52,10 @@ class FabricInwardDetailDto {
 
   @IsOptional()
   @IsString()
+  processes?: string;
+
+  @IsOptional()
+  @IsString()
   remarks?: string;
 }
 

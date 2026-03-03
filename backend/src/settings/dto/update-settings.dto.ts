@@ -2,5 +2,5 @@ import { IsBoolean } from 'class-validator';
 
 export class UpdateSettingsDto {
   @IsBoolean()
-  enableProcessDelete: boolean;
+  enableItemWiseProcess: boolean;
 }

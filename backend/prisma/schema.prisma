@@ -380,6 +380,7 @@ model FabricInwardDetail {
   weight                Decimal  @default(0) @db.Decimal(12, 3)
   rolls                 Int      @default(0)
   uomId                 Int?
+  processes             String?  @db.Text
   remarks               String?  @db.VarChar(100)
   deleteFlg             Int      @default(0)
   
@@ -520,6 +521,7 @@ model FabricDcDetail {
   uomId           Int?
   rate            Decimal  @default(0) @db.Decimal(12, 2)
   amount          Decimal  @default(0) @db.Decimal(12, 2)
+  processes       String?  @db.Text
   remarks         String?  @db.VarChar(100)
   deleteFlg       Int      @default(0)
   
@@ -734,7 +736,7 @@ model FabricBillTax {
 model Settings {
   id                      Int      @id @default(autoincrement())
   tenantId                Int      @unique
-  enableProcessDelete     Boolean  @default(false)
+  enableItemWiseProcess   Boolean  @default(false)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   
