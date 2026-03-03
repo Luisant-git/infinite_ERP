@@ -152,19 +152,14 @@ const FabricDc = () => {
     const firstDetail = record.details?.[0] || {};
     
     // Set print data for view mode
-    console.log('enableItemWiseProcess:', enableItemWiseProcess);
-    console.log('record.details:', record.details);
-    
     let processText = '';
     if (enableItemWiseProcess) {
       // When item-wise process is enabled, get processes from item details
       const itemProcesses = new Set();
       (record.details || []).forEach(d => {
-        console.log('Processing detail:', d.id, 'processes:', d.processes);
         if (d.processes) {
           try {
             const processes = JSON.parse(d.processes);
-            console.log('Parsed processes:', processes);
             processes.forEach(p => itemProcesses.add(p));
           } catch (e) {
             console.error('Error parsing item processes:', e);
@@ -172,11 +167,9 @@ const FabricDc = () => {
         }
       });
       processText = Array.from(itemProcesses).join(', ');
-      console.log('Final processText from items:', processText);
     } else {
       // Use main record processes
       processText = record.processes?.map(p => p.processName).join(', ') || '';
-      console.log('Final processText from main record:', processText);
     }
     
     setPrintData({
@@ -399,6 +392,27 @@ const FabricDc = () => {
   const handlePrintRecord = (record) => {
     const party = allParties.find(p => p.id === record.deliveryTo);
     
+    // Extract processes based on enableItemWiseProcess setting
+    let processText = '';
+    if (enableItemWiseProcess) {
+      // When item-wise process is enabled, get processes from item details
+      const itemProcesses = new Set();
+      (record.details || []).forEach(d => {
+        if (d.processes) {
+          try {
+            const processes = JSON.parse(d.processes);
+            processes.forEach(p => itemProcesses.add(p));
+          } catch (e) {
+            console.error('Error parsing item processes:', e);
+          }
+        }
+      });
+      processText = Array.from(itemProcesses).join(', ');
+    } else {
+      // Use main record processes
+      processText = record.processes?.map(p => p.processName).join(', ') || '';
+    }
+    
     setPrintData({
       dcNo: record.dcNo,
       dcDate: record.dcDate,
@@ -417,7 +431,7 @@ const FabricDc = () => {
         rolls: d.rolls || 0,
         weight: Number(d.dcWeight || 0).toFixed(3)
       })),
-      process: record.processes?.map(p => p.processName).join(', ') || '',
+      process: processText,
       vehicleNo: record.vehicleNo || '',
       remarks: record.remarks || '-'
     });
