@@ -57,7 +57,8 @@ const CompanySelectionModal = ({ visible, onSelect, onCancel }) => {
       onSelect({
         company: values.company,
         year: values.year,
-        tenantId: tenant.id
+        tenantId: tenant.id,
+        concernId: tenant.concernId
       });
     } catch (error) {
       console.error('Tenant selection failed:', error);

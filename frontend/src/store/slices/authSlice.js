@@ -99,13 +99,13 @@ const authSlice = createSlice({
         state.showCompanySelection = true;
       } else {
         state.selectedCompany = action.payload.company;
-        state.selectedCompanyId = action.payload.tenantId;
+        state.selectedCompanyId = action.payload.concernId || action.payload.tenantId;
         state.selectedYear = action.payload.year;
         state.selectedTenantId = action.payload.tenantId;
         state.showCompanySelection = false;
         localStorage.setItem('tenantId', action.payload.tenantId);
         localStorage.setItem('selectedCompany', action.payload.company);
-        localStorage.setItem('selectedCompanyId', action.payload.tenantId);
+        localStorage.setItem('selectedCompanyId', action.payload.concernId || action.payload.tenantId);
         localStorage.setItem('selectedYear', action.payload.year);
       }
     },

@@ -121,7 +121,8 @@ export class AuthService {
         autoSelectTenant: tenant ? {
           id: tenant.id,
           company: tenant.concern.partyName,
-          financialYear: tenant.financialYear
+          financialYear: tenant.financialYear,
+          concernId: tenant.concernId
         } : null
       };
     }
@@ -145,7 +146,8 @@ export class AuthService {
       tenants: availableTenants.map(tenant => ({
         id: tenant.id,
         company: tenant.concern.partyName,
-        financialYear: tenant.financialYear
+        financialYear: tenant.financialYear,
+        concernId: tenant.concernId
       }))
     };
   }
