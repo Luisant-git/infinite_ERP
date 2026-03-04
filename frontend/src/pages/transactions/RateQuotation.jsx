@@ -32,7 +32,7 @@ const RateQuotation = () => {
   const [searchText, setSearchText] = useState('');
   const [printData, setPrintData] = useState(null);
   const printRef = useRef();
-  const { selectedCompany, selectedCompanyId, selectedYear, IsMD, selectedConcern } = useSelector(state => state.auth);
+  const { selectedCompany, selectedCompanyId, selectedYear, IsMD } = useSelector(state => state.auth);
   const { adminUser: isAdmin, canAdd, canEdit, canDelete } = useMenuPermissions();
   const isAdminOrMD = isAdmin || IsMD === 1;
 
@@ -90,12 +90,12 @@ const RateQuotation = () => {
       const response = await getNextQuotNo();
       form.resetFields();
       
-      console.log('selectedConcern:', selectedConcern);
+      console.log('selectedCompanyId:', selectedCompanyId);
       
-      if (!selectedConcern?.id) {
+      if (!selectedCompanyId) {
         Modal.error({
           title: 'Error',
-          content: 'Concern information not found. Please login again to continue.'
+          content: 'Company information not found. Please login again to continue.'
         });
         return;
       }
@@ -103,7 +103,7 @@ const RateQuotation = () => {
       form.setFieldsValue({
         quotNo: response.quotNo,
         quotDate: dayjs(),
-        concernId: selectedConcern.id
+        concernId: selectedCompanyId
       });
       setDetails([]);
       setFileList([]);
