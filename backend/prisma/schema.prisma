@@ -605,6 +605,7 @@ model FabricReturnDetail {
   uomId       Int?
   rate        Decimal  @default(0) @db.Decimal(12, 2)
   amount      Decimal  @default(0) @db.Decimal(12, 2)
+  processes   String?  @db.Text
   remarks     String?  @db.VarChar(100)
   deleteFlg   Int      @default(0)
   

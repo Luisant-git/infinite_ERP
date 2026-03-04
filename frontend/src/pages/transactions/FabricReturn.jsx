@@ -42,12 +42,23 @@ const FabricReturn = () => {
   const [pendingInward, setPendingInward] = useState(0);
   const [balance, setBalance] = useState(0);
   const [inwardDetails, setInwardDetails] = useState([]);
+  const [enableItemWiseProcess, setEnableItemWiseProcess] = useState(false);
 
   useEffect(() => {
     loadData();
     loadMasters();
     loadAllInwards();
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const settings = await getSettings();
+      setEnableItemWiseProcess(settings.enableItemWiseProcess || false);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
 
   const loadAllInwards = async () => {
     try {
@@ -198,6 +209,18 @@ const FabricReturn = () => {
         return;
       }
       
+      if (!editingId) {
+        const trimmedDcNo = values.dcNo?.trim();
+        const returnResponse = await getFabricReturns('', 1, 1000);
+        
+        const allReturns = returnResponse.data || [];
+        const duplicateReturn = allReturns.find(f => f.dcNo?.trim() === trimmedDcNo);
+        if (duplicateReturn) {
+          message.error('DC number already exists!');
+          return;
+        }
+      }
+      
       setLoading(true);
 
       const totalQty = details.reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
@@ -207,6 +230,7 @@ const FabricReturn = () => {
 
       const data = {
         ...submitValues,
+        dcNo: values.dcNo?.trim(),
         dyeParty: dyeParty || null,
         dcDate: values.dcDate?.toISOString(),
         grnDate: values.grnDate?.toISOString(),
@@ -226,6 +250,7 @@ const FabricReturn = () => {
           uomId: d.uomId,
           rate: Number(d.rate) || 0,
           amount: Number(d.amount) || 0,
+          processes: enableItemWiseProcess && d.processes ? JSON.stringify(d.processes) : null,
           remarks: d.remarks
         })),
         processes: selectedProcesses.map(p => ({
@@ -400,6 +425,17 @@ const FabricReturn = () => {
       const existingDcs = allDcs.filter(dc => dc.inwardNo === inwardNo);
       const existingReturns = allReturns.filter(ret => ret.inwardNo === inwardNo && ret.id !== editingId);
       
+      console.log('FabricReturn - handleInwardSelect:', {
+        inwardNo,
+        editingId,
+        allDcsCount: allDcs.length,
+        allReturnsCount: allReturns.length,
+        existingDcsCount: existingDcs.length,
+        existingReturnsCount: existingReturns.length,
+        existingDcs: existingDcs.map(dc => ({ dcNo: dc.dcNo, totalQty: dc.totalQty })),
+        existingReturns: existingReturns.map(ret => ({ dcNo: ret.dcNo, id: ret.id, totalQty: ret.totalQty }))
+      });
+      
       const usedInDc = existingDcs.reduce((sum, dc) => sum + (Number(dc.totalQty) || 0), 0);
       const usedInReturn = existingReturns.reduce((sum, ret) => sum + (Number(ret.totalQty) || 0), 0);
       
@@ -424,31 +460,72 @@ const FabricReturn = () => {
         setInwardDetails(selectedInward.details);
         
         const loadedDetails = await Promise.all(selectedInward.details.map(async (d, idx) => {
+          console.log('Processing inward detail:', d);
           let usedWeightFromDcs = 0;
+          let usedRollsFromDcs = 0;
+          const usedProcesses = new Set();
+          
           existingDcs.forEach(dc => {
+            console.log('Checking DC:', dc.dcNo, 'details:', dc.details);
             if (dc.details && dc.details.length > 0) {
               dc.details.forEach(detail => {
+                console.log('DC detail:', detail, 'comparing with inward:', d.fabricId, d.colorId, d.diaId);
                 if (detail.inwFabricId === d.fabricId && detail.inwColorId === d.colorId && detail.inwDiaId === d.diaId) {
+                  console.log('MATCH! Adding weight:', detail.processWeight, 'rolls:', detail.rolls);
                   usedWeightFromDcs += Number(detail.processWeight) || 0;
+                  usedRollsFromDcs += Number(detail.rolls) || 0;
+                  if (detail.processes) {
+                    try {
+                      const procs = JSON.parse(detail.processes);
+                      procs.forEach(p => usedProcesses.add(p));
+                    } catch (e) {}
+                  }
                 }
               });
             }
           });
           
           let usedWeightFromReturns = 0;
+          let usedRollsFromReturns = 0;
           existingReturns.forEach(ret => {
             if (ret.details && ret.details.length > 0) {
               ret.details.forEach(detail => {
                 if (detail.fabricId === d.fabricId && detail.colorId === d.colorId && detail.diaId === d.diaId) {
                   usedWeightFromReturns += Number(detail.weight) || 0;
+                  usedRollsFromReturns += Number(detail.rolls) || 0;
+                  if (detail.processes) {
+                    try {
+                      const procs = JSON.parse(detail.processes);
+                      procs.forEach(p => usedProcesses.add(p));
+                    } catch (e) {}
+                  }
                 }
               });
             }
           });
           
           const totalUsed = usedWeightFromDcs + usedWeightFromReturns;
+          const totalRollsUsed = usedRollsFromDcs + usedRollsFromReturns;
           const remainingWeight = (d.weight || 0) - totalUsed;
+          const remainingRolls = (d.rolls || 0) - totalRollsUsed;
           const returnWt = remainingWeight > 0 ? remainingWeight : 0;
+          const rolls = remainingRolls > 0 ? remainingRolls : 0;
+          const allProcesses = d.processes ? JSON.parse(d.processes) : [];
+          const remainingProcesses = allProcesses.filter(p => !usedProcesses.has(p));
+          
+          console.log('FabricReturn - handleInwardSelect detail:', {
+            fabricId: d.fabricId,
+            originalWeight: d.weight,
+            originalRolls: d.rolls,
+            usedWeightFromDcs,
+            usedWeightFromReturns,
+            usedRollsFromDcs,
+            usedRollsFromReturns,
+            remainingWeight,
+            remainingRolls,
+            returnWt,
+            rolls
+          });
           
           return {
             key: Date.now() + idx,
@@ -460,10 +537,11 @@ const FabricReturn = () => {
             designName: d.designName || '',
             noOfColor: d.noOfColor || 0,
             weight: returnWt,
-            rolls: d.rolls || 0,
+            rolls: rolls,
             uomId: d.uomId,
             rate: 0,
             amount: 0,
+            processes: remainingProcesses,
             remarks: d.remarks || ''
           };
         }));
@@ -494,6 +572,7 @@ const FabricReturn = () => {
       uomId: null,
       rate: 0,
       amount: 0,
+      processes: [],
       remarks: ''
     }]);
   };
@@ -516,6 +595,8 @@ const FabricReturn = () => {
       const existingReturns = allReturns.filter(ret => ret.inwardNo === currentInwardNo && ret.id !== editingId);
       
       let usedWeightFromDcs = 0;
+      let usedRollsFromDcs = 0;
+      const usedProcesses = new Set();
       existingDcs.forEach(dc => {
         if (dc.details && dc.details.length > 0) {
           dc.details.forEach(detail => {
@@ -523,12 +604,20 @@ const FabricReturn = () => {
                 detail.inwColorId === selectedDetail.colorId && 
                 detail.inwDiaId === selectedDetail.diaId) {
               usedWeightFromDcs += Number(detail.processWeight) || 0;
+              usedRollsFromDcs += Number(detail.rolls) || 0;
+              if (detail.processes) {
+                try {
+                  const procs = JSON.parse(detail.processes);
+                  procs.forEach(p => usedProcesses.add(p));
+                } catch (e) {}
+              }
             }
           });
         }
       });
       
       let usedWeightFromReturns = 0;
+      let usedRollsFromReturns = 0;
       existingReturns.forEach(ret => {
         if (ret.details && ret.details.length > 0) {
           ret.details.forEach(detail => {
@@ -536,6 +625,13 @@ const FabricReturn = () => {
                 detail.colorId === selectedDetail.colorId && 
                 detail.diaId === selectedDetail.diaId) {
               usedWeightFromReturns += Number(detail.weight) || 0;
+              usedRollsFromReturns += Number(detail.rolls) || 0;
+              if (detail.processes) {
+                try {
+                  const procs = JSON.parse(detail.processes);
+                  procs.forEach(p => usedProcesses.add(p));
+                } catch (e) {}
+              }
             }
           });
         }
@@ -548,9 +644,47 @@ const FabricReturn = () => {
                 d.diaId === selectedDetail.diaId)
         .reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
       
+      const usedRollsInForm = details
+        .filter(d => d.key !== key && 
+                d.fabricId === selectedDetail.fabricId && 
+                d.colorId === selectedDetail.colorId && 
+                d.diaId === selectedDetail.diaId)
+        .reduce((sum, d) => sum + (Number(d.rolls) || 0), 0);
+      
+      details.filter(d => d.key !== key && 
+              d.fabricId === selectedDetail.fabricId && 
+              d.colorId === selectedDetail.colorId && 
+              d.diaId === selectedDetail.diaId)
+        .forEach(d => {
+          if (d.processes) {
+            d.processes.forEach(p => usedProcesses.add(p));
+          }
+        });
+      
       const totalUsed = usedWeightFromDcs + usedWeightFromReturns + usedWeightInForm;
+      const totalRollsUsed = usedRollsFromDcs + usedRollsFromReturns + usedRollsInForm;
       const remainingWeight = (selectedDetail.weight || 0) - totalUsed;
+      const remainingRolls = (selectedDetail.rolls || 0) - totalRollsUsed;
       const returnWt = remainingWeight > 0 ? remainingWeight : 0;
+      const rolls = remainingRolls > 0 ? remainingRolls : 0;
+      const allProcesses = selectedDetail.processes ? JSON.parse(selectedDetail.processes) : [];
+      const remainingProcesses = allProcesses.filter(p => !usedProcesses.has(p));
+      
+      console.log('FabricReturn - handleInwardDetailSelect:', {
+        fabricId: selectedDetail.fabricId,
+        originalWeight: selectedDetail.weight,
+        originalRolls: selectedDetail.rolls,
+        usedWeightFromDcs,
+        usedWeightFromReturns,
+        usedWeightInForm,
+        usedRollsFromDcs,
+        usedRollsFromReturns,
+        usedRollsInForm,
+        remainingWeight,
+        remainingRolls,
+        returnWt,
+        rolls
+      });
       
       setDetails(details.map(d => {
         if (d.key === key) {
@@ -563,9 +697,10 @@ const FabricReturn = () => {
             designNo: selectedDetail.designNo || '',
             designName: selectedDetail.designName || '',
             noOfColor: selectedDetail.noOfColor || 0,
-            rolls: selectedDetail.rolls || 0,
+            rolls: rolls,
             uomId: selectedDetail.uomId,
             weight: returnWt,
+            processes: remainingProcesses,
             amount: 0
           };
         }
@@ -601,43 +736,43 @@ const FabricReturn = () => {
 
   const detailColumns = [
     { title: 'Sl.No', width: 50, render: (_, record, index) => index + 1 },
-    {
-      title: 'Inward (Dia/Fabric/Color)',
-      width: 200,
-      render: (_, record) => (
-        <Select 
-          disabled={isViewMode}
-          value={record.fabricId && record.colorId && record.diaId ? `${record.diaId}-${record.fabricId}-${record.colorId}` : undefined}
-          onChange={(val) => {
-            const detail = inwardDetails.find(d => `${d.diaId}-${d.fabricId}-${d.colorId}` === val);
-            if (detail) handleInwardDetailSelect(record.key, detail.id);
-          }}
-          style={{ width: '100%' }}
-          showSearch
-          filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-        >
-          {inwardDetails.map(d => {
-            const dia = dias.find(dia => dia.id === d.diaId)?.masterName || '';
-            const fabric = fabrics.find(f => f.id === d.fabricId)?.masterName || '';
-            const color = colors.find(c => c.id === d.colorId)?.masterName || '';
-            const designInfo = d.designNo ? ` | ${d.designNo}` : '';
-            const designName = d.designName ? ` | ${d.designName}` : '';
-            const colorCount = d.noOfColor ? ` | ${d.noOfColor}` : '';
-            return (
-              <Option key={d.id} value={`${d.diaId}-${d.fabricId}-${d.colorId}`}>
-                {`${dia}/${fabric}/${color}${designInfo}${designName}${colorCount}`}
-              </Option>
-            );
-          })}
-        </Select>
-      )
-    },
+    // {
+    //   title: 'Inward (Dia/Fabric/Color)',
+    //   width: 200,
+    //   render: (_, record) => (
+    //     <Select 
+    //       disabled={isViewMode}
+    //       value={record.fabricId && record.colorId && record.diaId ? `${record.diaId}-${record.fabricId}-${record.colorId}` : undefined}
+    //       onChange={(val) => {
+    //         const detail = inwardDetails.find(d => `${d.diaId}-${d.fabricId}-${d.colorId}` === val);
+    //         if (detail) handleInwardDetailSelect(record.key, detail.id);
+    //       }}
+    //       style={{ width: '100%' }}
+    //       showSearch
+    //       filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+    //     >
+    //       {inwardDetails.map(d => {
+    //         const dia = dias.find(dia => dia.id === d.diaId)?.masterName || '';
+    //         const fabric = fabrics.find(f => f.id === d.fabricId)?.masterName || '';
+    //         const color = colors.find(c => c.id === d.colorId)?.masterName || '';
+    //         const designInfo = d.designNo ? ` | ${d.designNo}` : '';
+    //         const designName = d.designName ? ` | ${d.designName}` : '';
+    //         const colorCount = d.noOfColor ? ` | ${d.noOfColor}` : '';
+    //         return (
+    //           <Option key={d.id} value={`${d.diaId}-${d.fabricId}-${d.colorId}`}>
+    //             {`${dia}/${fabric}/${color}${designInfo}${designName}${colorCount}`}
+    //           </Option>
+    //         );
+    //       })}
+    //     </Select>
+    //   )
+    // },
     {
       title: 'Fabric',
       dataIndex: 'fabricId',
       width: 120,
       render: (val, record) => (
-        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'fabricId', v)} style={{ width: '100%' }} showSearch>
+        <Select disabled value={val} onChange={(v) => handleDetailChange(record.key, 'fabricId', v)} style={{ width: '100%' }} showSearch>
           {fabrics.map(f => <Option key={f.id} value={f.id}>{f.masterName}</Option>)}
         </Select>
       )
@@ -647,7 +782,7 @@ const FabricReturn = () => {
       dataIndex: 'colorId',
       width: 120,
       render: (val, record) => (
-        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'colorId', v)} style={{ width: '100%' }} showSearch>
+        <Select disabled value={val} onChange={(v) => handleDetailChange(record.key, 'colorId', v)} style={{ width: '100%' }} showSearch>
           {colors.map(c => <Option key={c.id} value={c.id}>{c.masterName}</Option>)}
         </Select>
       )
@@ -657,7 +792,7 @@ const FabricReturn = () => {
       dataIndex: 'diaId',
       width: 80,
       render: (val, record) => (
-        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'diaId', v)} style={{ width: '100%' }}>
+        <Select disabled value={val} onChange={(v) => handleDetailChange(record.key, 'diaId', v)} style={{ width: '100%' }}>
           {dias.map(d => <Option key={d.id} value={d.id}>{d.masterName}</Option>)}
         </Select>
       )
@@ -667,7 +802,7 @@ const FabricReturn = () => {
       dataIndex: 'gsm',
       width: 80,
       render: (val, record) => (
-        <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} autoComplete="off" />
+        <Input disabled value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} autoComplete="off" />
       )
     },
     ...(fabricType === 'Print Lot' ? [
@@ -736,6 +871,29 @@ const FabricReturn = () => {
       width: 100,
       render: (val) => <InputNumber value={val} disabled style={{ width: '100%' }} precision={2} autoComplete="off" />
     },
+    ...(enableItemWiseProcess ? [{
+      title: 'Process',
+      dataIndex: 'processes',
+      width: 200,
+      render: (val, record) => {
+        const availableProcesses = record.fabricId ? 
+          (inwardDetails.find(d => d.fabricId === record.fabricId && d.colorId === record.colorId && d.diaId === record.diaId)?.processes ? 
+            JSON.parse(inwardDetails.find(d => d.fabricId === record.fabricId && d.colorId === record.colorId && d.diaId === record.diaId).processes) : []) : [];
+        
+        return (
+          <Select
+            mode="multiple"
+            disabled={isViewMode}
+            value={val || []}
+            onChange={(v) => handleDetailChange(record.key, 'processes', v)}
+            style={{ width: '100%' }}
+            placeholder="Select processes"
+          >
+            {availableProcesses.map((p, idx) => <Option key={idx} value={p}>{p}</Option>)}
+          </Select>
+        );
+      }
+    }] : []),
     {
       title: 'Remarks',
       dataIndex: 'remarks',
@@ -1028,6 +1186,7 @@ const FabricReturn = () => {
             />
           </div>
 
+          {!enableItemWiseProcess && (
           <div style={{ marginTop: 4 }}>
             <Title level={5} style={{ margin: 0, marginBottom: 4, fontSize: '14px' }}>Process</Title>
             <Table 
@@ -1038,6 +1197,7 @@ const FabricReturn = () => {
               className="compact-table"
             />
           </div>
+          )}
 
           <Row gutter={8} style={{ marginTop: 4 }}>
             <Col span={6}>

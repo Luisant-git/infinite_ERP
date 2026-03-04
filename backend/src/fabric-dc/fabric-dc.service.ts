@@ -49,8 +49,8 @@ export class FabricDcService {
   async create(tenantId: number, concernId: number | null, data: any) {
     const sortOrder = parseInt(data.dcNo);
     
-    // Check for duplicate dcNo within the same tenant
-    const existing = await this.prisma.fabricDcHeader.findFirst({
+    // Check for duplicate dcNo in fabric DC within the same tenant
+    const existingDc = await this.prisma.fabricDcHeader.findFirst({
       where: {
         tenantId,
         dcNo: data.dcNo,
@@ -58,7 +58,7 @@ export class FabricDcService {
       }
     });
 
-    if (existing) {
+    if (existingDc) {
       throw new Error('DC number already exists for this tenant');
     }
 

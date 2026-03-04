@@ -48,6 +48,19 @@ export class FabricReturnService {
 
   async create(tenantId: number, concernId: number | null, data: any) {
     const sortOrder = parseInt(data.dcNo);
+    
+    // Check for duplicate dcNo in fabric return within the same tenant
+    const existingReturn = await this.prisma.fabricReturnHeader.findFirst({
+      where: {
+        tenantId,
+        dcNo: data.dcNo,
+        deleteFlg: 0
+      }
+    });
+
+    if (existingReturn) {
+      throw new Error('DC number already exists for this tenant');
+    }
 
     return this.prisma.fabricReturnHeader.create({
       data: {
@@ -89,6 +102,7 @@ export class FabricReturnService {
             uomId: d.uomId,
             rate: d.rate || 0,
             amount: d.amount || 0,
+            processes: d.processes,
             remarks: d.remarks
           })) || []
         },
@@ -149,6 +163,7 @@ export class FabricReturnService {
             uomId: d.uomId,
             rate: d.rate || 0,
             amount: d.amount || 0,
+            processes: d.processes,
             remarks: d.remarks
           })) || []
         },
