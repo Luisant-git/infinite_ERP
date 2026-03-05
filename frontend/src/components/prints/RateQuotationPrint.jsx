@@ -54,22 +54,21 @@ const RateQuotationPrint = React.forwardRef(({ data, processes }, ref) => {
             {data.concernAddr2 && !data.concernAddr1 && <>{data.concernAddr2}<br /></>}
             {[data.concernAddr3, data.concernAddr4, data.concernDistrict].filter(Boolean).join(', ')}{[data.concernAddr3, data.concernAddr4, data.concernDistrict].filter(Boolean).length > 0 && <br />}
             {[data.concernPhoneNo, data.concernMobileNo, data.concernMailId].filter(Boolean).join(', ')}{[data.concernPhoneNo, data.concernMobileNo, data.concernMailId].filter(Boolean).length > 0 && <br />}
-            State : {data.concernState || 'TAMIL NADU'} Code : {data.concernStateCode || '33'}<br />
-            {data.concernGstNo && <><strong>GST IN : {data.concernGstNo}</strong></>}
+            {data.concernGstNo && <><strong>GST No.: {data.concernGstNo}</strong></>}
           </div>
         </div>
 
         <div className="party-section">
           <div className="party-left">
-            <div className="party-label">To :</div>
+            <div className="party-label">To M/s.</div>
             <div className="party-details">
-              <strong>M/s. {data.partyName || ''}</strong><br />
+              <strong>{data.partyName || ''}</strong><br />
               {data.address1 && data.address2 && <>{data.address1}, {data.address2}<br /></>}
               {!data.address2 && data.address1 && <>{data.address1}<br /></>}
               {data.address2 && !data.address1 && <>{data.address2}<br /></>}
               {[data.address3, data.address4, data.district].filter(Boolean).join(', ')}{[data.address3, data.address4, data.district].filter(Boolean).length > 0 && <br />}
               {[data.phoneNo, data.mobileNo, data.mailId].filter(Boolean).join(', ')}{[data.phoneNo, data.mobileNo, data.mailId].filter(Boolean).length > 0 && <br />}
-              {data.gstNo && <><strong>GST IN : {data.gstNo}</strong></>}
+              {data.gstNo && <><strong>GST No.: {data.gstNo}</strong></>}
             </div>
           </div>
           <div className="party-right">
