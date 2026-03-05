@@ -8,6 +8,7 @@ import { getParties } from '../../api/party';
 import { getFabricInwards } from '../../api/fabricInward';
 import { getMastersByType } from '../../api/fabricInward';
 import { getSettings } from '../../api/settings';
+import { getConcerns } from '../../api/concern';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 import { useSelector } from 'react-redux';
 import FabricDCPrint from '../../components/prints/FabricDCPrint';
@@ -46,13 +47,15 @@ const FabricDc = () => {
   const [inwardDetails, setInwardDetails] = useState([]);
   const [printData, setPrintData] = useState(null);
   const [enableItemWiseProcess, setEnableItemWiseProcess] = useState(false);
+  const [concernData, setConcernData] = useState(null);
 
   useEffect(() => {
     loadData();
     loadMasters();
     loadAllInwards();
     loadSettings();
-  }, []);
+    loadConcernData();
+  }, [selectedCompany]);
 
   const loadSettings = async () => {
     try {
@@ -60,6 +63,19 @@ const FabricDc = () => {
       setEnableItemWiseProcess(settings.enableItemWiseProcess || false);
     } catch (error) {
       console.error('Error loading settings:', error);
+    }
+  };
+
+  const loadConcernData = async () => {
+    try {
+      const concernId = localStorage.getItem('selectedCompanyId');
+      if (concernId) {
+        const response = await getConcerns('', 1, 1000);
+        const concern = response.data?.find(c => c.id === parseInt(concernId));
+        setConcernData(concern || null);
+      }
+    } catch (error) {
+      console.error('Error loading concern data:', error);
     }
   };
 
@@ -181,7 +197,15 @@ const FabricDc = () => {
       dcNo: record.dcNo,
       dcDate: record.dcDate,
       partyName: party?.partyName || '',
-      address: party?.address1 || '',
+      address1: party?.address1 || '',
+      address2: party?.address2 || '',
+      address3: party?.address3 || '',
+      address4: party?.address4 || '',
+      district: party?.district || '',
+      phoneNo: party?.phoneNo || '',
+      mobileNo: party?.mobileNo || '',
+      mailId: party?.email || '',
+      gstNo: party?.gstNo || '',
       dyeParty: dyeParty?.partyName || '-',
       dyeDcNo: record.dyeingDcNo || '',
       pdcNo: record.pdcNo || '',
@@ -193,11 +217,23 @@ const FabricDc = () => {
         color: colors.find(c => c.id === d.colorId)?.masterName || '-',
         dia: dias.find(d => d.id === d.diaId)?.masterName || '-',
         rolls: d.rolls || 0,
-        weight: Number(d.dcWeight || 0).toFixed(3)
+        weight: Number(d.dcWeight || 0).toFixed(3),
+        processes: d.processes
       })),
       process: processText,
       vehicleNo: record.vehicleNo || '',
-      remarks: record.remarks || '-'
+      remarks: record.remarks || '-',
+      concernName: concernData?.partyName,
+      concernAddr1: concernData?.address1,
+      concernAddr2: concernData?.address2,
+      concernAddr3: concernData?.address3,
+      concernAddr4: concernData?.address4,
+      concernDistrict: concernData?.district,
+      concernPhoneNo: concernData?.phoneNo,
+      concernMobileNo: concernData?.mobileNo,
+      concernMailId: concernData?.email,
+      concernGstNo: concernData?.gstNo,
+      enableItemWiseProcess: enableItemWiseProcess
     });
     
     form.setFieldsValue({
@@ -386,23 +422,43 @@ const FabricDc = () => {
           dcNo: values.dcNo,
           dcDate: values.dcDate,
           partyName: party?.partyName || '',
-          address: party?.address1 || '',
+          address1: party?.address1 || '',
+          address2: party?.address2 || '',
+          address3: party?.address3 || '',
+          address4: party?.address4 || '',
+          district: party?.district || '',
+          phoneNo: party?.phoneNo || '',
+          mobileNo: party?.mobileNo || '',
+          mailId: party?.email || '',
+          gstNo: party?.gstNo || '',
           dyeParty: values.dyeingPartyName || '-',
           dyeDcNo: values.dyeingDcNo || '',
           pdcNo: values.pdcNo || '',
           orderNo: values.orderNo || '',
           jobNo: values.grnNo || '',
-          recWeight: inwardQty.toFixed(3),
+          recWeight: (inwardQty || 0).toFixed(3),
           items: details.map(d => ({
             fabric: fabrics.find(f => f.id === d.fabricId)?.masterName || '-',
             color: colors.find(c => c.id === d.colorId)?.masterName || '-',
             dia: dias.find(dia => dia.id === d.diaId)?.masterName || '-',
             rolls: d.rolls || 0,
-            weight: Number(d.dcWeight || 0).toFixed(3)
+            weight: Number(d.dcWeight || 0).toFixed(3),
+            processes: d.processes
           })),
           process: selectedProcesses.map(p => p.processName).join(', '),
           vehicleNo: values.vehicleNo || '',
-          remarks: values.remarks || '-'
+          remarks: values.remarks || '-',
+          concernName: concernData?.partyName,
+          concernAddr1: concernData?.address1,
+          concernAddr2: concernData?.address2,
+          concernAddr3: concernData?.address3,
+          concernAddr4: concernData?.address4,
+          concernDistrict: concernData?.district,
+          concernPhoneNo: concernData?.phoneNo,
+          concernMobileNo: concernData?.mobileNo,
+          concernMailId: concernData?.email,
+          concernGstNo: concernData?.gstNo,
+          enableItemWiseProcess: enableItemWiseProcess
         });
         
         setTimeout(() => {
@@ -451,7 +507,15 @@ const FabricDc = () => {
       dcNo: record.dcNo,
       dcDate: record.dcDate,
       partyName: party?.partyName || '',
-      address: party?.address1 || '',
+      address1: party?.address1 || '',
+      address2: party?.address2 || '',
+      address3: party?.address3 || '',
+      address4: party?.address4 || '',
+      district: party?.district || '',
+      phoneNo: party?.phoneNo || '',
+      mobileNo: party?.mobileNo || '',
+      mailId: party?.email || '',
+      gstNo: party?.gstNo || '',
       dyeParty: allParties.find(p => p.id === record.dyeParty)?.partyName || '-',
       dyeDcNo: record.dyeingDcNo || '',
       pdcNo: record.pdcNo || '',
@@ -463,11 +527,23 @@ const FabricDc = () => {
         color: colors.find(c => c.id === d.colorId)?.masterName || '-',
         dia: dias.find(dia => dia.id === d.diaId)?.masterName || '-',
         rolls: d.rolls || 0,
-        weight: Number(d.dcWeight || 0).toFixed(3)
+        weight: Number(d.dcWeight || 0).toFixed(3),
+        processes: d.processes
       })),
       process: processText,
       vehicleNo: record.vehicleNo || '',
-      remarks: record.remarks || '-'
+      remarks: record.remarks || '-',
+      concernName: concernData?.partyName,
+      concernAddr1: concernData?.address1,
+      concernAddr2: concernData?.address2,
+      concernAddr3: concernData?.address3,
+      concernAddr4: concernData?.address4,
+      concernDistrict: concernData?.district,
+      concernPhoneNo: concernData?.phoneNo,
+      concernMobileNo: concernData?.mobileNo,
+      concernMailId: concernData?.email,
+      concernGstNo: concernData?.gstNo,
+      enableItemWiseProcess: enableItemWiseProcess
     });
     
     setTimeout(() => handlePrint(), 100);
@@ -813,7 +889,7 @@ const FabricDc = () => {
   const detailColumns = [
     { title: 'Sl.No', width: 50, render: (_, record, index) => index + 1 },
     {
-      title: 'Inward (Dia/Fabric/Color)',
+      title: 'Inward (Dia/Fabric/Color/Gsm)',
       width: 200,
       render: (_, record) => (
         <Select 
@@ -831,12 +907,13 @@ const FabricDc = () => {
             const dia = dias.find(dia => dia.id === d.diaId)?.masterName || '';
             const fabric = fabrics.find(f => f.id === d.fabricId)?.masterName || '';
             const color = colors.find(c => c.id === d.colorId)?.masterName || '';
+            const gsm = d.gsm || '';
             const designInfo = d.designNo ? ` | ${d.designNo}` : '';
             const designName = d.designName ? ` | ${d.designName}` : '';
             const colorCount = d.noOfColor ? ` | ${d.noOfColor}` : '';
             return (
               <Option key={d.id} value={`${d.diaId}-${d.fabricId}-${d.colorId}`}>
-                {`${dia}/${fabric}/${color}${designInfo}${designName}${colorCount}`}
+                {`${dia}/${fabric}/${color}${gsm ? `/${gsm}` : ''}${designInfo}${designName}${colorCount}`}
               </Option>
             );
           })}
@@ -871,14 +948,6 @@ const FabricDc = () => {
         <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'colorId', v)} style={{ width: '100%' }} showSearch>
           {colors.map(c => <Option key={c.id} value={c.id}>{c.masterName}</Option>)}
         </Select>
-      )
-    },
-    {
-      title: 'GSM',
-      dataIndex: 'gsm',
-      width: 80,
-      render: (val, record) => (
-        <Input disabled={isViewMode} value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} autoComplete="off" />
       )
     },
     ...(fabricType === 'Print Lot' ? [

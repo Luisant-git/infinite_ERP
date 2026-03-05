@@ -35,6 +35,7 @@ const RateQuotation = () => {
   const { selectedCompany, selectedCompanyId, selectedYear, IsMD } = useSelector(state => state.auth);
   const { adminUser: isAdmin, canAdd, canEdit, canDelete } = useMenuPermissions();
   const isAdminOrMD = isAdmin || IsMD === 1;
+  const [concernData, setConcernData] = useState(null);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -43,6 +44,7 @@ const RateQuotation = () => {
   useEffect(() => {
     loadData();
     loadMasters();
+    loadConcernData();
   }, []);
 
   const loadData = async () => {
@@ -51,6 +53,19 @@ const RateQuotation = () => {
       setQuotations(response.data || []);
     } catch (error) {
       console.error('Error loading quotations:', error);
+    }
+  };
+
+  const loadConcernData = async () => {
+    try {
+      const concernId = localStorage.getItem('selectedCompanyId');
+      if (concernId) {
+        const response = await getConcerns('', 1, 1000);
+        const concern = response.data?.find(c => c.id === parseInt(concernId));
+        setConcernData(concern || null);
+      }
+    } catch (error) {
+      console.error('Error loading concern data:', error);
     }
   };
 
@@ -163,7 +178,19 @@ const RateQuotation = () => {
   };
 
   const handlePrintRecord = (record) => {
-    setPrintData(record);
+    const party = parties.find(p => p.id === record.partyId);
+    setPrintData({
+      ...record,
+      address1: party?.address1 || '',
+      address2: party?.address2 || '',
+      address3: party?.address3 || '',
+      address4: party?.address4 || '',
+      district: party?.district || '',
+      phoneNo: party?.phoneNo || '',
+      mobileNo: party?.mobileNo || '',
+      mailId: party?.email || '',
+      gstNo: party?.gstNo || ''
+    });
     setTimeout(() => handlePrint(), 100);
   };
 
@@ -244,7 +271,19 @@ const RateQuotation = () => {
       loadData();
       
       if (shouldPrint && savedRecord) {
-        setPrintData(savedRecord);
+        const party = parties.find(p => p.id === values.partyId);
+        setPrintData({
+          ...savedRecord,
+          address1: party?.address1 || '',
+          address2: party?.address2 || '',
+          address3: party?.address3 || '',
+          address4: party?.address4 || '',
+          district: party?.district || '',
+          phoneNo: party?.phoneNo || '',
+          mobileNo: party?.mobileNo || '',
+          mailId: party?.email || '',
+          gstNo: party?.gstNo || ''
+        });
         setTimeout(() => handlePrint(), 500);
       }
     } catch (error) {
@@ -566,7 +605,19 @@ const RateQuotation = () => {
               state: parties.find(p => p.id === printData.partyId)?.state,
               pincode: parties.find(p => p.id === printData.partyId)?.pincode,
               gstNo: parties.find(p => p.id === printData.partyId)?.gstNo,
-              stateCode: '33'
+              stateCode: '33',
+              concernName: concernData?.partyName,
+              concernAddr1: concernData?.address1,
+              concernAddr2: concernData?.address2,
+              concernAddr3: concernData?.address3,
+              concernAddr4: concernData?.address4,
+              concernDistrict: concernData?.district,
+              concernPhoneNo: concernData?.phoneNo,
+              concernMobileNo: concernData?.mobileNo,
+              concernMailId: concernData?.email,
+              concernGstNo: concernData?.gstNo,
+              concernState: concernData?.state,
+              concernStateCode: '33'
             }} 
             processes={processes}
           />

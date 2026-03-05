@@ -9,6 +9,7 @@ import { getParties } from '../../api/party';
 import { getFabricInwards } from '../../api/fabricInward';
 import { getMastersByType } from '../../api/fabricInward';
 import { getSettings } from '../../api/settings';
+import { getConcerns } from '../../api/concern';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 
 const { Title } = Typography;
@@ -43,12 +44,14 @@ const FabricReturn = () => {
   const [balance, setBalance] = useState(0);
   const [inwardDetails, setInwardDetails] = useState([]);
   const [enableItemWiseProcess, setEnableItemWiseProcess] = useState(false);
+  const [concernData, setConcernData] = useState(null);
 
   useEffect(() => {
     loadData();
     loadMasters();
     loadAllInwards();
     loadSettings();
+    loadConcernData();
   }, []);
 
   const loadSettings = async () => {
@@ -57,6 +60,19 @@ const FabricReturn = () => {
       setEnableItemWiseProcess(settings.enableItemWiseProcess || false);
     } catch (error) {
       console.error('Error loading settings:', error);
+    }
+  };
+
+  const loadConcernData = async () => {
+    try {
+      const concernId = localStorage.getItem('selectedCompanyId');
+      if (concernId) {
+        const response = await getConcerns('', 1, 1000);
+        const concern = response.data?.find(c => c.id === parseInt(concernId));
+        setConcernData(concern || null);
+      }
+    } catch (error) {
+      console.error('Error loading concern data:', error);
     }
   };
 
@@ -290,9 +306,9 @@ const FabricReturn = () => {
           address3: targetParty?.address3 || '',
           address4: targetParty?.address4 || '',
           district: targetParty?.district || '',
-          pincode: targetParty?.pincode || '',
-          state: targetParty?.state || '',
-          stateCode: targetParty?.stateCode || '',
+          phoneNo: targetParty?.phoneNo || '',
+          mobileNo: targetParty?.mobileNo || '',
+          mailId: targetParty?.email || '',
           gstNo: targetParty?.gstNo || '',
           dyeParty: dyeParty?.partyName || '',
           dyeDcNo: values.dyeingDcNo || '',
@@ -300,6 +316,7 @@ const FabricReturn = () => {
           orderNo: values.orderNo || '',
           inwardNo: values.grnNo || '',
           recWeight: inwardQty || '',
+          vehicleNo: values.vehicleNo || '',
           remarks: values.remarks || '',
           items: details.map(d => ({
             fabric: fabrics.find(f => f.id === d.fabricId)?.masterName || '',
@@ -307,7 +324,17 @@ const FabricReturn = () => {
             dia: dias.find(dia => dia.id === d.diaId)?.masterName || '',
             rolls: d.rolls || '',
             weight: d.weight || ''
-          }))
+          })),
+          concernName: concernData?.partyName,
+          concernAddr1: concernData?.address1,
+          concernAddr2: concernData?.address2,
+          concernAddr3: concernData?.address3,
+          concernAddr4: concernData?.address4,
+          concernDistrict: concernData?.district,
+          concernPhoneNo: concernData?.phoneNo,
+          concernMobileNo: concernData?.mobileNo,
+          concernMailId: concernData?.email,
+          concernGstNo: concernData?.gstNo
         });
         
         setTimeout(() => {
@@ -324,11 +351,17 @@ const FabricReturn = () => {
     }
   };
 
-  const handlePrintRecord = (record) => {
+  const handlePrintRecord = async (record) => {
     const party = parties.find(p => p.id === record.partyId);
     const deliveryParty = allParties.find(p => p.id === record.deliveryTo);
     const dyeParty = allParties.find(p => p.id === record.dyeParty);
     const targetParty = deliveryParty || party;
+
+    // Fetch inward to get total qty
+    const inwardResponse = await getFabricInwards('', 1, 1000);
+    const allInwards = inwardResponse.data || [];
+    const selectedInward = allInwards.find(i => i.grnNo === record.inwardNo);
+    const inwardTotalQty = selectedInward?.totalQty || 0;
     
     const data = {
       dcNo: record.dcNo,
@@ -339,16 +372,17 @@ const FabricReturn = () => {
       address3: targetParty?.address3 || '',
       address4: targetParty?.address4 || '',
       district: targetParty?.district || '',
-      pincode: targetParty?.pincode || '',
-      state: targetParty?.state || '',
-      stateCode: targetParty?.stateCode || '',
+      phoneNo: targetParty?.phoneNo || '',
+      mobileNo: targetParty?.mobileNo || '',
+      mailId: targetParty?.email || '',
       gstNo: targetParty?.gstNo || '',
       dyeParty: dyeParty?.partyName || '',
       dyeDcNo: record.dyeingDcNo || '',
       pdcNo: record.pdcNo || '',
       orderNo: record.orderNo || '',
       inwardNo: record.inwardNo || '',
-      recWeight: record.totalQty || '',
+      recWeight: Number(inwardTotalQty || 0).toFixed(3),
+      vehicleNo: record.vehicleNo || '',
       remarks: record.remarks || '',
       items: (record.details || []).map(d => ({
         fabric: fabrics.find(f => f.id === d.fabricId)?.masterName || '',
@@ -356,7 +390,17 @@ const FabricReturn = () => {
         dia: dias.find(dia => dia.id === d.diaId)?.masterName || '',
         rolls: d.rolls || '',
         weight: d.weight || ''
-      }))
+      })),
+      concernName: concernData?.partyName,
+      concernAddr1: concernData?.address1,
+      concernAddr2: concernData?.address2,
+      concernAddr3: concernData?.address3,
+      concernAddr4: concernData?.address4,
+      concernDistrict: concernData?.district,
+      concernPhoneNo: concernData?.phoneNo,
+      concernMobileNo: concernData?.mobileNo,
+      concernMailId: concernData?.email,
+      concernGstNo: concernData?.gstNo
     };
     
     setPrintData(data);
@@ -387,9 +431,9 @@ const FabricReturn = () => {
       address3: targetParty?.address3 || '',
       address4: targetParty?.address4 || '',
       district: targetParty?.district || '',
-      pincode: targetParty?.pincode || '',
-      state: targetParty?.state || '',
-      stateCode: targetParty?.stateCode || '',
+      phoneNo: targetParty?.phoneNo || '',
+      mobileNo: targetParty?.mobileNo || '',
+      mailId: targetParty?.email || '',
       gstNo: targetParty?.gstNo || '',
       dyeParty: dyeParty?.partyName || '',
       dyeDcNo: values.dyeingDcNo || '',

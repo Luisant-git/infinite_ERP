@@ -38,7 +38,9 @@ const FabricReturnPrint = React.forwardRef(({ data }, ref) => {
         .company-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
         .company-details { font-size: 10px; line-height: 1.4; }
         .return-title { font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 10px; padding-bottom: 5px; }
-        .dc-details { font-size: 10px; line-height: 1.6; }
+        .dc-details { font-size: 10px; }
+        .doc-info-row { display: flex; margin-bottom: 2px; }
+        .doc-info-row strong { display: inline-block; width: 80px; }
         .party-section { display: flex; border-bottom: 2px solid #000; }
         .party-left { flex: 1; padding: 10px; border-right: 2px solid #000; }
         .party-right { width: 250px; padding: 10px; }
@@ -69,19 +71,21 @@ const FabricReturnPrint = React.forwardRef(({ data }, ref) => {
           <div className="print-container">
         <div className="header-section">
           <div className="header-left">
-            <div className="company-name">ARUVIE PROCESSING MILLS</div>
+            <div className="company-name">{data.concernName || ''}</div>
             <div className="company-details">
-              3/571,S.Periyapalayam,Uthukuli Main Road,<br />
-              Tirupur-7<br />
-              GST No.:AAHPU0602R<br />
-              Phone No.:9600554467,9842823550
+              {data.concernAddr1 && data.concernAddr2 && <>{data.concernAddr1}, {data.concernAddr2}<br /></>}
+              {!data.concernAddr2 && data.concernAddr1 && <>{data.concernAddr1}<br /></>}
+              {data.concernAddr2 && !data.concernAddr1 && <>{data.concernAddr2}<br /></>}
+              {[data.concernAddr3, data.concernAddr4, data.concernDistrict].filter(Boolean).join(', ')}{[data.concernAddr3, data.concernAddr4, data.concernDistrict].filter(Boolean).length > 0 && <br />}
+              {[data.concernPhoneNo, data.concernMobileNo, data.concernMailId].filter(Boolean).join(', ')}{[data.concernPhoneNo, data.concernMobileNo, data.concernMailId].filter(Boolean).length > 0 && <br />}
+              {data.concernGstNo && <><strong>GST No.: {data.concernGstNo}</strong></>}
             </div>
           </div>
           <div className="header-right">
             <div className="return-title">FABRIC RETURN</div>
             <div className="dc-details">
-              <strong>DC No</strong> &nbsp;&nbsp;&nbsp;&nbsp;: {data.dcNo || ''}<br />
-              <strong>DC Date</strong> &nbsp;: {data.dcDate ? dayjs(data.dcDate).format('DD-MMM-YYYY') : ''}
+              <div className="doc-info-row"><strong>DC No :</strong> {data.dcNo || ''}</div>
+              <div className="doc-info-row"><strong>DC Date :</strong> {data.dcDate ? dayjs(data.dcDate).format('DD-MMM-YYYY') : ''}</div>
             </div>
           </div>
         </div>
@@ -91,18 +95,19 @@ const FabricReturnPrint = React.forwardRef(({ data }, ref) => {
             <div className="party-label">To M/s.</div>
             <div className="party-details">
               <strong>{data.partyName || ''}</strong><br />
-              {(data.address1 || data.address2 || data.address3 || data.address4) && (
-                <>{data.address1 || data.address2 || data.address3 || data.address4}<br /></>
-              )}
-              {data.state || ''}{data.state && data.district ? ', ' : ''}{data.district || ''}{(data.state || data.district) && data.pincode ? ' - ' : ''}{data.pincode || ''}<br />
-              GST IN : {data.gstNo || ''}
+              {data.address1 && data.address2 && <>{data.address1}, {data.address2}<br /></>}
+              {!data.address2 && data.address1 && <>{data.address1}<br /></>}
+              {data.address2 && !data.address1 && <>{data.address2}<br /></>}
+              {[data.address3, data.address4, data.district].filter(Boolean).join(', ')}{[data.address3, data.address4, data.district].filter(Boolean).length > 0 && <br />}
+              {[data.phoneNo, data.mobileNo, data.mailId].filter(Boolean).join(', ')}{[data.phoneNo, data.mobileNo, data.mailId].filter(Boolean).length > 0 && <br />}
+              {data.gstNo && <><strong>GST No.: {data.gstNo}</strong></>}
             </div>
           </div>
           <div className="party-right">
             <div className="party-details">
-              <strong>Dye Party &nbsp;:</strong> {data.dyeParty || '-'}<br />
-              <strong>Dye Dc No :</strong> {data.dyeDcNo || ''}<br />
-              <strong>PDC No &nbsp;&nbsp;&nbsp;:</strong> {data.pdcNo || ''}
+              <div className="doc-info-row"><strong>Dye Party :</strong> {data.dyeParty || '-'}</div>
+              <div className="doc-info-row"><strong>Dye Dc No :</strong> {data.dyeDcNo || ''}</div>
+              <div className="doc-info-row"><strong>PDC No :</strong> {data.pdcNo || ''}</div>
             </div>
           </div>
         </div>
@@ -160,7 +165,7 @@ const FabricReturnPrint = React.forwardRef(({ data }, ref) => {
               <td style={{ width: '15%', border: 'none' }}>&nbsp;</td>
               <td style={{ width: '10%', textAlign: 'center', borderLeft: '1px solid #000', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>Total</td>
               <td style={{ width: '10%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.rolls) || 0), 0)}</td>
-              <td style={{ width: '15%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000', borderRight: '1px solid #000' }}>&nbsp;</td>
+              <td style={{ width: '15%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000', borderRight: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0).toFixed(3)}</td>
               <td style={{ border: 'none', borderRight: '1px solid #000' }}>&nbsp;</td>
             </tr>
           </tbody>
@@ -171,11 +176,14 @@ const FabricReturnPrint = React.forwardRef(({ data }, ref) => {
             <div><strong>Received By</strong></div>
           </div>
           <div className="footer-col">
+            <div><div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{data.vehicleNo || ''}</div><strong>Vehicle No</strong></div>
+          </div>
+          <div className="footer-col">
             <div><strong>Prepared By</strong></div>
           </div>
           <div className="footer-col">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', alignItems: 'center' }}>
-              <strong>For ARUVIE PROCESSING MILLS</strong>
+              <strong>For {data.concernName || ''}</strong>
               <strong>Authorised Signature</strong>
             </div>
           </div>

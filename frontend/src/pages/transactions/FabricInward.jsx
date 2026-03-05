@@ -12,6 +12,7 @@ import { getDesigns } from '../../api/design';
 import { getProcesses } from '../../api/process';
 import { getPartyProcessRates } from '../../api/partyProcessRate';
 import { getSettings } from '../../api/settings';
+import { getConcerns } from '../../api/concern';
 import FabricInwardPrint from '../../components/prints/FabricInwardPrint';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 import { useSelector } from 'react-redux';
@@ -47,6 +48,7 @@ const FabricInward = () => {
   const [searchText, setSearchText] = useState('');
   const [isViewMode, setIsViewMode] = useState(false);
   const [enableItemWiseProcess, setEnableItemWiseProcess] = useState(false);
+  const [concernData, setConcernData] = useState(null);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -56,7 +58,8 @@ const FabricInward = () => {
     loadData();
     loadMasters();
     loadSettings();
-  }, []);
+    loadConcernData();
+  }, [selectedCompany]);
 
   const loadSettings = async () => {
     try {
@@ -64,6 +67,19 @@ const FabricInward = () => {
       setEnableItemWiseProcess(settings.enableItemWiseProcess || false);
     } catch (error) {
       console.error('Error loading settings:', error);
+    }
+  };
+
+  const loadConcernData = async () => {
+    try {
+      const concernId = localStorage.getItem('selectedCompanyId');
+      if (concernId) {
+        const response = await getConcerns('', 1, 1000);
+        const concern = response.data?.find(c => c.id === parseInt(concernId));
+        setConcernData(concern || null);
+      }
+    } catch (error) {
+      console.error('Error loading concern data:', error);
     }
   };
 
@@ -219,7 +235,15 @@ const FabricInward = () => {
   };
 
   const handlePrintRecord = (record) => {
-    setPrintData(record);
+    const party = parties.find(p => p.id === record.partyId);
+    setPrintData({
+      ...record,
+      phoneNo: party?.phoneNo || '',
+      mobileNo: party?.mobileNo || '',
+      mailId: party?.email || '',
+      gstNo: party?.gstNo || '',
+      enableItemWiseProcess: record.enableItemWiseProcess || enableItemWiseProcess
+    });
     setTimeout(() => handlePrint(), 100);
   };
 
@@ -370,8 +394,13 @@ const FabricInward = () => {
       
       if (shouldPrint && savedRecord) {
         // Prepare print data with processes
+        const party = parties.find(p => p.id === values.partyId);
         const printRecord = {
           ...savedRecord,
+          phoneNo: party?.phoneNo || '',
+          mobileNo: party?.mobileNo || '',
+          mailId: party?.email || '',
+          gstNo: party?.gstNo || '',
           enableItemWiseProcess,
           processes: enableItemWiseProcess 
             ? [] // For item-wise, processes are in details
@@ -969,7 +998,17 @@ const FabricInward = () => {
               district: parties.find(p => p.id === printData.partyId)?.district,
               state: parties.find(p => p.id === printData.partyId)?.state,
               pincode: parties.find(p => p.id === printData.partyId)?.pincode,
-              dyeingPartyName: dyeingParties.find(p => p.id === printData.dyeingPartyId)?.partyName
+              dyeingPartyName: dyeingParties.find(p => p.id === printData.dyeingPartyId)?.partyName,
+              concernName: concernData?.partyName,
+              concernAddr1: concernData?.address1,
+              concernAddr2: concernData?.address2,
+              concernAddr3: concernData?.address3,
+              concernAddr4: concernData?.address4,
+              concernDistrict: concernData?.district,
+              concernPhoneNo: concernData?.phoneNo,
+              concernMobileNo: concernData?.mobileNo,
+              concernMailId: concernData?.email,
+              concernGstNo: concernData?.gstNo
             }} 
             fabrics={fabrics}
             colors={colors}

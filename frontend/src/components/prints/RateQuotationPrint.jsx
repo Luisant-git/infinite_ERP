@@ -47,13 +47,15 @@ const RateQuotationPrint = React.forwardRef(({ data, processes }, ref) => {
       <div className="print-container">
         
         <div className="company-section">
-          <div className="company-name">ARUVIE PROCESSING MILLS</div>
+          <div className="company-name">{data.concernName || ''}</div>
           <div className="company-details">
-            3/571,S.Periyapalayam,<br />
-            Uthukuli Main Road,Tirupur-7<br />
-            Mobile Nos : 9600554467,9842823550, E-Mail : accounts@aruvieprocessingmills.in<br />
-            State : TAMIL NADU Code : 33<br />
-            GST IN :33AAHPU0602R1ZG
+            {data.concernAddr1 && data.concernAddr2 && <>{data.concernAddr1}, {data.concernAddr2}<br /></>}
+            {!data.concernAddr2 && data.concernAddr1 && <>{data.concernAddr1}<br /></>}
+            {data.concernAddr2 && !data.concernAddr1 && <>{data.concernAddr2}<br /></>}
+            {[data.concernAddr3, data.concernAddr4, data.concernDistrict].filter(Boolean).join(', ')}{[data.concernAddr3, data.concernAddr4, data.concernDistrict].filter(Boolean).length > 0 && <br />}
+            {[data.concernPhoneNo, data.concernMobileNo, data.concernMailId].filter(Boolean).join(', ')}{[data.concernPhoneNo, data.concernMobileNo, data.concernMailId].filter(Boolean).length > 0 && <br />}
+            State : {data.concernState || 'TAMIL NADU'} Code : {data.concernStateCode || '33'}<br />
+            {data.concernGstNo && <><strong>GST IN : {data.concernGstNo}</strong></>}
           </div>
         </div>
 
@@ -61,14 +63,13 @@ const RateQuotationPrint = React.forwardRef(({ data, processes }, ref) => {
           <div className="party-left">
             <div className="party-label">To :</div>
             <div className="party-details">
-              <strong>M/s.{data.partyName || ''}</strong><br />
-              {data.address1 && <>{data.address1}<br /></>}
-              {data.address2 && <>{data.address2}<br /></>}
-              {data.address3 && <>{data.address3}<br /></>}
-              {data.address4 && <>{data.address4}<br /></>}
-              {[data.district, data.pincode].filter(Boolean).join(', ')}<br />
-              State : {data.state || ''} Code {data.stateCode || ''}<br />
-              GST IN : {data.gstNo || ''}
+              <strong>M/s. {data.partyName || ''}</strong><br />
+              {data.address1 && data.address2 && <>{data.address1}, {data.address2}<br /></>}
+              {!data.address2 && data.address1 && <>{data.address1}<br /></>}
+              {data.address2 && !data.address1 && <>{data.address2}<br /></>}
+              {[data.address3, data.address4, data.district].filter(Boolean).join(', ')}{[data.address3, data.address4, data.district].filter(Boolean).length > 0 && <br />}
+              {[data.phoneNo, data.mobileNo, data.mailId].filter(Boolean).join(', ')}{[data.phoneNo, data.mobileNo, data.mailId].filter(Boolean).length > 0 && <br />}
+              {data.gstNo && <><strong>GST IN : {data.gstNo}</strong></>}
             </div>
           </div>
           <div className="party-right">
@@ -125,7 +126,7 @@ const RateQuotationPrint = React.forwardRef(({ data, processes }, ref) => {
           </div>
           <div className="footer-col">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-              <strong>For ARUVIE PROCESSING MILLS</strong>
+              <strong>For {data.concernName || ''}</strong>
               <strong>Authorised Signatory</strong>
             </div>
           </div>

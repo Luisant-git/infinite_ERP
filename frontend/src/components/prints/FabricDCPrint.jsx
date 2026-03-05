@@ -2,6 +2,8 @@ import React from 'react';
 import dayjs from 'dayjs';
 
 const FabricDCPrint = React.forwardRef(({ data }, ref) => {
+  console.log('FabricDCPrint - enableItemWiseProcess:', data.enableItemWiseProcess);
+  console.log('FabricDCPrint - recWeight:', data.recWeight);
   const itemsPerPage = 5;
   const items = data.items || [data];
   const pages = [];
@@ -38,7 +40,9 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
         .company-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
         .company-details { font-size: 10px; line-height: 1.4; }
         .delivery-note-title { font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 10px; padding-bottom: 5px; text-decoration: underline; }
-        .dc-details { font-size: 10px; line-height: 1.6; }
+        .dc-details { font-size: 10px; }
+        .doc-info-row { display: flex; margin-bottom: 2px; }
+        .doc-info-row strong { display: inline-block; width: 80px; }
         .party-section { display: flex; border-bottom: 2px solid #000; }
         .party-left { flex: 1; padding: 10px; border-right: 2px solid #000; }
         .party-right { width: 250px; padding: 10px; }
@@ -72,19 +76,21 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
           <div className="print-container">
         <div className="header-section">
           <div className="header-left">
-            <div className="company-name">ARUVIE PROCESSING MILLS</div>
+            <div className="company-name">{data.concernName || ''}</div>
             <div className="company-details">
-              3/571,S.Periyapalayam,Uthukuli Main Road,<br />
-              Tirupur-7<br />
-              GST No.:33AAHPU0602R1ZG<br />
-              Phone No.:9600554467,9842823550
+              {data.concernAddr1 && data.concernAddr2 && <>{data.concernAddr1}, {data.concernAddr2}<br /></>}
+              {!data.concernAddr2 && data.concernAddr1 && <>{data.concernAddr1}<br /></>}
+              {data.concernAddr2 && !data.concernAddr1 && <>{data.concernAddr2}<br /></>}
+              {[data.concernAddr3, data.concernAddr4, data.concernDistrict].filter(Boolean).join(', ')}{[data.concernAddr3, data.concernAddr4, data.concernDistrict].filter(Boolean).length > 0 && <br />}
+              {[data.concernPhoneNo, data.concernMobileNo, data.concernMailId].filter(Boolean).join(', ')}{[data.concernPhoneNo, data.concernMobileNo, data.concernMailId].filter(Boolean).length > 0 && <br />}
+              {data.concernGstNo && <><strong>GST No.: {data.concernGstNo}</strong></>}
             </div>
           </div>
           <div className="header-right">
             <div className="delivery-note-title">DELIVERY NOTE</div>
             <div className="dc-details">
-              <strong>DC No</strong> &nbsp;&nbsp;: {data.dcNo || ''}<br />
-              <strong>DC Date</strong> &nbsp;: {data.dcDate ? dayjs(data.dcDate).format('DD-MMM-YYYY') : ''}
+              <div className="doc-info-row"><strong>DC No :</strong> {data.dcNo || ''}</div>
+              <div className="doc-info-row"><strong>DC Date :</strong> {data.dcDate ? dayjs(data.dcDate).format('DD-MMM-YYYY') : ''}</div>
             </div>
           </div>
         </div>
@@ -94,14 +100,19 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
             <div className="party-label">To M/s.</div>
             <div className="party-details">
               <strong>{data.partyName || ''}</strong><br />
-              {data.address || ''}
+              {data.address1 && data.address2 && <>{data.address1}, {data.address2}<br /></>}
+              {!data.address2 && data.address1 && <>{data.address1}<br /></>}
+              {data.address2 && !data.address1 && <>{data.address2}<br /></>}
+              {[data.address3, data.address4, data.district].filter(Boolean).join(', ')}{[data.address3, data.address4, data.district].filter(Boolean).length > 0 && <br />}
+              {[data.phoneNo, data.mobileNo, data.mailId].filter(Boolean).join(', ')}{[data.phoneNo, data.mobileNo, data.mailId].filter(Boolean).length > 0 && <br />}
+              {data.gstNo && <><strong>GST No.: {data.gstNo}</strong></>}
             </div>
           </div>
           <div className="party-right">
             <div className="party-details">
-              <strong>Dye Party :</strong> {data.dyeParty || '-'}<br />
-              <strong>Dye Dc No :</strong> {data.dyeDcNo || ''}<br />
-              <strong>PDC No :</strong> {data.pdcNo || ''}
+              <div className="doc-info-row"><strong>Dye Party :</strong> {data.dyeParty || '-'}</div>
+              <div className="doc-info-row"><strong>Dye Dc No :</strong> {data.dyeDcNo || ''}</div>
+              <div className="doc-info-row"><strong>PDC No :</strong> {data.pdcNo || ''}</div>
             </div>
           </div>
         </div>
@@ -121,25 +132,33 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
         <table className="details-table">
           <thead>
             <tr>
-              <th style={{ width: '15%' }}>Fabric</th>
-              <th style={{ width: '12%' }}>Color</th>
+              <th style={{ width: '30%' }}>Fabric</th>
+              <th style={{ width: '15%' }}>Color</th>
               <th style={{ width: '10%' }}>Dia</th>
               <th style={{ width: '10%' }}>Rolls</th>
               <th style={{ width: '12%' }}>Weight</th>
-              <th>Previous Dc List</th>
+              <th style={{ width: '23%' }}>Remarks</th>
             </tr>
           </thead>
           <tbody>
-            {page.items.map((item, index) => (
+            {page.items.map((item, index) => {
+              console.log('Item processes:', item.processes, 'enableItemWiseProcess:', data.enableItemWiseProcess);
+              return (
               <tr key={index}>
-                <td className="text-left">{item.fabric || '-'}</td>
+                <td className="text-left">
+                  {data.enableItemWiseProcess && item.processes && (
+                    <><span style={{ fontSize: '9px', fontStyle: 'italic' }}>{typeof item.processes === 'string' ? JSON.parse(item.processes).join(' / ') : item.processes.join(' / ')}</span><br /></>
+                  )}
+                  {item.fabric || '-'}
+                </td>
                 <td className="text-left">{item.color || '-'}</td>
                 <td>{item.dia || '-'}</td>
                 <td>{item.rolls || ''}</td>
                 <td>{item.weight || ''}</td>
                 {index === 0 && <td className="text-left" rowSpan={page.items.length + page.emptyRows.length}>&nbsp;</td>}
               </tr>
-            ))}
+              );
+            })}
             {page.emptyRows.map((_, index) => (
               <tr key={`empty-${index}`}>
                 <td>&nbsp;</td>
@@ -155,39 +174,37 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
         <table className="details-table" style={{ borderTop: 'none' }}>
           <tbody>
             <tr className="total-row">
-              <td style={{ width: '15%', border: 'none', borderLeft: '1px solid #000' }}>&nbsp;</td>
-              <td style={{ width: '12%', border: 'none' }}>&nbsp;</td>
+              <td style={{ width: '30%', border: 'none', borderLeft: '1px solid #000' }}>&nbsp;</td>
+              <td style={{ width: '15%', border: 'none' }}>&nbsp;</td>
               <td style={{ width: '10%', textAlign: 'center', borderLeft: '1px solid #000', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>Total</td>
               <td style={{ width: '10%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.rolls) || 0), 0)}</td>
               <td style={{ width: '12%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000', borderRight: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0)}</td>
-              <td style={{ border: 'none', borderRight: '1px solid #000' }}>&nbsp;</td>
+              <td style={{ width: '23%', border: 'none', borderRight: '1px solid #000' }}>&nbsp;</td>
             </tr>
           </tbody>
         </table>
 
-        <div className="process-section">
-          <div className="process-left">
-            <strong>Process</strong> &nbsp;&nbsp; {data.process || ''}
+        {!data.enableItemWiseProcess && (
+          <div className="process-section">
+            <div className="process-left">
+              <strong>Process</strong> &nbsp;&nbsp; {data.process || ''}
+            </div>
           </div>
-          <div className="process-right">
-            <strong>Vehicle No</strong> &nbsp;&nbsp; {data.vehicleNo || ''}
-          </div>
-        </div>
-
-        <div style={{ padding: '8px 10px', fontSize: '10px', borderBottom: '2px solid #000' }}>
-          <strong>Remarks</strong> &nbsp;&nbsp; {data.remarks || '-'}
-        </div>
+        )}
 
         <div className="footer-section">
           <div className="footer-col">
             <div><strong>Received By</strong></div>
           </div>
           <div className="footer-col">
+            <div><div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{data.vehicleNo || ''}</div><strong>Vehicle No</strong></div>
+          </div>
+          <div className="footer-col">
             <div><strong>Prepared By</strong></div>
           </div>
           <div className="footer-col">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', alignItems: 'center' }}>
-              <strong>For ARUVIE PROCESSING MILLS</strong>
+              <strong>For {data.concernName || ''}</strong>
               <strong>Authorised Signature</strong>
             </div>
           </div>
