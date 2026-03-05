@@ -61,7 +61,7 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
         .process-row { border-top: 2px solid #000; }
         .remarks-row { }
         .remarks-row td { border-left: none !important; border-right: none !important; border-bottom: none !important; white-space: nowrap; }
-        .footer-section { display: flex; padding-top: 20px; padding-bottom: 10px; min-height: 60px; align-items: flex-end;}
+        .footer-section { display: flex; padding-top: 5px; padding-bottom: 5px; align-items: flex-end;}
         .footer-col { flex: 1; text-align: center; font-size: 10px; display: flex; flex-direction: column; justify-content: flex-end; }
       `}</style>
 
@@ -108,8 +108,6 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
               <div className="doc-info-row"><strong>Dy Name :</strong> Direct</div>
               <div className="doc-info-row"><strong>Dyeing DC :</strong> {data.dyeingDcNo || ''}</div>
               <div className="doc-info-row"><strong>Party DC :</strong> {data.pdcNo || ''}</div>
-            </div>
-            <div className="party-details" style={{ marginTop: '10px', paddingTop: '40px' }}>
               <div className="doc-info-row"><strong>Order No :</strong> {data.orderNo || ''}</div>
             </div>
           </div>
@@ -135,7 +133,7 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
                 <td>{page.startIndex + index + 1}</td>
                 <td className="text-left">
                   {data.enableItemWiseProcess && detail.processes && (
-                    <><span style={{ fontSize: '9px', fontStyle: 'italic' }}>{typeof detail.processes === 'string' ? JSON.parse(detail.processes).join(' / ') : detail.processes.join(' / ')}</span><br /></>
+                    <><span style={{ fontSize: '7px', fontStyle: 'italic' }}>{typeof detail.processes === 'string' ? JSON.parse(detail.processes).join(' / ') : detail.processes.join(' / ')}</span><br /></>
                   )}
                   {getFabricName(detail.fabricId)} {detail.designNo ? `/ ${detail.designNo}` : ''}
                 </td>
@@ -171,7 +169,7 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
             </tr>
             <tr className="remarks-row">
               <td colSpan="5" className="text-left" style={{ padding: '6px' }}>
-                <strong>Remarks :</strong>
+                <strong>Remarks :</strong> {data.remarks || ''}
               </td>
               <td colSpan="2" className="text-left" style={{ padding: '6px' }}>
                 <strong>For {data.concernName || ''}</strong>

@@ -251,7 +251,7 @@ const FabricReturn = () => {
       const totalQty = details.reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
       const totalRolls = details.reduce((sum, d) => sum + (d.rolls || 0), 0);
 
-      const { dyeingPartyName, dyeParty, ...submitValues } = values;
+      const { dyeingPartyName, dyeParty, remarks: formRemarks, ...submitValues } = values;
 
       const data = {
         ...submitValues,
@@ -260,6 +260,7 @@ const FabricReturn = () => {
         dcDate: values.dcDate?.toISOString(),
         grnDate: values.grnDate?.toISOString(),
         dyeingDcDate: values.dyeingDcDate?.toISOString(),
+        remarks: formRemarks || '',
         totalQty,
         totalRolls,
         details: details.map(d => ({
@@ -276,7 +277,7 @@ const FabricReturn = () => {
           rate: Number(d.rate) || 0,
           amount: Number(d.amount) || 0,
           processes: enableItemWiseProcess && d.processes ? JSON.stringify(d.processes) : null,
-          remarks: d.remarks
+          remarks: d.remarks || ''
         })),
         processes: selectedProcesses.map(p => ({
           processName: p.processName
@@ -323,7 +324,8 @@ const FabricReturn = () => {
             color: colors.find(c => c.id === d.colorId)?.masterName || '',
             dia: dias.find(dia => dia.id === d.diaId)?.masterName || '',
             rolls: d.rolls || '',
-            weight: d.weight || ''
+            weight: d.weight || '',
+            remarks: d.remarks || ''
           })),
           concernName: concernData?.partyName,
           concernAddr1: concernData?.address1,
@@ -389,7 +391,8 @@ const FabricReturn = () => {
         color: colors.find(c => c.id === d.colorId)?.masterName || '',
         dia: dias.find(dia => dia.id === d.diaId)?.masterName || '',
         rolls: d.rolls || '',
-        weight: d.weight || ''
+        weight: d.weight || '',
+        remarks: d.remarks || ''
       })),
       concernName: concernData?.partyName,
       concernAddr1: concernData?.address1,

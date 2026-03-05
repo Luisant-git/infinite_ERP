@@ -59,8 +59,8 @@ const FabricReturnPrint = React.forwardRef(({ data }, ref) => {
         .details-table tbody tr:last-child td { border-bottom: 1px solid #000; }
         .text-left { text-align: left !important; }
         .total-row { font-weight: bold; }
-        .footer-section { display: flex; min-height: 80px; border-top: 2px solid #000; }
-        .footer-col { flex: 1; text-align: center; font-size: 10px; padding: 15px; border-right: 2px solid #000; display: flex; align-items: flex-end; justify-content: center; }
+        .footer-section { display: flex; border-top: 2px solid #000; }
+        .footer-col { flex: 1; text-align: center; font-size: 10px; padding: 10px; border-right: 2px solid #000; display: flex; align-items: flex-end; justify-content: center; }
         .footer-col:last-child { border-right: none; }
       `}</style>
 
@@ -143,11 +143,12 @@ const FabricReturnPrint = React.forwardRef(({ data }, ref) => {
                 <td>{item.dia || '-'}</td>
                 <td>{item.rolls || ''}</td>
                 <td>{item.weight || ''}</td>
-                {index === 0 && <td className="text-left" rowSpan={page.items.length + page.emptyRows.length}>&nbsp;</td>}
+                <td className="text-left">{item.remarks || ''}</td>
               </tr>
             ))}
             {page.emptyRows.map((_, index) => (
               <tr key={`empty-${index}`}>
+                <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
@@ -182,7 +183,7 @@ const FabricReturnPrint = React.forwardRef(({ data }, ref) => {
             <div><strong>Prepared By</strong></div>
           </div>
           <div className="footer-col">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
               <strong>For {data.concernName || ''}</strong>
               <strong>Authorised Signature</strong>
             </div>

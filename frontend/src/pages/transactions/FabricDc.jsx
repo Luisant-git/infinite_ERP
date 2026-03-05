@@ -218,7 +218,8 @@ const FabricDc = () => {
         dia: dias.find(d => d.id === d.diaId)?.masterName || '-',
         rolls: d.rolls || 0,
         weight: Number(d.dcWeight || 0).toFixed(3),
-        processes: d.processes
+        processes: d.processes,
+        remarks: d.remarks || ''
       })),
       process: processText,
       vehicleNo: record.vehicleNo || '',
@@ -443,7 +444,8 @@ const FabricDc = () => {
             dia: dias.find(dia => dia.id === d.diaId)?.masterName || '-',
             rolls: d.rolls || 0,
             weight: Number(d.dcWeight || 0).toFixed(3),
-            processes: d.processes
+            processes: d.processes,
+            remarks: d.remarks || ''
           })),
           process: selectedProcesses.map(p => p.processName).join(', '),
           vehicleNo: values.vehicleNo || '',
@@ -528,7 +530,8 @@ const FabricDc = () => {
         dia: dias.find(dia => dia.id === d.diaId)?.masterName || '-',
         rolls: d.rolls || 0,
         weight: Number(d.dcWeight || 0).toFixed(3),
-        processes: d.processes
+        processes: d.processes,
+        remarks: d.remarks || ''
       })),
       process: processText,
       vehicleNo: record.vehicleNo || '',

@@ -64,8 +64,8 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
         .process-section { display: flex; border-top: 2px solid #000; padding: 8px 10px; font-size: 10px; }
         .process-left { flex: 1; }
         .process-right { flex: 1; text-align: right; }
-        .footer-section { display: flex; min-height: 80px; border-top: 2px solid #000; }
-        .footer-col { flex: 1; text-align: center; font-size: 10px; padding: 15px; border-right: 2px solid #000; display: flex; align-items: flex-end; justify-content: center; }
+        .footer-section { display: flex; border-top: 2px solid #000; }
+        .footer-col { flex: 1; text-align: center; font-size: 10px; padding: 10px; border-right: 2px solid #000; display: flex; align-items: flex-end; justify-content: center; }
         .footer-col:last-child { border-right: none; }
       `}</style>
 
@@ -147,7 +147,7 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
               <tr key={index}>
                 <td className="text-left">
                   {data.enableItemWiseProcess && item.processes && (
-                    <><span style={{ fontSize: '9px', fontStyle: 'italic' }}>{typeof item.processes === 'string' ? JSON.parse(item.processes).join(' / ') : item.processes.join(' / ')}</span><br /></>
+                    <><span style={{ fontSize: '7px', fontStyle: 'italic' }}>{typeof item.processes === 'string' ? JSON.parse(item.processes).join(' / ') : item.processes.join(' / ')}</span><br /></>
                   )}
                   {item.fabric || '-'}
                 </td>
@@ -155,12 +155,13 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
                 <td>{item.dia || '-'}</td>
                 <td>{item.rolls || ''}</td>
                 <td>{item.weight || ''}</td>
-                {index === 0 && <td className="text-left" rowSpan={page.items.length + page.emptyRows.length}>&nbsp;</td>}
+                <td className="text-left">{item.remarks || ''}</td>
               </tr>
               );
             })}
             {page.emptyRows.map((_, index) => (
               <tr key={`empty-${index}`}>
+                <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
@@ -203,7 +204,7 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
             <div><strong>Prepared By</strong></div>
           </div>
           <div className="footer-col">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
               <strong>For {data.concernName || ''}</strong>
               <strong>Authorised Signature</strong>
             </div>
