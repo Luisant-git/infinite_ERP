@@ -227,8 +227,15 @@ const FabricInward = () => {
     try {
       const values = await form.validateFields();
       
+      // Trim grnNo
+      const trimmedGrnNo = values.grnNo?.trim();
+      if (!trimmedGrnNo) {
+        message.error('GRN number is required!');
+        return;
+      }
+      
       // Check required fields
-      if (!values.grnNo || !values.grnDate || !values.pdcNo || !values.partyId) {
+      if (!values.grnDate || !values.pdcNo || !values.partyId) {
         message.error('Please fill all required fields');
         return;
       }
@@ -244,8 +251,28 @@ const FabricInward = () => {
       );
       
       if (validDetails.length === 0) {
-        message.error('Please fill at least one complete detail row with Fabric, Color, Dia, Weight (Kgs), and UOM!');
+        message.error('Please fill at least one complete detail row with Fabric, Color, Dia, Weight (Kgs > 0), and UOM!');
         return;
+      }
+      
+      // Check if any detail has weight = 0
+      const zeroWeightDetail = details.some(d => 
+        (d.fabricId || d.colorId || d.diaId || d.uomId) && (!d.weight || d.weight === 0)
+      );
+      if (zeroWeightDetail) {
+        message.error('Weight cannot be 0! Please enter valid weight for all details.');
+        return;
+      }
+      
+      // Validate Design No is compulsory for Print Lot
+      if (fabricType === 'Print Lot') {
+        const missingDesign = details.some(d => 
+          d.fabricId && d.colorId && d.diaId && d.weight > 0 && !d.designId
+        );
+        if (missingDesign) {
+          message.error('Design No is compulsory for Print Lot!');
+          return;
+        }
       }
       
       // Validate processes based on setting
@@ -264,8 +291,9 @@ const FabricInward = () => {
         }
       }
       
+      // Check for duplicate with trimmed grnNo
       if (!editingId) {
-        const duplicate = fabricInwards.find(f => f.grnNo === values.grnNo);
+        const duplicate = fabricInwards.find(f => f.grnNo?.trim() === trimmedGrnNo);
         if (duplicate) {
           message.error('GRN number already exists!');
           return;
@@ -297,6 +325,7 @@ const FabricInward = () => {
 
       const data = {
         ...values,
+        grnNo: trimmedGrnNo,
         grnDate: values.grnDate?.toISOString(),
         pdcDate: values.pdcDate?.toISOString() || null,
         dyeingDcDate: values.dyeingDcDate?.toISOString() || null,
@@ -783,7 +812,7 @@ const FabricInward = () => {
           <Row gutter={8}>
             <Col span={6}>
               <Form.Item label="GRN No" name="grnNo" rules={[{ required: true }, { max: 10, message: 'GRN number cannot exceed 10 characters!' }]} style={{ marginBottom: 6 }}>
-                <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" autoComplete="off" maxLength={10} />
+                <Input disabled={editingId ? true : !isAdmin} style={{ height: '32px' }} size="middle" autoComplete="off" maxLength={10} />
               </Form.Item>
             </Col>
             <Col span={6}>

@@ -7,18 +7,42 @@ export class FabricBillService {
   constructor(private prisma: PrismaService) {}
 
   async getNextBillNo(tenantId: number) {
-    const lastBill = await this.prisma.fabricBillHeader.findFirst({
-      where: { tenantId, deleteFlg: 0 },
-      orderBy: { id: 'desc' },
+    const allBills = await this.prisma.fabricBillHeader.findMany({
+      where: { deleteFlg: 0, tenantId },
+      orderBy: { createdDate: 'desc' }
     });
 
-    let nextNo = 1;
-    if (lastBill?.billNo) {
-      const match = lastBill.billNo.match(/\d+/);
-      if (match) nextNo = parseInt(match[0]) + 1;
+    if (allBills.length === 0) {
+      return { billNo: 'B/1' };
     }
 
-    return { billNo: nextNo.toString().padStart(3, '0') };
+    // Get the last Bill number
+    const lastBillNo = allBills[0].billNo;
+    
+    // Extract the numeric part from the end
+    const match = lastBillNo.match(/(\d+)$/);
+    
+    if (match) {
+      const lastNumberStr = match[1];
+      const lastNumber = parseInt(lastNumberStr);
+      const prefix = lastBillNo.substring(0, lastBillNo.length - lastNumberStr.length);
+      const nextNumber = lastNumber + 1;
+      
+      // Preserve leading zeros by padding to same length as original
+      const paddedNumber = nextNumber.toString().padStart(lastNumberStr.length, '0');
+      const nextBillNo = `${prefix}${paddedNumber}`;
+      
+      // Ensure it doesn't exceed 10 characters
+      if (nextBillNo.length > 10) {
+        return { billNo: lastBillNo }; // Return same if would exceed limit
+      }
+      
+      return { billNo: nextBillNo };
+    }
+    
+    // If no number found, append 1
+    const nextBillNo = `${lastBillNo}1`;
+    return { billNo: nextBillNo.substring(0, 10) }; // Truncate to 10 chars
   }
 
   async findAll(tenantId: number, search?: string, page = 1, limit = 10) {

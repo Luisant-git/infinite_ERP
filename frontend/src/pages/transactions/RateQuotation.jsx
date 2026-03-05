@@ -192,6 +192,13 @@ const RateQuotation = () => {
     try {
       const values = await form.validateFields();
       
+      // Trim quotNo
+      const trimmedQuotNo = values.quotNo?.trim();
+      if (!trimmedQuotNo) {
+        message.error('Quotation number is required!');
+        return;
+      }
+      
       // Validate at least one valid detail exists
       const validDetails = details.filter(d => d.processId && d.rate > 0);
       if (validDetails.length === 0) {
@@ -199,8 +206,9 @@ const RateQuotation = () => {
         return;
       }
       
+      // Check for duplicate with trimmed quotNo
       if (!editingId) {
-        const duplicate = quotations.find(q => q.quotNo === values.quotNo);
+        const duplicate = quotations.find(q => q.quotNo?.trim() === trimmedQuotNo);
         if (duplicate) {
           message.error('Quotation number already exists!');
           return;
@@ -211,6 +219,7 @@ const RateQuotation = () => {
 
       const data = {
         ...values,
+        quotNo: trimmedQuotNo,
         quotDate: values.quotDate?.toISOString(),
         attachFile: fileList.length > 0 ? fileList[0].url : null,
         isApproval: editingId ? 0 : undefined,
@@ -456,7 +465,7 @@ const RateQuotation = () => {
                 rules={[{ max: 10, message: 'Quotation number cannot exceed 10 characters!' }]}
                 style={{ marginBottom: 8 }}
               >
-                <Input disabled={!isAdmin} style={{ width: '100%', height: '32px' }} size="middle" autoComplete="off" maxLength={10} />
+                <Input disabled={editingId ? true : !isAdmin} style={{ width: '100%', height: '32px' }} size="middle" autoComplete="off" maxLength={10} />
               </Form.Item>
             </Col>
             <Col span={8}>

@@ -144,10 +144,27 @@ const FabricBill = () => {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      
+      const trimmedBillNo = values.billNo?.trim();
+      if (!trimmedBillNo) {
+        message.error('Bill number is required!');
+        return;
+      }
+      
+      // Check for duplicate
+      const billResponse = await getFabricBills('', 1, 1000);
+      const allBills = billResponse.data || [];
+      const duplicate = allBills.find(f => f.billNo?.trim() === trimmedBillNo && f.id !== editingId);
+      if (duplicate) {
+        message.error('Bill number already exists!');
+        return;
+      }
+      
       setLoading(true);
 
       const data = {
         ...values,
+        billNo: trimmedBillNo,
         billDate: values.billDate?.toISOString(),
         details: details.map(d => ({
           inwardNo: d.inwardNo,
@@ -359,7 +376,7 @@ const FabricBill = () => {
           <Row gutter={8}>
             <Col span={4}>
               <Form.Item label="Bill No" name="billNo" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
-                <Input disabled={!isAdmin} style={{ height: '32px' }} size="middle" autoComplete="off" />
+                <Input disabled={editingId ? true : !isAdmin} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={4}>

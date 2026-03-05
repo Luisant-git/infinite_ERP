@@ -209,6 +209,15 @@ const FabricReturn = () => {
         return;
       }
       
+      const hasInvalidWeight = details.some(d => 
+        (Number(d.weight) || 0) <= 0
+      );
+      
+      if (hasInvalidWeight) {
+        message.error('Weight must be greater than 0!');
+        return;
+      }
+      
       if (!editingId) {
         const trimmedDcNo = values.dcNo?.trim();
         const returnResponse = await getFabricReturns('', 1, 1000);
@@ -1053,7 +1062,7 @@ const FabricReturn = () => {
           <Row gutter={8}>
             <Col span={4}>
               <Form.Item label="Dc No" name="dcNo" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
-                <Input disabled={!isAdmin || isViewMode} style={{ height: '32px' }} size="middle" autoComplete="off" />
+                <Input disabled={editingId ? true : (!isAdmin || isViewMode)} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={4}>

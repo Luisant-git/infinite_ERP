@@ -254,6 +254,7 @@ const FabricDc = () => {
     })) || []);
     setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
     setDcType(record.dcType || 'Fresh');
+    setFabricType(record.fabricType || '');
     setIsFormVisible(true);
   };
 
@@ -277,12 +278,26 @@ const FabricDc = () => {
     try {
       const values = await form.validateFields();
       
+      const trimmedDcNo = values.dcNo?.trim();
+      if (!trimmedDcNo) {
+        message.error('DC number is required!');
+        return;
+      }
+      
       if (details.length === 0) {
         message.error('Please add at least one detail row');
         return;
       }
       
-      // Check if all process weights and dc weights are 0
+      const hasInvalidProcessWeight = details.some(d => 
+        (Number(d.processWeight) || 0) <= 0
+      );
+      
+      if (hasInvalidProcessWeight) {
+        message.error('Process Weight must be greater than 0!');
+        return;
+      }
+      
       const hasValidWeight = details.some(d => 
         (Number(d.processWeight) || 0) > 0 || (Number(d.dcWeight) || 0) > 0
       );
@@ -292,23 +307,20 @@ const FabricDc = () => {
         return;
       }
       
-      if (!editingId) {
-        const trimmedDcNo = values.dcNo?.trim();
-        const dcResponse = await getFabricDcs('', 1, 1000);
-        const allDcs = dcResponse.data || [];
-        const duplicate = allDcs.find(f => f.dcNo?.trim() === trimmedDcNo);
-        if (duplicate) {
-          message.error('DC number already exists!');
-          return;
-        }
-        
-        const inwardResponse = await getFabricInwards('', 1, 1000);
-        const allInwards = inwardResponse.data || [];
-        const duplicateInward = allInwards.find(i => i.grnNo?.trim() === trimmedDcNo);
-        if (duplicateInward) {
-          message.error('DC number already exists in Return Entry!');
-          return;
-        }
+      const dcResponse = await getFabricDcs('', 1, 1000);
+      const allDcs = dcResponse.data || [];
+      const duplicate = allDcs.find(f => f.dcNo?.trim() === trimmedDcNo && f.id !== editingId);
+      if (duplicate) {
+        message.error('DC number already exists!');
+        return;
+      }
+      
+      const inwardResponse = await getFabricInwards('', 1, 1000);
+      const allInwards = inwardResponse.data || [];
+      const duplicateInward = allInwards.find(i => i.grnNo?.trim() === trimmedDcNo);
+      if (duplicateInward) {
+        message.error('DC number already exists in Return Entry!');
+        return;
       }
       
       setLoading(true);
@@ -320,7 +332,7 @@ const FabricDc = () => {
 
       const data = {
         ...submitValues,
-        dcNo: values.dcNo?.trim(),
+        dcNo: trimmedDcNo,
         dyeParty: dyeParty || null,
         dcDate: values.dcDate?.toISOString(),
         grnDate: values.grnDate?.toISOString(),
@@ -1139,7 +1151,7 @@ const FabricDc = () => {
           <Row gutter={8}>
             <Col span={3}>
               <Form.Item label="Dc No" name="dcNo" rules={[{ required: true }]} style={{ marginBottom: 6 }}>
-                <Input disabled={!isAdmin || isViewMode} style={{ height: '32px' }} size="middle" autoComplete="off" />
+                <Input disabled={editingId ? true : (!isAdmin || isViewMode)} style={{ height: '32px' }} size="middle" autoComplete="off" />
               </Form.Item>
             </Col>
             <Col span={3}>

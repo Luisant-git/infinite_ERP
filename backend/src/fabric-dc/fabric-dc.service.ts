@@ -6,13 +6,42 @@ export class FabricDcService {
   constructor(private prisma: PrismaService) {}
 
   async getNextDcNo(tenantId: number) {
-    const lastRecord = await this.prisma.fabricDcHeader.findFirst({
-      where: { tenantId, deleteFlg: 0 },
-      orderBy: { sortOrder: 'desc' }
+    const allDcs = await this.prisma.fabricDcHeader.findMany({
+      where: { deleteFlg: 0, tenantId },
+      orderBy: { createdDate: 'desc' }
     });
+
+    if (allDcs.length === 0) {
+      return { dcNo: 'D/1' };
+    }
+
+    // Get the last DC number
+    const lastDcNo = allDcs[0].dcNo;
     
-    const nextNo = lastRecord ? (lastRecord.sortOrder || 0) + 1 : 1;
-    return { dcNo: nextNo.toString().padStart(10, '0') };
+    // Extract the numeric part from the end
+    const match = lastDcNo.match(/(\d+)$/);
+    
+    if (match) {
+      const lastNumberStr = match[1];
+      const lastNumber = parseInt(lastNumberStr);
+      const prefix = lastDcNo.substring(0, lastDcNo.length - lastNumberStr.length);
+      const nextNumber = lastNumber + 1;
+      
+      // Preserve leading zeros by padding to same length as original
+      const paddedNumber = nextNumber.toString().padStart(lastNumberStr.length, '0');
+      const nextDcNo = `${prefix}${paddedNumber}`;
+      
+      // Ensure it doesn't exceed 10 characters
+      if (nextDcNo.length > 10) {
+        return { dcNo: lastDcNo }; // Return same if would exceed limit
+      }
+      
+      return { dcNo: nextDcNo };
+    }
+    
+    // If no number found, append 1
+    const nextDcNo = `${lastDcNo}1`;
+    return { dcNo: nextDcNo.substring(0, 10) }; // Truncate to 10 chars
   }
 
   async findAll(tenantId: number, search?: string, page = 1, limit = 10) {
@@ -47,7 +76,9 @@ export class FabricDcService {
   }
 
   async create(tenantId: number, concernId: number | null, data: any) {
-    const sortOrder = parseInt(data.dcNo);
+    // Extract number from any format
+    const dcNoMatch = data.dcNo.match(/(\d+)$/);
+    const sortOrder = dcNoMatch ? parseInt(dcNoMatch[1]) : 1;
     
     // Check for duplicate dcNo in fabric DC within the same tenant
     const existingDc = await this.prisma.fabricDcHeader.findFirst({
