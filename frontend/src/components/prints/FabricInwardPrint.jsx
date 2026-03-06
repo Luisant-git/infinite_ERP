@@ -84,7 +84,7 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
           <div className="print-header-right">
             <div className="doc-title">RECEIVED NOTE</div>
             <div className="doc-info">
-              <div className="doc-info-row"><strong>No. :</strong> {data.grnNo}</div>
+              <div className="doc-info-row"><strong>GRN No :</strong> {data.grnNo}</div>
               <div className="doc-info-row"><strong>Date :</strong> {dayjs(data.grnDate).format('DD/MM/YYYY')}</div>
             </div>
           </div>
@@ -105,9 +105,9 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
           </div>
           <div className="party-section-right">
             <div className="party-details">
-              <div className="doc-info-row"><strong>Dy Name :</strong> Direct</div>
-              <div className="doc-info-row"><strong>Dyeing DC :</strong> {data.dyeingDcNo || ''}</div>
-              <div className="doc-info-row"><strong>Party DC :</strong> {data.pdcNo || ''}</div>
+              <div className="doc-info-row"><strong>Inward From :</strong> Direct</div>
+              <div className="doc-info-row"><strong>DC No:</strong> {data.dyeingDcNo || ''}</div>
+              <div className="doc-info-row"><strong>Party DC No:</strong> {data.pdcNo || ''}</div>
               <div className="doc-info-row"><strong>Order No :</strong> {data.orderNo || ''}</div>
             </div>
           </div>

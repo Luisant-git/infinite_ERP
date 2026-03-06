@@ -932,15 +932,40 @@ const FabricReturn = () => {
       dataIndex: 'processes',
       width: 200,
       render: (val, record) => {
-        const availableProcesses = record.fabricId ? 
-          (inwardDetails.find(d => d.fabricId === record.fabricId && d.colorId === record.colorId && d.diaId === record.diaId)?.processes ? 
-            JSON.parse(inwardDetails.find(d => d.fabricId === record.fabricId && d.colorId === record.colorId && d.diaId === record.diaId).processes) : []) : [];
+        const availableProcesses = (() => {
+          if (record.processes) {
+            if (Array.isArray(record.processes)) {
+              return record.processes;
+            }
+            if (typeof record.processes === 'string') {
+              try {
+                const parsed = JSON.parse(record.processes);
+                return Array.isArray(parsed) ? parsed : [];
+              } catch (e) {
+                console.error('Failed to parse processes:', record.processes, e);
+                return [];
+              }
+            }
+          }
+          return [];
+        })();
         
         return (
           <Select
             mode="multiple"
             disabled={isViewMode}
-            value={val || []}
+            value={(() => {
+              if (Array.isArray(val)) return val;
+              if (val && typeof val === 'string') {
+                try {
+                  const parsed = JSON.parse(val);
+                  return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                  return [];
+                }
+              }
+              return [];
+            })()}
             onChange={(v) => handleDetailChange(record.key, 'processes', v)}
             style={{ width: '100%' }}
             placeholder="Select processes"

@@ -124,6 +124,18 @@ const FabricInward = () => {
     }
   };
 
+  const handleFabricTypeChange = (value) => {
+    setFabricType(value);
+    if (value !== 'Print Lot') {
+      setDetails(details.map(d => ({
+        ...d,
+        designNo: '',
+        designName: '',
+        noOfColor: 0
+      })));
+    }
+  };
+
   const handleNew = async () => {
     try {
       const response = await getNextGrnNo();
@@ -269,6 +281,16 @@ const FabricInward = () => {
         return;
       }
       
+      // Check for empty rows and prevent saving
+      const emptyRows = details.filter(d => 
+        !d.fabricId || !d.colorId || !d.diaId || (Number(d.weight) || 0) === 0
+      );
+      
+      if (emptyRows.length > 0) {
+        message.error('Please remove or fill all empty rows before saving!');
+        return;
+      }
+      
       // Validate that at least one valid detail row exists with all required fields
       const validDetails = details.filter(d => 
         d.fabricId && d.colorId && d.diaId && d.weight > 0 && d.uomId
@@ -277,6 +299,20 @@ const FabricInward = () => {
       if (validDetails.length === 0) {
         message.error('Please fill at least one complete detail row with Fabric, Color, Dia, Weight (Kgs > 0), and UOM!');
         return;
+      }
+      
+      // Check process selection is required
+      if (!enableItemWiseProcess && selectedProcesses.length === 0) {
+        message.error('Please select at least one process!');
+        return;
+      }
+      
+      if (enableItemWiseProcess) {
+        const detailsWithoutProcess = details.filter(d => d.fabricId && (!d.processes || d.processes.length === 0));
+        if (detailsWithoutProcess.length > 0) {
+          message.error('Please select process for all detail rows!');
+          return;
+        }
       }
       
       // Check if any detail has weight = 0
@@ -357,7 +393,7 @@ const FabricInward = () => {
           fabricId: d.fabricId,
           colorId: d.colorId,
           diaId: d.diaId,
-          gsm: d.gsm,
+          gsm: d.gsm ? String(d.gsm) : '',
           designId: d.designId,
           designNo: d.designNo,
           designName: d.designName,
@@ -547,7 +583,7 @@ const FabricInward = () => {
       dataIndex: 'gsm',
       width: 100,
       render: (val, record) => (
-        <Input value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} autoComplete="off" />
+        <InputNumber value={val} onChange={(v) => handleDetailChange(record.key, 'gsm', v)} style={{ width: '100%' }} min={0} precision={0} autoComplete="off" />
       )
     },
     ...(fabricType === 'Print Lot' ? [
@@ -906,7 +942,7 @@ const FabricInward = () => {
             </Col>
             <Col span={6}>
               <Form.Item label="Fabric Type" name="fabricType" style={{ marginBottom: 6 }}>
-                <Select onChange={setFabricType} style={{ height: '32px' }} size="middle">
+                <Select onChange={handleFabricTypeChange} style={{ height: '32px' }} size="middle">
                   <Option value="Wet Lot">Wet Lot</Option>
                   <Option value="Dry Lot">Dry Lot</Option>
                   <Option value="Grey Lot">Grey Lot</Option>

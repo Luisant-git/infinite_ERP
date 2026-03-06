@@ -30,42 +30,43 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
           }
         }
         @page { size: auto; margin: 0mm; }
-        .page-container { padding: 20px; page-break-after: always; }
+        .page-container { padding: 10px; page-break-after: always; }
         .page-container:last-child { page-break-after: auto; }
-        .original-label { text-align: right; font-size: 10px; font-weight: bold; margin-bottom: 5px; }
+        .original-label { text-align: right; font-size: 9px; font-weight: bold; margin-bottom: 2px; }
         .print-container { width: 100%; border: 2px solid #000; }
         .header-section { display: flex; border-bottom: 2px solid #000; }
-        .header-left { flex: 1; padding: 10px; border-right: 2px solid #000; }
-        .header-right { width: 250px; padding: 10px; }
-        .company-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
-        .company-details { font-size: 10px; line-height: 1.4; }
-        .delivery-note-title { font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 10px; padding-bottom: 5px; text-decoration: underline; }
-        .dc-details { font-size: 10px; }
-        .doc-info-row { display: flex; margin-bottom: 2px; }
+        .header-left { flex: 1; padding: 6px; border-right: 2px solid #000; }
+        .header-right { width: 250px; padding: 6px; }
+        .company-name { font-size: 14px; font-weight: bold; margin-bottom: 2px; }
+        .company-details { font-size: 9px; line-height: 1.2; }
+        .delivery-note-title { font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 4px; padding-bottom: 2px; text-decoration: underline; }
+        .dc-details { font-size: 9px; }
+        .doc-info-row { display: flex; margin-bottom: 1px; }
         .doc-info-row strong { display: inline-block; width: 80px; }
         .party-section { display: flex; border-bottom: 2px solid #000; }
-        .party-left { flex: 1; padding: 10px; border-right: 2px solid #000; }
-        .party-right { width: 250px; padding: 10px; }
-        .party-label { font-size: 10px; font-weight: bold; margin-bottom: 3px; }
-        .party-details { font-size: 10px; line-height: 1.4; }
-        .order-section { display: flex; border-bottom: 2px solid #000; padding: 8px 10px; font-size: 10px; }
+        .party-left { flex: 1; padding: 6px; border-right: 2px solid #000; }
+        .party-right { width: 250px; padding: 6px; }
+        .party-label { font-size: 9px; font-weight: bold; margin-bottom: 2px; }
+        .party-details { font-size: 9px; line-height: 1.2; }
+        .order-section { display: flex; border-bottom: 2px solid #000; padding: 4px 6px; font-size: 9px; }
         .order-left { flex: 1; }
         .order-center { flex: 1; text-align: center; }
         .order-right { flex: 1; text-align: right; }
         .details-table { width: 100%; border-collapse: collapse; }
-        .details-table th, .details-table td { border: 1px solid #000; padding: 6px; font-size: 10px; }
+        .details-table th, .details-table td { border: 1px solid #000; padding: 2px 3px; font-size: 9px; line-height: 1.1; }
         .details-table th { font-weight: bold; text-align: center; }
         .details-table td { text-align: center; vertical-align: top; }
+        .details-table tbody tr { height: 20px; }
         .details-table tbody tr td { border-top: none; border-bottom: none; }
         .details-table tbody tr:first-child td { border-top: 1px solid #000; }
         .details-table tbody tr:last-child td { border-bottom: 1px solid #000; }
         .text-left { text-align: left !important; }
         .total-row { font-weight: bold; }
-        .process-section { display: flex; border-top: 2px solid #000; padding: 8px 10px; font-size: 10px; }
+        .process-section { display: flex; border-top: 2px solid #000; padding: 4px 6px; font-size: 9px; }
         .process-left { flex: 1; }
         .process-right { flex: 1; text-align: right; }
-        .footer-section { display: flex; border-top: 2px solid #000; }
-        .footer-col { flex: 1; text-align: center; font-size: 10px; padding: 10px; border-right: 2px solid #000; display: flex; align-items: flex-end; justify-content: center; }
+        .footer-section { display: flex; border-top: 2px solid #000; min-height: 50px; }
+        .footer-col { flex: 1; text-align: center; font-size: 9px; padding: 6px; border-right: 2px solid #000; display: flex; align-items: flex-end; justify-content: center; }
         .footer-col:last-child { border-right: none; }
       `}</style>
 
@@ -89,7 +90,7 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
           <div className="header-right">
             <div className="delivery-note-title">DELIVERY NOTE</div>
             <div className="dc-details">
-              <div className="doc-info-row"><strong>DC No :</strong> {data.dcNo || ''}</div>
+              <div className="doc-info-row"><strong>GRN No :</strong> {data.dcNo || ''}</div>
               <div className="doc-info-row"><strong>DC Date :</strong> {data.dcDate ? dayjs(data.dcDate).format('DD-MMM-YYYY') : ''}</div>
             </div>
           </div>
@@ -110,9 +111,9 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
           </div>
           <div className="party-right">
             <div className="party-details">
-              <div className="doc-info-row"><strong>Dye Party :</strong> {data.dyeParty || '-'}</div>
-              <div className="doc-info-row"><strong>Dye Dc No :</strong> {data.dyeDcNo || ''}</div>
-              <div className="doc-info-row"><strong>PDC No :</strong> {data.pdcNo || ''}</div>
+              <div className="doc-info-row"><strong>Inward From :</strong> {data.dyeParty || '-'}</div>
+              <div className="doc-info-row"><strong>DC No :</strong> {data.dyeDcNo || ''}</div>
+              <div className="doc-info-row"><strong>Party DC No :</strong> {data.pdcNo || ''}</div>
             </div>
           </div>
         </div>
@@ -198,13 +199,13 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
             <div><strong>Received By</strong></div>
           </div>
           <div className="footer-col">
-            <div><div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{data.vehicleNo || ''}</div><strong>Vehicle No</strong></div>
+            <div><div style={{ fontWeight: 'bold', marginBottom: '2px' }}>{data.vehicleNo || ''}</div><strong>Vehicle No</strong></div>
           </div>
           <div className="footer-col">
             <div><strong>Prepared By</strong></div>
           </div>
           <div className="footer-col">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
               <strong>For {data.concernName || ''}</strong>
               <strong>Authorised Signature</strong>
             </div>

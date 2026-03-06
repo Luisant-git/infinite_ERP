@@ -656,6 +656,7 @@ const FabricDc = () => {
           
           return {
             key: Date.now() + idx,
+            inwardDetailId: d.id,
             fabricId: d.fabricId,
             colorId: d.colorId,
             diaId: d.diaId,
@@ -701,6 +702,7 @@ const FabricDc = () => {
       inwFabricId: null,
       inwColorId: null,
       inwDiaId: null,
+      inwardDetailId: null,
       gsm: '',
       designNo: '',
       designName: '',
@@ -782,23 +784,14 @@ const FabricDc = () => {
       });
       
       const usedWeightInForm = details
-        .filter(d => d.key !== key && 
-                d.inwFabricId === selectedDetail.fabricId && 
-                d.inwColorId === selectedDetail.colorId && 
-                d.inwDiaId === selectedDetail.diaId)
+        .filter(d => d.key !== key && d.inwardDetailId === selectedDetail.id)
         .reduce((sum, d) => sum + (Number(d.processWeight) || 0), 0);
       
       const usedRollsInForm = details
-        .filter(d => d.key !== key && 
-                d.inwFabricId === selectedDetail.fabricId && 
-                d.inwColorId === selectedDetail.colorId && 
-                d.inwDiaId === selectedDetail.diaId)
+        .filter(d => d.key !== key && d.inwardDetailId === selectedDetail.id)
         .reduce((sum, d) => sum + (Number(d.rolls) || 0), 0);
       
-      details.filter(d => d.key !== key && 
-              d.inwFabricId === selectedDetail.fabricId && 
-              d.inwColorId === selectedDetail.colorId && 
-              d.inwDiaId === selectedDetail.diaId)
+      details.filter(d => d.key !== key && d.inwardDetailId === selectedDetail.id)
         .forEach(d => {
           if (d.processes) {
             d.processes.forEach(p => usedProcesses.add(p));
@@ -819,6 +812,7 @@ const FabricDc = () => {
         if (d.key === key) {
           return {
             ...d,
+            inwardDetailId: selectedDetail.id,
             inwFabricId: selectedDetail.fabricId,
             inwColorId: selectedDetail.colorId,
             inwDiaId: selectedDetail.diaId,
@@ -897,10 +891,9 @@ const FabricDc = () => {
       render: (_, record) => (
         <Select 
           disabled={isViewMode}
-          value={record.inwFabricId && record.inwColorId && record.inwDiaId ? `${record.inwDiaId}-${record.inwFabricId}-${record.inwColorId}` : undefined}
+          value={record.inwardDetailId || undefined}
           onChange={(val) => {
-            const detail = inwardDetails.find(d => `${d.diaId}-${d.fabricId}-${d.colorId}` === val);
-            if (detail) handleInwardDetailSelect(record.key, detail.id);
+            handleInwardDetailSelect(record.key, val);
           }}
           style={{ width: '100%' }}
           showSearch
@@ -915,7 +908,7 @@ const FabricDc = () => {
             const designName = d.designName ? ` | ${d.designName}` : '';
             const colorCount = d.noOfColor ? ` | ${d.noOfColor}` : '';
             return (
-              <Option key={d.id} value={`${d.diaId}-${d.fabricId}-${d.colorId}`}>
+              <Option key={d.id} value={d.id}>
                 {`${dia}/${fabric}/${color}${gsm ? `/${gsm}` : ''}${designInfo}${designName}${colorCount}`}
               </Option>
             );
@@ -951,6 +944,14 @@ const FabricDc = () => {
         <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'colorId', v)} style={{ width: '100%' }} showSearch>
           {colors.map(c => <Option key={c.id} value={c.id}>{c.masterName}</Option>)}
         </Select>
+      )
+    },
+    {
+      title: 'GSM',
+      dataIndex: 'gsm',
+      width: 80,
+      render: (val) => (
+        <Input disabled value={val} style={{ width: '100%' }} autoComplete="off" />
       )
     },
     ...(fabricType === 'Print Lot' ? [
