@@ -609,7 +609,8 @@ const FabricDc = () => {
               dc.details.forEach(detail => {
                 if (detail.inwFabricId === d.fabricId && 
                     detail.inwColorId === d.colorId && 
-                    detail.inwDiaId === d.diaId) {
+                    detail.inwDiaId === d.diaId &&
+                    String(detail.gsm) === String(d.gsm)) {
                   usedWeightFromDcs += Number(detail.processWeight) || 0;
                   usedRollsFromDcs += Number(detail.rolls) || 0;
                   if (detail.processes) {
@@ -630,7 +631,8 @@ const FabricDc = () => {
               ret.details.forEach(detail => {
                 if (detail.fabricId === d.fabricId && 
                     detail.colorId === d.colorId && 
-                    detail.diaId === d.diaId) {
+                    detail.diaId === d.diaId &&
+                    String(detail.gsm) === String(d.gsm)) {
                   usedWeightFromReturns += Number(detail.weight) || 0;
                   usedRollsFromReturns += Number(detail.rolls) || 0;
                   if (detail.processes) {
@@ -748,7 +750,8 @@ const FabricDc = () => {
           dc.details.forEach(detail => {
             if (detail.inwFabricId === selectedDetail.fabricId && 
                 detail.inwColorId === selectedDetail.colorId && 
-                detail.inwDiaId === selectedDetail.diaId) {
+                detail.inwDiaId === selectedDetail.diaId &&
+                String(detail.gsm) === String(selectedDetail.gsm)) {
               usedWeightFromDcs += Number(detail.processWeight) || 0;
               usedRollsFromDcs += Number(detail.rolls) || 0;
               if (detail.processes) {
@@ -769,7 +772,8 @@ const FabricDc = () => {
           ret.details.forEach(detail => {
             if (detail.fabricId === selectedDetail.fabricId && 
                 detail.colorId === selectedDetail.colorId && 
-                detail.diaId === selectedDetail.diaId) {
+                detail.diaId === selectedDetail.diaId &&
+                String(detail.gsm) === String(selectedDetail.gsm)) {
               usedWeightFromReturns += Number(detail.weight) || 0;
               usedRollsFromReturns += Number(detail.rolls) || 0;
               if (detail.processes) {
@@ -1045,10 +1049,35 @@ const FabricDc = () => {
       dataIndex: 'processes',
       width: 200,
       render: (val, record) => {
-        // Get processes from the selected inward detail or use current processes
-        const availableProcesses = record.inwFabricId ? 
-          (inwardDetails.find(d => d.fabricId === record.inwFabricId && d.colorId === record.inwColorId && d.diaId === record.inwDiaId)?.processes ? 
-            JSON.parse(inwardDetails.find(d => d.fabricId === record.inwFabricId && d.colorId === record.inwColorId && d.diaId === record.inwDiaId).processes) : []) : [];
+        // Calculate remaining processes dynamically
+        const selectedInwardDetail = inwardDetails.find(d => d.id === record.inwardDetailId);
+        const allProcesses = selectedInwardDetail?.processes ? JSON.parse(selectedInwardDetail.processes) : [];
+        
+        // Get processes used in other rows with the same inward detail (in current form)
+        const usedProcesses = new Set();
+        details.forEach(d => {
+          if (d.key !== record.key && d.inwardDetailId === record.inwardDetailId && d.processes) {
+            d.processes.forEach(p => usedProcesses.add(p));
+          }
+        });
+        
+        // Also exclude processes that are already in the pre-calculated remaining processes
+        // The remaining processes were calculated in handleInwardSelect/handleInwardDetailSelect
+        // which already accounts for processes used in other DCs and Returns
+        if (record.inwardDetailId && selectedInwardDetail) {
+          const allProcsFromInward = selectedInwardDetail.processes ? JSON.parse(selectedInwardDetail.processes) : [];
+          const remainingProcsForThisDetail = record.processes || [];
+          
+          // Processes that are NOT in remaining = already used elsewhere
+          allProcsFromInward.forEach(p => {
+            if (!remainingProcsForThisDetail.includes(p)) {
+              usedProcesses.add(p);
+            }
+          });
+        }
+        
+        // Show only processes that are NOT used
+        const availableProcesses = allProcesses.filter(p => !usedProcesses.has(p));
         
         return (
           <Select

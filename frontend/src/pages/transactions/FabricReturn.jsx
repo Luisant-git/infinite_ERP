@@ -152,7 +152,7 @@ const FabricReturn = () => {
     }
   };
 
-  const handleView = (record) => {
+  const handleView = async (record) => {
     setEditingId(record.id);
     setIsViewMode(true);
     
@@ -166,13 +166,37 @@ const FabricReturn = () => {
       dyeingDcDate: record.dyeingDcDate ? dayjs(record.dyeingDcDate) : null,
       dyeingPartyName: dyeParty?.partyName || ''
     });
-    setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
-    setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
+    
+    const loadedDetails = record.details?.map(d => {
+      let processes = d.processes;
+      if (processes && typeof processes === 'string') {
+        try {
+          processes = JSON.parse(processes);
+        } catch (e) {
+          processes = [];
+        }
+      }
+      return { ...d, key: d.id, processes: Array.isArray(processes) ? processes : [] };
+    }) || [];
+    
+    setDetails(loadedDetails);
+    setSelectedProcesses(record.processes?.map((p, idx) => ({ ...p, key: p.id || idx })) || []);
     setFabricType(record.fabricType || '');
+    
+    if (record.inwardNo) {
+      const response = await getFabricInwards('', 1, 1000);
+      const allInwards = response.data || [];
+      const selectedInward = allInwards.find(i => i.grnNo === record.inwardNo);
+      if (selectedInward) {
+        setInwardQty(Number(selectedInward.totalQty) || 0);
+        setInwardDetails(selectedInward.details || []);
+      }
+    }
+    
     setIsFormVisible(true);
   };
 
-  const handleEdit = (record) => {
+  const handleEdit = async (record) => {
     if (!canEdit('fabric_return')) {
       message.warning('You do not have permission to edit');
       return;
@@ -190,9 +214,33 @@ const FabricReturn = () => {
       dyeingDcDate: record.dyeingDcDate ? dayjs(record.dyeingDcDate) : null,
       dyeingPartyName: dyeParty?.partyName || ''
     });
-    setDetails(record.details?.map(d => ({ ...d, key: d.id })) || []);
-    setSelectedProcesses(record.processes?.map(p => ({ ...p, key: p.id })) || []);
+    
+    const loadedDetails = record.details?.map(d => {
+      let processes = d.processes;
+      if (processes && typeof processes === 'string') {
+        try {
+          processes = JSON.parse(processes);
+        } catch (e) {
+          processes = [];
+        }
+      }
+      return { ...d, key: d.id, processes: Array.isArray(processes) ? processes : [] };
+    }) || [];
+    
+    setDetails(loadedDetails);
+    setSelectedProcesses(record.processes?.map((p, idx) => ({ ...p, key: p.id || idx })) || []);
     setFabricType(record.fabricType || '');
+    
+    if (record.inwardNo) {
+      const response = await getFabricInwards('', 1, 1000);
+      const allInwards = response.data || [];
+      const selectedInward = allInwards.find(i => i.grnNo === record.inwardNo);
+      if (selectedInward) {
+        setInwardQty(Number(selectedInward.totalQty) || 0);
+        setInwardDetails(selectedInward.details || []);
+      }
+    }
+    
     setIsFormVisible(true);
   };
 
@@ -276,7 +324,7 @@ const FabricReturn = () => {
           uomId: d.uomId,
           rate: Number(d.rate) || 0,
           amount: Number(d.amount) || 0,
-          processes: enableItemWiseProcess && d.processes ? JSON.stringify(d.processes) : null,
+          processes: enableItemWiseProcess && d.processes && Array.isArray(d.processes) && d.processes.length > 0 ? JSON.stringify(d.processes) : null,
           remarks: d.remarks || ''
         })),
         processes: selectedProcesses.map(p => ({
@@ -521,12 +569,17 @@ const FabricReturn = () => {
           let usedRollsFromDcs = 0;
           const usedProcesses = new Set();
           
+          // Track current return's usage to add it back
+          let currentReturnWeight = 0;
+          let currentReturnRolls = 0;
+          
           existingDcs.forEach(dc => {
             console.log('Checking DC:', dc.dcNo, 'details:', dc.details);
             if (dc.details && dc.details.length > 0) {
               dc.details.forEach(detail => {
                 console.log('DC detail:', detail, 'comparing with inward:', d.fabricId, d.colorId, d.diaId);
-                if (detail.inwFabricId === d.fabricId && detail.inwColorId === d.colorId && detail.inwDiaId === d.diaId) {
+                if (detail.inwFabricId === d.fabricId && detail.inwColorId === d.colorId && detail.inwDiaId === d.diaId &&
+                    String(detail.gsm) === String(d.gsm)) {
                   console.log('MATCH! Adding weight:', detail.processWeight, 'rolls:', detail.rolls);
                   usedWeightFromDcs += Number(detail.processWeight) || 0;
                   usedRollsFromDcs += Number(detail.rolls) || 0;
@@ -541,12 +594,27 @@ const FabricReturn = () => {
             }
           });
           
+          // If editing, add back current return's weight for this detail
+          if (editingId && editingData?.details) {
+            const currentDetail = editingData.details.find(detail => 
+              detail.fabricId === d.fabricId && 
+              detail.colorId === d.colorId && 
+              detail.diaId === d.diaId &&
+              String(detail.gsm) === String(d.gsm)
+            );
+            if (currentDetail) {
+              currentReturnWeight = Number(currentDetail.weight) || 0;
+              currentReturnRolls = Number(currentDetail.rolls) || 0;
+            }
+          }
+          
           let usedWeightFromReturns = 0;
           let usedRollsFromReturns = 0;
           existingReturns.forEach(ret => {
             if (ret.details && ret.details.length > 0) {
               ret.details.forEach(detail => {
-                if (detail.fabricId === d.fabricId && detail.colorId === d.colorId && detail.diaId === d.diaId) {
+                if (detail.fabricId === d.fabricId && detail.colorId === d.colorId && detail.diaId === d.diaId &&
+                    String(detail.gsm) === String(d.gsm)) {
                   usedWeightFromReturns += Number(detail.weight) || 0;
                   usedRollsFromReturns += Number(detail.rolls) || 0;
                   if (detail.processes) {
@@ -562,8 +630,8 @@ const FabricReturn = () => {
           
           const totalUsed = usedWeightFromDcs + usedWeightFromReturns;
           const totalRollsUsed = usedRollsFromDcs + usedRollsFromReturns;
-          const remainingWeight = (d.weight || 0) - totalUsed;
-          const remainingRolls = (d.rolls || 0) - totalRollsUsed;
+          const remainingWeight = (d.weight || 0) - totalUsed + currentReturnWeight;
+          const remainingRolls = (d.rolls || 0) - totalRollsUsed + currentReturnRolls;
           const returnWt = remainingWeight > 0 ? remainingWeight : 0;
           const rolls = remainingRolls > 0 ? remainingRolls : 0;
           const allProcesses = d.processes ? JSON.parse(d.processes) : [];
