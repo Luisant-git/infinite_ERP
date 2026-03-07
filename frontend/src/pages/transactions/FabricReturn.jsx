@@ -532,12 +532,8 @@ const FabricReturn = () => {
       console.log('FabricReturn - handleInwardSelect:', {
         inwardNo,
         editingId,
-        allDcsCount: allDcs.length,
-        allReturnsCount: allReturns.length,
         existingDcsCount: existingDcs.length,
-        existingReturnsCount: existingReturns.length,
-        existingDcs: existingDcs.map(dc => ({ dcNo: dc.dcNo, totalQty: dc.totalQty })),
-        existingReturns: existingReturns.map(ret => ({ dcNo: ret.dcNo, id: ret.id, totalQty: ret.totalQty }))
+        existingReturnsCount: existingReturns.length
       });
       
       const usedInDc = existingDcs.reduce((sum, dc) => sum + (Number(dc.totalQty) || 0), 0);
@@ -563,24 +559,15 @@ const FabricReturn = () => {
       if (selectedInward.details && selectedInward.details.length > 0) {
         setInwardDetails(selectedInward.details);
         
-        const loadedDetails = await Promise.all(selectedInward.details.map(async (d, idx) => {
-          console.log('Processing inward detail:', d);
+        const loadedDetails = selectedInward.details.map((d, idx) => {
           let usedWeightFromDcs = 0;
           let usedRollsFromDcs = 0;
           const usedProcesses = new Set();
           
-          // Track current return's usage to add it back
-          let currentReturnWeight = 0;
-          let currentReturnRolls = 0;
-          
           existingDcs.forEach(dc => {
-            console.log('Checking DC:', dc.dcNo, 'details:', dc.details);
             if (dc.details && dc.details.length > 0) {
               dc.details.forEach(detail => {
-                console.log('DC detail:', detail, 'comparing with inward:', d.fabricId, d.colorId, d.diaId);
-                if (detail.inwFabricId === d.fabricId && detail.inwColorId === d.colorId && detail.inwDiaId === d.diaId &&
-                    String(detail.gsm) === String(d.gsm)) {
-                  console.log('MATCH! Adding weight:', detail.processWeight, 'rolls:', detail.rolls);
+                if (detail.inwardDetailId === d.id) {
                   usedWeightFromDcs += Number(detail.processWeight) || 0;
                   usedRollsFromDcs += Number(detail.rolls) || 0;
                   if (detail.processes) {
@@ -593,20 +580,6 @@ const FabricReturn = () => {
               });
             }
           });
-          
-          // If editing, add back current return's weight for this detail
-          if (editingId && editingData?.details) {
-            const currentDetail = editingData.details.find(detail => 
-              detail.fabricId === d.fabricId && 
-              detail.colorId === d.colorId && 
-              detail.diaId === d.diaId &&
-              String(detail.gsm) === String(d.gsm)
-            );
-            if (currentDetail) {
-              currentReturnWeight = Number(currentDetail.weight) || 0;
-              currentReturnRolls = Number(currentDetail.rolls) || 0;
-            }
-          }
           
           let usedWeightFromReturns = 0;
           let usedRollsFromReturns = 0;
@@ -630,26 +603,12 @@ const FabricReturn = () => {
           
           const totalUsed = usedWeightFromDcs + usedWeightFromReturns;
           const totalRollsUsed = usedRollsFromDcs + usedRollsFromReturns;
-          const remainingWeight = (d.weight || 0) - totalUsed + currentReturnWeight;
-          const remainingRolls = (d.rolls || 0) - totalRollsUsed + currentReturnRolls;
+          const remainingWeight = (d.weight || 0) - totalUsed;
+          const remainingRolls = (d.rolls || 0) - totalRollsUsed;
           const returnWt = remainingWeight > 0 ? remainingWeight : 0;
           const rolls = remainingRolls > 0 ? remainingRolls : 0;
           const allProcesses = d.processes ? JSON.parse(d.processes) : [];
           const remainingProcesses = allProcesses.filter(p => !usedProcesses.has(p));
-          
-          console.log('FabricReturn - handleInwardSelect detail:', {
-            fabricId: d.fabricId,
-            originalWeight: d.weight,
-            originalRolls: d.rolls,
-            usedWeightFromDcs,
-            usedWeightFromReturns,
-            usedRollsFromDcs,
-            usedRollsFromReturns,
-            remainingWeight,
-            remainingRolls,
-            returnWt,
-            rolls
-          });
           
           return {
             key: Date.now() + idx,
@@ -668,8 +627,8 @@ const FabricReturn = () => {
             processes: remainingProcesses,
             remarks: d.remarks || ''
           };
-        }));
-        setDetails(loadedDetails);
+        });
+        setDetails(loadedDetails.filter(d => d.weight > 0 || d.rolls > 0));
       }
       
       if (selectedInward.processes) {
@@ -724,9 +683,7 @@ const FabricReturn = () => {
       existingDcs.forEach(dc => {
         if (dc.details && dc.details.length > 0) {
           dc.details.forEach(detail => {
-            if (detail.inwFabricId === selectedDetail.fabricId && 
-                detail.inwColorId === selectedDetail.colorId && 
-                detail.inwDiaId === selectedDetail.diaId) {
+            if (detail.inwardDetailId === selectedDetail.id) {
               usedWeightFromDcs += Number(detail.processWeight) || 0;
               usedRollsFromDcs += Number(detail.rolls) || 0;
               if (detail.processes) {

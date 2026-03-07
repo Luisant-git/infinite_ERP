@@ -122,6 +122,7 @@ export class FabricDcService {
         createdBy: data.createdBy,
         details: {
           create: data.details?.map(d => ({
+            inwardDetailId: d.inwardDetailId,
             fabricId: d.fabricId,
             colorId: d.colorId,
             diaId: d.diaId,
@@ -190,6 +191,7 @@ export class FabricDcService {
         modifiedBy: data.modifiedBy,
         details: {
           create: data.details?.map(d => ({
+            inwardDetailId: d.inwardDetailId,
             fabricId: d.fabricId,
             colorId: d.colorId,
             diaId: d.diaId,

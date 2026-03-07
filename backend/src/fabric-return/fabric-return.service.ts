@@ -121,6 +121,7 @@ export class FabricReturnService {
         createdBy: data.createdBy,
         details: {
           create: data.details?.map(d => ({
+            inwardDetailId: d.inwardDetailId,
             fabricId: d.fabricId,
             colorId: d.colorId,
             diaId: d.diaId,
@@ -182,6 +183,7 @@ export class FabricReturnService {
         modifiedBy: data.modifiedBy,
         details: {
           create: data.details?.map(d => ({
+            inwardDetailId: d.inwardDetailId,
             fabricId: d.fabricId,
             colorId: d.colorId,
             diaId: d.diaId,
