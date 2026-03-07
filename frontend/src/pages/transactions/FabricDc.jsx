@@ -211,7 +211,7 @@ const FabricDc = () => {
       pdcNo: record.pdcNo || '',
       orderNo: record.orderNo || '',
       jobNo: record.inwardNo || '',
-      recWeight: Number(record.inwardQty || 0).toFixed(3),
+      recWeight: Number(inwards.find(i => i.grnNo === record.inwardNo)?.totalQty || 0).toFixed(3),
       items: (record.details || []).map(d => ({
         fabric: fabrics.find(f => f.id === d.fabricId)?.masterName || '-',
         color: colors.find(c => c.id === d.colorId)?.masterName || '-',
@@ -523,7 +523,7 @@ const FabricDc = () => {
       pdcNo: record.pdcNo || '',
       orderNo: record.orderNo || '',
       jobNo: record.inwardNo || '',
-      recWeight: Number(record.inwardQty || 0).toFixed(3),
+      recWeight: Number(inwards.find(i => i.grnNo === record.inwardNo)?.totalQty || 0).toFixed(3),
       items: (record.details || []).map(d => ({
         fabric: fabrics.find(f => f.id === d.fabricId)?.masterName || '-',
         color: colors.find(c => c.id === d.colorId)?.masterName || '-',
