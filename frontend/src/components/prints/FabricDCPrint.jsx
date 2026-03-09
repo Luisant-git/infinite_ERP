@@ -48,7 +48,7 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
         .party-right { width: 250px; padding: 6px; }
         .party-label { font-size: 9px; font-weight: bold; margin-bottom: 2px; }
         .party-details { font-size: 9px; line-height: 1.2; }
-        .order-section { display: flex; border-bottom: 2px solid #000; padding: 4px 6px; font-size: 9px; }
+        .order-section { display: flex; padding: 4px 6px; font-size: 9px; }
         .order-left { flex: 1; }
         .order-center { flex: 1; text-align: center; }
         .order-right { flex: 1; text-align: right; }
@@ -83,7 +83,10 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
               {!data.concernAddr2 && data.concernAddr1 && <>{data.concernAddr1}<br /></>}
               {data.concernAddr2 && !data.concernAddr1 && <>{data.concernAddr2}<br /></>}
               {[data.concernAddr3, data.concernAddr4, data.concernDistrict].filter(Boolean).join(', ')}{[data.concernAddr3, data.concernAddr4, data.concernDistrict].filter(Boolean).length > 0 && <br />}
-              {[data.concernPhoneNo, data.concernMobileNo, data.concernMailId].filter(Boolean).join(', ')}{[data.concernPhoneNo, data.concernMobileNo, data.concernMailId].filter(Boolean).length > 0 && <br />}
+              {data.concernPhoneNo && <>Phone No: {data.concernPhoneNo}</>}{data.concernPhoneNo && (data.concernMobileNo || data.concernMailId) && <>, </>}
+              {data.concernMobileNo && <>Mobile No: {data.concernMobileNo}</>}{data.concernMobileNo && data.concernMailId && <>, </>}
+              {data.concernMailId && <>Mail Id: {data.concernMailId}</>}
+              {(data.concernPhoneNo || data.concernMobileNo || data.concernMailId) && <br />}
               {data.concernGstNo && <><strong>GST No.: {data.concernGstNo}</strong></>}
             </div>
           </div>
@@ -105,7 +108,10 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
               {!data.address2 && data.address1 && <>{data.address1}<br /></>}
               {data.address2 && !data.address1 && <>{data.address2}<br /></>}
               {[data.address3, data.address4, data.district].filter(Boolean).join(', ')}{[data.address3, data.address4, data.district].filter(Boolean).length > 0 && <br />}
-              {[data.phoneNo, data.mobileNo, data.mailId].filter(Boolean).join(', ')}{[data.phoneNo, data.mobileNo, data.mailId].filter(Boolean).length > 0 && <br />}
+              {data.phoneNo && <>Phone No: {data.phoneNo}</>}{data.phoneNo && (data.mobileNo || data.mailId) && <>, </>}
+              {data.mobileNo && <>Mobile No: {data.mobileNo}</>}{data.mobileNo && data.mailId && <>, </>}
+              {data.mailId && <>Mail Id: {data.mailId}</>}
+              {(data.phoneNo || data.mobileNo || data.mailId) && <br />}
               {data.gstNo && <><strong>GST No.: {data.gstNo}</strong></>}
             </div>
           </div>
