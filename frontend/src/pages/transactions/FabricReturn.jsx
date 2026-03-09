@@ -373,8 +373,11 @@ const FabricReturn = () => {
             dia: dias.find(dia => dia.id === d.diaId)?.masterName || '',
             rolls: d.rolls || '',
             weight: d.weight || '',
+            designName: d.designName,
+            processes: d.processes,
             remarks: d.remarks || ''
           })),
+          process: enableItemWiseProcess ? '' : selectedProcesses.map(p => p.processName).join(', '),
           concernName: concernData?.partyName,
           concernAddr1: concernData?.address1,
           concernAddr2: concernData?.address2,
@@ -384,7 +387,8 @@ const FabricReturn = () => {
           concernPhoneNo: concernData?.phoneNo,
           concernMobileNo: concernData?.mobileNo,
           concernMailId: concernData?.email,
-          concernGstNo: concernData?.gstNo
+          concernGstNo: concernData?.gstNo,
+          enableItemWiseProcess: enableItemWiseProcess
         });
         
         setTimeout(() => {
@@ -440,8 +444,11 @@ const FabricReturn = () => {
         dia: dias.find(dia => dia.id === d.diaId)?.masterName || '',
         rolls: d.rolls || '',
         weight: d.weight || '',
+        designName: d.designName,
+        processes: d.processes,
         remarks: d.remarks || ''
       })),
+      process: enableItemWiseProcess ? '' : (record.processes?.map(p => p.processName).join(', ') || ''),
       concernName: concernData?.partyName,
       concernAddr1: concernData?.address1,
       concernAddr2: concernData?.address2,
@@ -451,8 +458,15 @@ const FabricReturn = () => {
       concernPhoneNo: concernData?.phoneNo,
       concernMobileNo: concernData?.mobileNo,
       concernMailId: concernData?.email,
-      concernGstNo: concernData?.gstNo
+      concernGstNo: concernData?.gstNo,
+      enableItemWiseProcess: enableItemWiseProcess
     };
+    
+    console.log('FabricReturn Print Data:', {
+      process: data.process,
+      enableItemWiseProcess: data.enableItemWiseProcess,
+      items: data.items?.map(i => ({ fabric: i.fabric, processes: i.processes }))
+    });
     
     setPrintData(data);
     setTimeout(() => {

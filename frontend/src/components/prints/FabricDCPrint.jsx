@@ -66,8 +66,7 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
         .process-left { flex: 1; }
         .process-right { flex: 1; text-align: right; }
         .footer-section { display: flex; border-top: 2px solid #000; min-height: 50px; }
-        .footer-col { flex: 1; text-align: center; font-size: 9px; padding: 6px; border-right: 2px solid #000; display: flex; align-items: flex-end; justify-content: center; }
-        .footer-col:last-child { border-right: none; }
+        .footer-col { flex: 1; text-align: center; font-size: 9px; padding: 6px; display: flex; align-items: flex-end; justify-content: center; }
       `}</style>
 
       {pages.map((page, pageIndex) => (
@@ -153,10 +152,10 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
               return (
               <tr key={index}>
                 <td className="text-left">
+                  {item.fabric || '-'} {item.designName ? `/ ${item.designName}` : ''}
                   {data.enableItemWiseProcess && item.processes && (
-                    <><span style={{ fontSize: '7px', fontStyle: 'italic' }}>{typeof item.processes === 'string' ? JSON.parse(item.processes).join(' / ') : item.processes.join(' / ')}</span><br /></>
+                    <><br /><span style={{ fontSize: '7px', fontStyle: 'italic' }}>{typeof item.processes === 'string' ? JSON.parse(item.processes).join(' / ') : item.processes.join(' / ')}</span></>
                   )}
-                  {item.fabric || '-'}
                 </td>
                 <td className="text-left">{item.color || '-'}</td>
                 <td>{item.dia || '-'}</td>

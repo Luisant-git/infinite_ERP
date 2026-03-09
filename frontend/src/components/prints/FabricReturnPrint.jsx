@@ -2,6 +2,13 @@ import React from 'react';
 import dayjs from 'dayjs';
 
 const FabricReturnPrint = React.forwardRef(({ data }, ref) => {
+  console.log('FabricReturnPrint received data:', {
+    process: data.process,
+    enableItemWiseProcess: data.enableItemWiseProcess,
+    itemsCount: data.items?.length,
+    firstItemProcesses: data.items?.[0]?.processes
+  });
+  
   const itemsPerPage = 5;
   const items = data.items || [data];
   const pages = [];
@@ -60,8 +67,7 @@ const FabricReturnPrint = React.forwardRef(({ data }, ref) => {
         .text-left { text-align: left !important; }
         .total-row { font-weight: bold; }
         .footer-section { display: flex; border-top: 2px solid #000; }
-        .footer-col { flex: 1; text-align: center; font-size: 10px; padding: 10px; border-right: 2px solid #000; display: flex; align-items: flex-end; justify-content: center; }
-        .footer-col:last-child { border-right: none; }
+        .footer-col { flex: 1; text-align: center; font-size: 10px; padding: 10px; display: flex; align-items: flex-end; justify-content: center; }
       `}</style>
 
       {pages.map((page, pageIndex) => (
@@ -130,21 +136,34 @@ const FabricReturnPrint = React.forwardRef(({ data }, ref) => {
           </div>
         </div>
 
+
+
         <table className="details-table">
           <thead>
             <tr>
-              <th style={{ width: '20%' }}>Fabric</th>
+              <th style={{ width: '30%' }}>Fabric</th>
               <th style={{ width: '15%' }}>Color</th>
               <th style={{ width: '10%' }}>Dia</th>
               <th style={{ width: '10%' }}>Rolls</th>
-              <th style={{ width: '15%' }}>Weight</th>
-              <th>Remarks</th>
+              <th style={{ width: '12%' }}>Weight</th>
+              <th style={{ width: '23%' }}>Remarks</th>
             </tr>
           </thead>
           <tbody>
             {page.items.map((item, index) => (
               <tr key={index}>
-                <td className="text-left">{item.fabric || '-'}</td>
+                <td className="text-left">
+                  {item.fabric || '-'} {item.designName ? `/ ${item.designName}` : ''}
+                  {data.enableItemWiseProcess && item.processes && (
+                    <><br /><span style={{ fontSize: '7px', fontStyle: 'italic' }}>
+                      {Array.isArray(item.processes) ? item.processes.join(' / ') : 
+                       (typeof item.processes === 'string' ? 
+                         (item.processes.startsWith('[') ? JSON.parse(item.processes).join(' / ') : item.processes) : 
+                         ''
+                       )}
+                    </span></>
+                  )}
+                </td>
                 <td className="text-left">{item.color || '-'}</td>
                 <td>{item.dia || '-'}</td>
                 <td>{item.rolls || ''}</td>
@@ -168,15 +187,23 @@ const FabricReturnPrint = React.forwardRef(({ data }, ref) => {
         <table className="details-table" style={{ borderTop: 'none' }}>
           <tbody>
             <tr className="total-row">
-              <td style={{ width: '20%', border: 'none', borderLeft: '1px solid #000' }}>&nbsp;</td>
+              <td style={{ width: '30%', border: 'none', borderLeft: '1px solid #000' }}>&nbsp;</td>
               <td style={{ width: '15%', border: 'none' }}>&nbsp;</td>
               <td style={{ width: '10%', textAlign: 'center', borderLeft: '1px solid #000', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>Total</td>
               <td style={{ width: '10%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.rolls) || 0), 0)}</td>
-              <td style={{ width: '15%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000', borderRight: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0).toFixed(3)}</td>
-              <td style={{ border: 'none', borderRight: '1px solid #000' }}>&nbsp;</td>
+              <td style={{ width: '12%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000', borderRight: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0).toFixed(3)}</td>
+              <td style={{ width: '23%', border: 'none', borderRight: '1px solid #000' }}>&nbsp;</td>
             </tr>
           </tbody>
         </table>
+
+        {!data.enableItemWiseProcess && data.process && (
+          <div style={{ display: 'flex', borderTop: '2px solid #000', padding: '4px 6px', fontSize: '9px' }}>
+            <div style={{ flex: 1 }}>
+              <strong>Process</strong> &nbsp;&nbsp; {data.process}
+            </div>
+          </div>
+        )}
 
         <div className="footer-section">
           <div className="footer-col">

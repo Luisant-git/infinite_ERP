@@ -237,10 +237,11 @@ const FabricDc = () => {
       items: (record.details || []).map(d => ({
         fabric: fabrics.find(f => f.id === d.fabricId)?.masterName || '-',
         color: colors.find(c => c.id === d.colorId)?.masterName || '-',
-        dia: dias.find(d => d.id === d.diaId)?.masterName || '-',
+        dia: dias.find(dia => dia.id === d.diaId)?.masterName || '-',
         rolls: d.rolls || 0,
         weight: Number(d.dcWeight || 0).toFixed(3),
         processes: d.processes,
+        designName: d.designName,
         remarks: d.remarks || ''
       })),
       process: processText,
@@ -496,6 +497,7 @@ const FabricDc = () => {
             rolls: d.rolls || 0,
             weight: Number(d.dcWeight || 0).toFixed(3),
             processes: d.processes,
+            designName: d.designName,
             remarks: d.remarks || ''
           })),
           process: selectedProcesses.map(p => p.processName).join(', '),
@@ -582,6 +584,7 @@ const FabricDc = () => {
         rolls: d.rolls || 0,
         weight: Number(d.dcWeight || 0).toFixed(3),
         processes: d.processes,
+        designName: d.designName,
         remarks: d.remarks || ''
       })),
       process: processText,

@@ -138,10 +138,10 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
               <tr key={index}>
                 <td>{page.startIndex + index + 1}</td>
                 <td className="text-left">
+                  {getFabricName(detail.fabricId)} {detail.designName ? `/ ${detail.designName}` : ''}
                   {data.enableItemWiseProcess && detail.processes && (
-                    <><span style={{ fontSize: '7px', fontStyle: 'italic' }}>{typeof detail.processes === 'string' ? JSON.parse(detail.processes).join(' / ') : detail.processes.join(' / ')}</span><br /></>
+                    <><br /><span style={{ fontSize: '7px', fontStyle: 'italic' }}>{typeof detail.processes === 'string' ? JSON.parse(detail.processes).join(' / ') : detail.processes.join(' / ')}</span></>
                   )}
-                  {getFabricName(detail.fabricId)} {detail.designNo ? `/ ${detail.designNo}` : ''}
                 </td>
                 <td>{getColorName(detail.colorId)}</td>
                 <td>{detail.gsm || ''}</td>
