@@ -87,8 +87,8 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
           <div className="print-header-right">
             <div className="doc-title">RECEIVED NOTE</div>
             <div className="doc-info">
-              <div className="doc-info-row"><strong>GRN No :</strong> {data.grnNo}</div>
-              <div className="doc-info-row"><strong>Date :</strong> {dayjs(data.grnDate).format('DD/MM/YYYY')}</div>
+              <div className="doc-info-row"><strong>GRN No</strong> : {data.grnNo}</div>
+              <div className="doc-info-row"><strong>Date</strong> : {dayjs(data.grnDate).format('DD/MM/YYYY')}</div>
             </div>
           </div>
         </div>
@@ -111,10 +111,10 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
           </div>
           <div className="party-section-right">
             <div className="party-details">
-              <div className="doc-info-row"><strong>Inward From :</strong> Direct</div>
-              <div className="doc-info-row"><strong>DC No:</strong> {data.dyeingDcNo || ''}</div>
-              <div className="doc-info-row"><strong>Party DC No:</strong> {data.pdcNo || ''}</div>
-              <div className="doc-info-row"><strong>Order No :</strong> {data.orderNo || ''}</div>
+              <div className="doc-info-row"><strong>Inward From</strong> : Direct</div>
+              <div className="doc-info-row"><strong>DC No</strong> : {data.dyeingDcNo || ''}</div>
+              <div className="doc-info-row"><strong>Party DC No</strong> : {data.pdcNo || ''}</div>
+              <div className="doc-info-row"><strong>Order No</strong> : {data.orderNo || ''}</div>
             </div>
           </div>
         </div>
@@ -175,7 +175,7 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
             </tr>
             <tr className="remarks-row">
               <td colSpan="5" className="text-left" style={{ padding: '6px' }}>
-                <strong>Remarks :</strong> {data.remarks || ''}
+                <strong>Remarks</strong> : {data.remarks || ''}
               </td>
               <td colSpan="2" className="text-left" style={{ padding: '6px' }}>
                 <strong>For {data.concernName || ''}</strong>
@@ -193,8 +193,7 @@ const FabricInwardPrint = React.forwardRef(({ data, fabrics, colors, dias }, ref
             <strong>Vehicle No</strong>
           </div>
           <div className="footer-col">
-            <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{data.returnValue || ''}</div>
-            <strong>Return Value</strong>
+            <strong>Checked By</strong>
           </div>
           <div className="footer-col">
             <strong>Authorised Signature</strong>

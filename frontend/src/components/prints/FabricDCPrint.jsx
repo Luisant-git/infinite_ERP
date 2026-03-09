@@ -92,8 +92,8 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
           <div className="header-right">
             <div className="delivery-note-title">DELIVERY NOTE</div>
             <div className="dc-details">
-              <div className="doc-info-row"><strong>GRN No :</strong> {data.dcNo || ''}</div>
-              <div className="doc-info-row"><strong>DC Date :</strong> {data.dcDate ? dayjs(data.dcDate).format('DD-MMM-YYYY') : ''}</div>
+              <div className="doc-info-row"><strong>GRN No</strong> : {data.dcNo || ''}</div>
+              <div className="doc-info-row"><strong>DC Date</strong> : {data.dcDate ? dayjs(data.dcDate).format('DD-MMM-YYYY') : ''}</div>
             </div>
           </div>
         </div>
@@ -116,22 +116,22 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
           </div>
           <div className="party-right">
             <div className="party-details">
-              <div className="doc-info-row"><strong>Inward From :</strong> {data.dyeParty || '-'}</div>
-              <div className="doc-info-row"><strong>DC No :</strong> {data.dyeDcNo || ''}</div>
-              <div className="doc-info-row"><strong>Party DC No :</strong> {data.pdcNo || ''}</div>
+              <div className="doc-info-row"><strong>Inward From</strong> : {data.dyeParty || '-'}</div>
+              <div className="doc-info-row"><strong>DC No</strong> : {data.dyeDcNo || ''}</div>
+              <div className="doc-info-row"><strong>Party DC No</strong> : {data.pdcNo || ''}</div>
             </div>
           </div>
         </div>
 
         <div className="order-section">
           <div className="order-left">
-            <strong>Order No :</strong> {data.orderNo || ''}
+            <strong>Order No</strong> : {data.orderNo || ''}
           </div>
           <div className="order-center">
-            <strong>Job No :</strong> {data.jobNo || ''}
+            <strong>Job No</strong> : {data.jobNo || ''}
           </div>
           <div className="order-right">
-            <strong>Rec Weight :</strong> {data.recWeight || ''}
+            <strong>Rec Weight</strong> : {data.recWeight || ''}
           </div>
         </div>
 
