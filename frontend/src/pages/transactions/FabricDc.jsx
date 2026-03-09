@@ -653,7 +653,6 @@ const FabricDc = () => {
         const loadedDetails = selectedInward.details.map((d, idx) => {
           let usedWeightFromDcs = 0;
           let usedRollsFromDcs = 0;
-          const usedProcesses = new Set();
           
           existingDcs.forEach(dc => {
             if (dc.details && dc.details.length > 0) {
@@ -661,12 +660,6 @@ const FabricDc = () => {
                 if (detail.inwardDetailId === d.id) {
                   usedWeightFromDcs += Number(detail.processWeight) || 0;
                   usedRollsFromDcs += Number(detail.rolls) || 0;
-                  if (detail.processes) {
-                    try {
-                      const procs = JSON.parse(detail.processes);
-                      procs.forEach(p => usedProcesses.add(p));
-                    } catch (e) {}
-                  }
                 }
               });
             }
@@ -680,12 +673,6 @@ const FabricDc = () => {
                 if (detail.fabricId === d.fabricId && detail.colorId === d.colorId && detail.diaId === d.diaId && String(detail.gsm) === String(d.gsm)) {
                   usedWeightFromReturns += Number(detail.weight) || 0;
                   usedRollsFromReturns += Number(detail.rolls) || 0;
-                  if (detail.processes) {
-                    try {
-                      const procs = JSON.parse(detail.processes);
-                      procs.forEach(p => usedProcesses.add(p));
-                    } catch (e) {}
-                  }
                 }
               });
             }
@@ -699,7 +686,6 @@ const FabricDc = () => {
           const dcWt = remainingWeight > 0 ? remainingWeight : 0;
           const rolls = remainingRolls > 0 ? remainingRolls : 0;
           const allProcesses = d.processes ? JSON.parse(d.processes) : [];
-          const remainingProcesses = allProcesses.filter(p => !usedProcesses.has(p));
           
           const weightLoss = processWt - dcWt;
           const lossPercentage = processWt > 0 ? ((processWt - dcWt) / processWt * 100) : 0;
@@ -726,7 +712,7 @@ const FabricDc = () => {
             uomId: d.uomId,
             rate: 0,
             amount: 0,
-            processes: remainingProcesses,
+            processes: allProcesses,
             remarks: d.remarks || ''
           };
         });
@@ -792,19 +778,12 @@ const FabricDc = () => {
       
       let usedWeightFromDcs = 0;
       let usedRollsFromDcs = 0;
-      const usedProcesses = new Set();
       existingDcs.forEach(dc => {
         if (dc.details && dc.details.length > 0) {
           dc.details.forEach(detail => {
             if (detail.inwardDetailId === selectedDetail.id) {
               usedWeightFromDcs += Number(detail.processWeight) || 0;
               usedRollsFromDcs += Number(detail.rolls) || 0;
-              if (detail.processes) {
-                try {
-                  const procs = JSON.parse(detail.processes);
-                  procs.forEach(p => usedProcesses.add(p));
-                } catch (e) {}
-              }
             }
           });
         }
@@ -818,18 +797,11 @@ const FabricDc = () => {
             if (detail.fabricId === selectedDetail.fabricId && detail.colorId === selectedDetail.colorId && detail.diaId === selectedDetail.diaId && String(detail.gsm) === String(selectedDetail.gsm)) {
               usedWeightFromReturns += Number(detail.weight) || 0;
               usedRollsFromReturns += Number(detail.rolls) || 0;
-              if (detail.processes) {
-                try {
-                  const procs = JSON.parse(detail.processes);
-                  procs.forEach(p => usedProcesses.add(p));
-                } catch (e) {}
-              }
             }
           });
         }
       });
       
-      // Get current state of details to calculate used weight in form
       setDetails(currentDetails => {
         const usedWeightInForm = currentDetails
           .filter(d => d.key !== key && d.inwardDetailId === selectedDetail.id)
@@ -839,13 +811,6 @@ const FabricDc = () => {
           .filter(d => d.key !== key && d.inwardDetailId === selectedDetail.id)
           .reduce((sum, d) => sum + (Number(d.rolls) || 0), 0);
         
-        currentDetails.filter(d => d.key !== key && d.inwardDetailId === selectedDetail.id)
-          .forEach(d => {
-            if (d.processes) {
-              d.processes.forEach(p => usedProcesses.add(p));
-            }
-          });
-        
         const totalUsed = usedWeightFromDcs + usedWeightFromReturns + usedWeightInForm;
         const totalRollsUsed = usedRollsFromDcs + usedRollsFromReturns + usedRollsInForm;
         const remainingWeight = (selectedDetail.weight || 0) - totalUsed;
@@ -854,7 +819,6 @@ const FabricDc = () => {
         const dcWt = remainingWeight > 0 ? remainingWeight : 0;
         const rolls = remainingRolls > 0 ? remainingRolls : 0;
         const allProcesses = selectedDetail.processes ? JSON.parse(selectedDetail.processes) : [];
-        const remainingProcesses = allProcesses.filter(p => !usedProcesses.has(p));
         const weightLoss = processWt - dcWt;
         const lossPercentage = processWt > 0 ? ((processWt - dcWt) / processWt * 100) : 0;
         
@@ -880,7 +844,7 @@ const FabricDc = () => {
               dcWeight: dcWt,
               weightLoss: weightLoss,
               lossPercentage: lossPercentage,
-              processes: remainingProcesses,
+              processes: allProcesses,
               amount: 0
             };
           }
@@ -1112,35 +1076,8 @@ const FabricDc = () => {
       dataIndex: 'processes',
       width: 200,
       render: (val, record) => {
-        // Calculate remaining processes dynamically
         const selectedInwardDetail = inwardDetails.find(d => d.id === record.inwardDetailId);
         const allProcesses = selectedInwardDetail?.processes ? JSON.parse(selectedInwardDetail.processes) : [];
-        
-        // Get processes used in other rows with the same inward detail (in current form)
-        const usedProcesses = new Set();
-        details.forEach(d => {
-          if (d.key !== record.key && d.inwardDetailId === record.inwardDetailId && d.processes) {
-            d.processes.forEach(p => usedProcesses.add(p));
-          }
-        });
-        
-        // Also exclude processes that are already in the pre-calculated remaining processes
-        // The remaining processes were calculated in handleInwardSelect/handleInwardDetailSelect
-        // which already accounts for processes used in other DCs and Returns
-        if (record.inwardDetailId && selectedInwardDetail) {
-          const allProcsFromInward = selectedInwardDetail.processes ? JSON.parse(selectedInwardDetail.processes) : [];
-          const remainingProcsForThisDetail = record.processes || [];
-          
-          // Processes that are NOT in remaining = already used elsewhere
-          allProcsFromInward.forEach(p => {
-            if (!remainingProcsForThisDetail.includes(p)) {
-              usedProcesses.add(p);
-            }
-          });
-        }
-        
-        // Show only processes that are NOT used
-        const availableProcesses = allProcesses.filter(p => !usedProcesses.has(p));
         
         return (
           <Select
@@ -1151,7 +1088,7 @@ const FabricDc = () => {
             style={{ width: '100%' }}
             placeholder="Select processes"
           >
-            {availableProcesses.map((p, idx) => <Option key={idx} value={p}>{p}</Option>)}
+            {allProcesses.map((p, idx) => <Option key={idx} value={p}>{p}</Option>)}
           </Select>
         );
       }

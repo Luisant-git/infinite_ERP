@@ -608,7 +608,6 @@ const FabricReturn = () => {
           const returnWt = remainingWeight > 0 ? remainingWeight : 0;
           const rolls = remainingRolls > 0 ? remainingRolls : 0;
           const allProcesses = d.processes ? JSON.parse(d.processes) : [];
-          const remainingProcesses = allProcesses.filter(p => !usedProcesses.has(p));
           
           return {
             key: Date.now() + idx,
@@ -624,7 +623,7 @@ const FabricReturn = () => {
             uomId: d.uomId,
             rate: 0,
             amount: 0,
-            processes: remainingProcesses,
+            processes: allProcesses,
             remarks: d.remarks || ''
           };
         });
@@ -749,7 +748,6 @@ const FabricReturn = () => {
       const returnWt = remainingWeight > 0 ? remainingWeight : 0;
       const rolls = remainingRolls > 0 ? remainingRolls : 0;
       const allProcesses = selectedDetail.processes ? JSON.parse(selectedDetail.processes) : [];
-      const remainingProcesses = allProcesses.filter(p => !usedProcesses.has(p));
       
       console.log('FabricReturn - handleInwardDetailSelect:', {
         fabricId: selectedDetail.fabricId,
@@ -781,7 +779,7 @@ const FabricReturn = () => {
             rolls: rolls,
             uomId: selectedDetail.uomId,
             weight: returnWt,
-            processes: remainingProcesses,
+            processes: allProcesses,
             amount: 0
           };
         }
@@ -957,45 +955,23 @@ const FabricReturn = () => {
       dataIndex: 'processes',
       width: 200,
       render: (val, record) => {
-        const availableProcesses = (() => {
-          if (record.processes) {
-            if (Array.isArray(record.processes)) {
-              return record.processes;
-            }
-            if (typeof record.processes === 'string') {
-              try {
-                const parsed = JSON.parse(record.processes);
-                return Array.isArray(parsed) ? parsed : [];
-              } catch (e) {
-                console.error('Failed to parse processes:', record.processes, e);
-                return [];
-              }
-            }
-          }
-          return [];
-        })();
+        const selectedInwardDetail = inwardDetails.find(d => 
+          d.fabricId === record.fabricId && 
+          d.colorId === record.colorId && 
+          d.diaId === record.diaId
+        );
+        const allProcesses = selectedInwardDetail?.processes ? JSON.parse(selectedInwardDetail.processes) : [];
         
         return (
           <Select
             mode="multiple"
             disabled={isViewMode}
-            value={(() => {
-              if (Array.isArray(val)) return val;
-              if (val && typeof val === 'string') {
-                try {
-                  const parsed = JSON.parse(val);
-                  return Array.isArray(parsed) ? parsed : [];
-                } catch (e) {
-                  return [];
-                }
-              }
-              return [];
-            })()}
+            value={val || []}
             onChange={(v) => handleDetailChange(record.key, 'processes', v)}
             style={{ width: '100%' }}
             placeholder="Select processes"
           >
-            {availableProcesses.map((p, idx) => <Option key={idx} value={p}>{p}</Option>)}
+            {allProcesses.map((p, idx) => <Option key={idx} value={p}>{p}</Option>)}
           </Select>
         );
       }
