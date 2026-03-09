@@ -625,6 +625,7 @@ const FabricReturn = () => {
           
           return {
             key: Date.now() + idx,
+            inwardDetailId: d.id,
             fabricId: d.fabricId,
             colorId: d.colorId,
             diaId: d.diaId,
@@ -783,6 +784,7 @@ const FabricReturn = () => {
         if (d.key === key) {
           return {
             ...d,
+            inwardDetailId: selectedDetail.id,
             fabricId: selectedDetail.fabricId,
             colorId: selectedDetail.colorId,
             diaId: selectedDetail.diaId,
@@ -969,11 +971,7 @@ const FabricReturn = () => {
       dataIndex: 'processes',
       width: 200,
       render: (val, record) => {
-        const selectedInwardDetail = inwardDetails.find(d => 
-          d.fabricId === record.fabricId && 
-          d.colorId === record.colorId && 
-          d.diaId === record.diaId
-        );
+        const selectedInwardDetail = inwardDetails.find(d => d.id === record.inwardDetailId);
         const allProcesses = selectedInwardDetail?.processes ? JSON.parse(selectedInwardDetail.processes) : [];
         
         return (
