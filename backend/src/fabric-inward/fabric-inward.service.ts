@@ -67,8 +67,63 @@ export class FabricInwardService {
       this.prisma.fabricInwardHeader.count({ where })
     ]);
 
+    // Check if inward is used in DC/Return/Bill
+    const dataWithStatus = await Promise.all(
+      data.map(async (inward) => {
+        const isUsedInDc = await this.prisma.fabricDcHeader.findFirst({
+          where: { 
+            inwardNo: inward.grnNo, 
+            deleteFlg: 0  // Only count non-deleted DCs
+          }
+        });
+        
+        const isUsedInReturn = await this.prisma.fabricReturnHeader.findFirst({
+          where: { 
+            inwardNo: inward.grnNo, 
+            deleteFlg: 0  // Only count non-deleted Returns
+          }
+        });
+        
+        // Also check if bill header is soft deleted
+        const isUsedInBillWithHeader = await this.prisma.fabricBillDetail.findFirst({
+          where: { 
+            inwardNo: inward.grnNo, 
+            deleteFlg: 0,  // Bill detail not deleted
+            header: {
+              deleteFlg: 0  // Bill header not deleted
+            }
+          },
+          include: {
+            header: true
+          }
+        });
+
+        // Debug logging
+        if (inward.grnNo) {
+          console.log(`Inward ${inward.grnNo} lock check:`, {
+            isUsedInDc: !!isUsedInDc,
+            isUsedInReturn: !!isUsedInReturn,
+            isUsedInBill: !!isUsedInBillWithHeader,
+            dcRecord: isUsedInDc ? { id: isUsedInDc.id, dcNo: isUsedInDc.dcNo, deleteFlg: isUsedInDc.deleteFlg } : null,
+            returnRecord: isUsedInReturn ? { id: isUsedInReturn.id, dcNo: isUsedInReturn.dcNo, deleteFlg: isUsedInReturn.deleteFlg } : null,
+            billRecord: isUsedInBillWithHeader ? { 
+              id: isUsedInBillWithHeader.id, 
+              inwardNo: isUsedInBillWithHeader.inwardNo, 
+              deleteFlg: isUsedInBillWithHeader.deleteFlg,
+              headerDeleteFlg: isUsedInBillWithHeader.header?.deleteFlg 
+            } : null
+          });
+        }
+
+        return {
+          ...inward,
+          isLocked: !!(isUsedInDc || isUsedInReturn || isUsedInBillWithHeader)
+        };
+      })
+    );
+
     return {
-      data,
+      data: dataWithStatus,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
     };
   }

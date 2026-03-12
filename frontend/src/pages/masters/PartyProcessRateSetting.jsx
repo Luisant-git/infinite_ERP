@@ -68,8 +68,11 @@ const PartyProcessRateSetting = () => {
       const response = await getPartyProcessRates(partyId);
       const partyRates = Array.isArray(response) ? response : [];
       
+      console.log('Loaded party rates:', partyRates);
+      
       setRates(processes.map(process => {
         const existingRate = partyRates.find(r => r.processId === process.id);
+        console.log(`Process ${process.processName}:`, existingRate);
         return {
           id: existingRate?.id || `${partyId}_${process.id}`,
           processId: process.id,
@@ -96,16 +99,27 @@ const PartyProcessRateSetting = () => {
         const data = {
           partyId: selectedParty,
           processId: rate.processId,
-          ratePerKg: rate.ratePerKg || 0,
-          ratePerPiece: rate.ratePerPiece || 0,
+          ratePerKg: Number(rate.ratePerKg) || 0,
+          ratePerPiece: Number(rate.ratePerPiece) || 0,
           minAmount: 0,
           minKgsProcess: 0,
         };
-        await updatePartyProcessRate(rate.id, data);
+        
+        // Check if this is a new rate (ID contains non-numeric characters) or existing rate
+        const isNewRate = String(rate.id).includes('_') || String(rate.id).includes('new_');
+        
+        if (isNewRate) {
+          // Use create API for new rates
+          await updatePartyProcessRate('new', data);
+        } else {
+          // Use update API for existing rates
+          await updatePartyProcessRate(rate.id, data);
+        }
       }
       Modal.success({ title: 'Success', content: 'All rates saved successfully!' });
       await handlePartyChange(selectedParty);
     } catch (error) {
+      console.error('Save error:', error);
       Modal.error({ title: 'Error', content: error.response?.data?.message || 'Failed to save rates' });
     } finally {
       setSavingId(null);

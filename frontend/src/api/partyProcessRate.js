@@ -5,6 +5,11 @@ export const getPartyProcessRates = async (partyId) => {
   return response.data;
 };
 
+export const getPartyProcessRatesWithProcess = async (partyId) => {
+  const response = await apiClient.get(`/party-process-rate/with-process`, { params: { partyId } });
+  return response.data;
+};
+
 export const createPartyProcessRate = async (data) => {
   const response = await apiClient.post('/party-process-rate', data);
   return response.data;

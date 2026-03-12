@@ -69,8 +69,25 @@ export class FabricDcService {
       this.prisma.fabricDcHeader.count({ where })
     ]);
 
+    // Check if DC is used in Bill
+    const dataWithStatus = await Promise.all(
+      data.map(async (dc) => {
+        const isUsedInBill = await this.prisma.fabricBillDetail.findFirst({
+          where: { 
+            dcId: dc.id, 
+            deleteFlg: 0  // Only count non-deleted Bills
+          }
+        });
+
+        return {
+          ...dc,
+          isLocked: !!isUsedInBill
+        };
+      })
+    );
+
     return {
-      data,
+      data: dataWithStatus,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
     };
   }

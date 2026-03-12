@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query, ParseIntPipe, Headers } from '@nestjs/common';
+import { ApiOperation } from '@nestjs/swagger';
 import { FabricBillService } from './fabric-bill.service';
 import { CreateFabricBillDto, UpdateFabricBillDto } from './dto/fabric-bill.dto';
 
@@ -19,6 +20,15 @@ export class FabricBillController {
     @Query('limit') limit?: string,
   ) {
     return this.fabricBillService.findAll(Number(tenantId), search, Number(page) || 1, Number(limit) || 10);
+  }
+
+  @Get('available-dcs/:partyId')
+  @ApiOperation({ summary: 'Get available DCs for billing' })
+  async getAvailableDcs(
+    @Param('partyId') partyId: string,
+    @Headers('tenant-id') tenantId: string
+  ) {
+    return this.fabricBillService.getAvailableDcs(parseInt(partyId), parseInt(tenantId));
   }
 
   @Get(':id')

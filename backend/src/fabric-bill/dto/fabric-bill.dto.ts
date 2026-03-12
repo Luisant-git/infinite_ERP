@@ -146,6 +146,18 @@ export class CreateFabricBillDto {
   @IsNumber()
   roundOff?: number;
 
+  @IsOptional()
+  @IsNumber()
+  recAmount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  diffAmount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  grantAmount?: number;
+
   @IsNumber()
   netAmount: number;
 

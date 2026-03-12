@@ -1134,10 +1134,27 @@ const FabricDc = () => {
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record)} style={{ color: '#1890ff' }} />
           {canEdit('fabric_dc') && (
-            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#52c41a' }} />
+            <Button 
+              type="link" 
+              size="small" 
+              icon={<EditOutlined />} 
+              onClick={() => handleEdit(record)} 
+              style={{ color: record.isLocked ? '#d9d9d9' : '#52c41a' }}
+              disabled={record.isLocked}
+              title={record.isLocked ? 'Cannot edit - used in Bill' : 'Edit'}
+            />
           )}
           {canDelete('fabric_dc') && (
-            <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+            <Button 
+              type="link" 
+              size="small" 
+              danger 
+              icon={<DeleteOutlined />} 
+              onClick={() => handleDelete(record.id)} 
+              style={{ color: record.isLocked ? '#d9d9d9' : '#ff4d4f' }}
+              disabled={record.isLocked}
+              title={record.isLocked ? 'Cannot delete - used in Bill' : 'Delete'}
+            />
           )}
           <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRecord(record)} style={{ color: '#722ed1' }} />
         </Space>

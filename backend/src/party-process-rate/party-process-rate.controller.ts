@@ -17,7 +17,7 @@ export class PartyProcessRateController {
 
   @Put(':id')
   update(@Param('id') id: string, @Body() data: any) {
-    return this.service.update(parseInt(id), data);
+    return this.service.update(id, data);
   }
 
   @Delete(':id')

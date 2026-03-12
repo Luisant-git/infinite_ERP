@@ -75,6 +75,49 @@ export class FabricBillService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
+  async getAvailableDcs(partyId: number, tenantId: number) {
+    // Get all DCs for the party that are not used in bills and not "Re-Process(Free)"
+    const availableDcs = await this.prisma.fabricDcHeader.findMany({
+      where: {
+        tenantId,
+        deleteFlg: 0,
+        OR: [
+          { partyId: partyId },
+          { deliveryTo: partyId }
+        ],
+        dcType: {
+          not: 'Re-Process(Free)' // Exclude Re-Process(Free) DCs
+        }
+      },
+      include: {
+        details: {
+          where: { deleteFlg: 0 }
+        }
+      },
+      orderBy: { createdDate: 'desc' }
+    });
+
+    // Filter out DCs that are already used in bills
+    const unusedDcs: typeof availableDcs = [];
+    for (const dc of availableDcs) {
+      const isUsedInBill = await this.prisma.fabricBillDetail.findFirst({
+        where: {
+          dcId: dc.id,
+          deleteFlg: 0,
+          header: {
+            deleteFlg: 0
+          }
+        }
+      });
+
+      if (!isUsedInBill) {
+        unusedDcs.push(dc);
+      }
+    }
+
+    return unusedDcs;
+  }
+
   async findOne(id: number) {
     const bill = await this.prisma.fabricBillHeader.findFirst({
       where: { id, deleteFlg: 0 },

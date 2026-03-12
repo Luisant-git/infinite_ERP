@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Switch, Button, message, Space } from 'antd';
+import { Card, Form, Switch, Button, message, Space, Input } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
 import { getSettings, updateSettings } from '../../api/settings';
 
@@ -15,7 +15,8 @@ const Settings = () => {
     try {
       const data = await getSettings();
       form.setFieldsValue({
-        enableItemWiseProcess: data.enableItemWiseProcess
+        enableItemWiseProcess: data.enableItemWiseProcess,
+        defaultHsnCode: data.defaultHsnCode || ''
       });
     } catch (error) {
       message.error('Failed to load settings');
@@ -49,6 +50,18 @@ const Settings = () => {
           tooltip="When enabled, processes can be managed at item level"
         >
           <Switch />
+        </Form.Item>
+
+        <Form.Item 
+          label="Default HSN Code" 
+          name="defaultHsnCode"
+          tooltip="This HSN code will be auto-filled in Fabric Bills"
+        >
+          <Input 
+            placeholder="Enter HSN Code (e.g., 5208)"
+            maxLength={20}
+            autoComplete="off"
+          />
         </Form.Item>
 
         <div style={{ marginTop: 16 }}>

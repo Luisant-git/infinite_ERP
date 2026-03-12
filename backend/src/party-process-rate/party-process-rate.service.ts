@@ -14,28 +14,59 @@ export class PartyProcessRateService {
     return this.prisma.partyProcessRateSetting.create({ data });
   }
 
-  async update(id: number, data: any) {
-    const numericId = Number(id);
-    if (!id || isNaN(numericId) || String(id).includes('_')) {
+  async update(id: number | string, data: any) {
+    // Handle new entries or entries with non-numeric IDs
+    if (!id || id === 'new' || String(id).includes('_') || String(id).includes('new_')) {
+      // Check if a rate already exists for this party-process combination
       const existing = await this.prisma.partyProcessRateSetting.findFirst({
-        where: { partyId: data.partyId, processId: data.processId }
+        where: { 
+          partyId: data.partyId, 
+          processId: data.processId,
+          isDeleted: false 
+        }
       });
+      
       if (existing) {
+        // Update existing record
         return this.prisma.partyProcessRateSetting.update({
           where: { id: existing.id },
-          data: { ...data, isDeleted: false, deletedAt: null }
+          data: { 
+            ...data, 
+            isDeleted: false, 
+            deletedAt: null,
+            updatedAt: new Date()
+          }
         });
+      } else {
+        // Create new record
+        return this.create(data);
       }
+    }
+    
+    // Handle numeric IDs for existing records
+    const numericId = Number(id);
+    if (isNaN(numericId)) {
+      throw new Error('Invalid ID format');
+    }
+    
+    const existing = await this.prisma.partyProcessRateSetting.findUnique({ 
+      where: { id: numericId } 
+    });
+    
+    if (!existing) {
+      // If record doesn't exist, create new one
       return this.create(data);
     }
     
-    const existing = await this.prisma.partyProcessRateSetting.findUnique({ where: { id: numericId } });
-    if (!existing) {
-      return this.create(data);
-    }
+    // Update existing record
     return this.prisma.partyProcessRateSetting.update({ 
       where: { id: numericId }, 
-      data: { ...data, isDeleted: false, deletedAt: null } 
+      data: { 
+        ...data, 
+        isDeleted: false, 
+        deletedAt: null,
+        updatedAt: new Date()
+      } 
     });
   }
 

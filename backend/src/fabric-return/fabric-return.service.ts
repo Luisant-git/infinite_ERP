@@ -69,8 +69,29 @@ export class FabricReturnService {
       this.prisma.fabricReturnHeader.count({ where })
     ]);
 
+    // Check if Return is used in Bill
+    const dataWithStatus = await Promise.all(
+      data.map(async (returnRecord) => {
+        // Check if return is used in bills by inward number or DC number
+        const isUsedInBill = await this.prisma.fabricBillDetail.findFirst({
+          where: { 
+            OR: [
+              { inwardNo: returnRecord.inwardNo, deleteFlg: 0 },
+              { dcNo: returnRecord.dcNo, deleteFlg: 0 }
+            ],
+            deleteFlg: 0  // Only count non-deleted Bills
+          }
+        });
+
+        return {
+          ...returnRecord,
+          isLocked: !!isUsedInBill
+        };
+      })
+    );
+
     return {
-      data,
+      data: dataWithStatus,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
     };
   }

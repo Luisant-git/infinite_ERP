@@ -653,6 +653,9 @@ model FabricBillHeader {
   gstAmount       Decimal  @default(0) @db.Decimal(12, 2)
   otherCharges    Decimal  @default(0) @db.Decimal(12, 2)
   roundOff        Decimal  @default(0) @db.Decimal(12, 2)
+  recAmount       Decimal  @default(0) @db.Decimal(12, 2)
+  diffAmount      Decimal  @default(0) @db.Decimal(12, 2)
+  grantAmount     Decimal  @default(0) @db.Decimal(12, 2)
   netAmount       Decimal  @default(0) @db.Decimal(12, 2)
   createdBy       String?  @db.VarChar(50)
   createdDate     DateTime @default(now())
@@ -740,6 +743,7 @@ model Settings {
   id                      Int      @id @default(autoincrement())
   tenantId                Int      @unique
   enableItemWiseProcess   Boolean  @default(false)
+  defaultHsnCode          String?  @db.VarChar(20)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   

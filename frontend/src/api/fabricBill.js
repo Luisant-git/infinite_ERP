@@ -20,6 +20,11 @@ export const getFabricBill = async (id) => {
   return response.data;
 };
 
+export const getAvailableDcs = async (partyId) => {
+  const response = await apiClient.get(`/fabric-bill/available-dcs/${partyId}`);
+  return response.data;
+};
+
 export const createFabricBill = async (data) => {
   const response = await apiClient.post('/fabric-bill', data);
   return response.data;
