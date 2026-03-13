@@ -243,7 +243,11 @@ const FabricBill = () => {
     try {
       const dcs = await getAvailableDcs(selectedParty);
       setAvailableDcs(dcs);
-      setSelectedDcs([]);
+      
+      // Get already loaded DC IDs from current details
+      const loadedDcIds = [...new Set(details.filter(d => d.dcId).map(d => d.dcId))];
+      setSelectedDcs(loadedDcIds);
+      
       setDcSearchText(""); // Reset search when opening modal
       setDcModalVisible(true);
     } catch (error) {
@@ -261,23 +265,25 @@ const FabricBill = () => {
   };
 
   const handleAddSelectedDcs = () => {
-    const selectedDcRecords = availableDcs.filter((dc) =>
-      selectedDcs.includes(dc.id),
+    // Get currently loaded DC IDs
+    const currentDcIds = [...new Set(details.filter(d => d.dcId).map(d => d.dcId))];
+    
+    // Find newly selected DCs (not already loaded)
+    const newlySelectedDcIds = selectedDcs.filter(dcId => !currentDcIds.includes(dcId));
+    
+    // Find deselected DCs (previously loaded but now unchecked)
+    const deselectedDcIds = currentDcIds.filter(dcId => !selectedDcs.includes(dcId));
+    
+    // Remove details from deselected DCs
+    let updatedDetails = details.filter(d => !deselectedDcIds.includes(d.dcId));
+    
+    // Add details from newly selected DCs
+    const newlySelectedDcRecords = availableDcs.filter((dc) =>
+      newlySelectedDcIds.includes(dc.id),
     );
 
-    const newDetails = selectedDcRecords.flatMap((dc) =>
+    const newDetails = newlySelectedDcRecords.flatMap((dc) =>
       dc.details.map((detail) => {
-        // Get master names for display
-        const fabric = masters.find(
-          (m) => m.id === detail.fabricId && m.masterType === "Fabric",
-        );
-        const color = masters.find(
-          (m) => m.id === detail.colorId && m.masterType === "Color",
-        );
-        const dia = masters.find(
-          (m) => m.id === detail.diaId && m.masterType === "Dia",
-        );
-
         // Parse and format processes
         let processArray = [];
         let processText = "";
@@ -333,18 +339,26 @@ const FabricBill = () => {
       }),
     );
 
-    setDetails([...details, ...newDetails]);
+    setDetails([...updatedDetails, ...newDetails]);
     setDcModalVisible(false);
-    setSelectedDcs([]);
 
     // Recalculate totals immediately after adding DCs
     setTimeout(() => {
       calculateTotals();
     }, 100);
 
-    message.success(
-      `Added ${selectedDcRecords.length} DC(s) with ${newDetails.length} items`,
-    );
+    const addedCount = newlySelectedDcRecords.length;
+    const removedCount = deselectedDcIds.length;
+    
+    if (addedCount > 0 && removedCount > 0) {
+      message.success(`Added ${addedCount} DC(s), Removed ${removedCount} DC(s)`);
+    } else if (addedCount > 0) {
+      message.success(`Added ${addedCount} DC(s) with ${newDetails.length} items`);
+    } else if (removedCount > 0) {
+      message.success(`Removed ${removedCount} DC(s)`);
+    } else {
+      message.info('No changes made');
+    }
   };
 
   const handleNew = async () => {
@@ -696,7 +710,14 @@ const FabricBill = () => {
   };
 
   const handleDeleteDetail = (key) => {
-    setDetails(details.filter((d) => d.key !== key));
+    const detailToDelete = details.find(d => d.key === key);
+    if (detailToDelete && detailToDelete.dcId) {
+      // Remove all items from the same DC
+      setDetails(details.filter((d) => d.dcId !== detailToDelete.dcId));
+    } else {
+      // Remove only the specific item if it's not from a DC
+      setDetails(details.filter((d) => d.key !== key));
+    }
     setTimeout(() => {
       calculateTotals();
     }, 100);
