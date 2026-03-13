@@ -607,13 +607,13 @@ const FabricInward = () => {
         title: 'Design Name',
         dataIndex: 'designName',
         width: 150,
-        render: (val) => <Input value={val} disabled style={{ width: '100%' }} autoComplete="off" />
+        render: (val) => <span>{val || ''}</span>
       },
       {
         title: 'No of Color',
         dataIndex: 'noOfColor',
         width: 100,
-        render: (val) => <InputNumber value={val} disabled style={{ width: '100%' }} autoComplete="off" />
+        render: (val) => <span>{val || 0}</span>
       }
     ] : []),
     {
