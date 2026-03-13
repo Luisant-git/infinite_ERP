@@ -204,6 +204,7 @@ const FabricBill = () => {
     if (party) {
       form.setFieldsValue({
         creditDays: party.creditDays || 0,
+        invoiceTo: partyId, // Auto-set Invoice To same as Party
       });
     }
 
@@ -222,6 +223,14 @@ const FabricBill = () => {
 
     // Clear existing taxes when party changes
     setTaxes([]);
+    
+    // Auto-load taxes when party is selected
+    if (partyId && concernData) {
+      setTimeout(() => {
+        autoLoadTaxes(partyId);
+      }, 200);
+    }
+    
     setTimeout(calculateTotals, 100);
   };
 
@@ -319,7 +328,7 @@ const FabricBill = () => {
           originalProcesses: processArray,
           process: processText,
           processList: processListText,
-          remarks: detail.remarks || "",
+          remarks: "", // Don't fetch remarks from DC
         };
       }),
     );
@@ -538,10 +547,22 @@ const FabricBill = () => {
       (sum, d) => sum + (Number(d.amount) || 0),
       0,
     );
-    const gstAmount = taxes.reduce(
+    
+    // Recalculate tax amounts based on new total amount
+    const updatedTaxes = taxes.map(tax => ({
+      ...tax,
+      taxAmount: (totalAmount * Number(tax.taxPercentage)) / 100
+    }));
+    
+    const gstAmount = updatedTaxes.reduce(
       (sum, t) => sum + (Number(t.taxAmount) || 0),
       0,
     );
+    
+    // Update taxes state with recalculated amounts
+    if (updatedTaxes.length > 0) {
+      setTaxes(updatedTaxes);
+    }
 
     const designAmount =
       (form.getFieldValue("noOfDesign") || 0) *
@@ -699,20 +720,15 @@ const FabricBill = () => {
     }, 100);
   };
 
-  const handleLoadTaxes = () => {
+  const autoLoadTaxes = (partyId) => {
     const totalAmount = form.getFieldValue("totalAmount") || 0;
-    const partyId = form.getFieldValue("partyId");
-
-    console.log("Total Amount for tax calculation:", totalAmount);
 
     if (!partyId || !concernData) {
-      message.warning("Please select a party first");
       return;
     }
 
     const selectedParty = parties.find((p) => p.id === partyId);
     if (!selectedParty) {
-      message.warning("Party not found");
       return;
     }
 
@@ -736,14 +752,6 @@ const FabricBill = () => {
 
       if (cgstTax) {
         const cgstAmount = (totalAmount * Number(cgstTax.taxPercent)) / 100;
-        console.log(
-          "CGST calculation:",
-          totalAmount,
-          "x",
-          cgstTax.taxPercent,
-          "% =",
-          cgstAmount,
-        );
         loadedTaxes.push({
           key: Date.now() + cgstTax.id,
           taxName: cgstTax.id,
@@ -754,14 +762,6 @@ const FabricBill = () => {
 
       if (sgstTax) {
         const sgstAmount = (totalAmount * Number(sgstTax.taxPercent)) / 100;
-        console.log(
-          "SGST calculation:",
-          totalAmount,
-          "x",
-          sgstTax.taxPercent,
-          "% =",
-          sgstAmount,
-        );
         loadedTaxes.push({
           key: Date.now() + sgstTax.id + 1,
           taxName: sgstTax.id,
@@ -778,14 +778,6 @@ const FabricBill = () => {
 
       if (igstTax) {
         const igstAmount = (totalAmount * Number(igstTax.taxPercent)) / 100;
-        console.log(
-          "IGST calculation:",
-          totalAmount,
-          "x",
-          igstTax.taxPercent,
-          "% =",
-          igstAmount,
-        );
         loadedTaxes.push({
           key: Date.now() + igstTax.id,
           taxName: igstTax.id,
@@ -795,72 +787,14 @@ const FabricBill = () => {
       }
     }
 
-    if (loadedTaxes.length === 0) {
-      message.warning(
-        `No ${isSameState ? "CGST/SGST" : "IGST"} taxes found with default load setting`,
-      );
-      return;
+    if (loadedTaxes.length > 0) {
+      setTaxes(loadedTaxes);
+      
+      // Calculate totals immediately with the new taxes
+      setTimeout(() => {
+        calculateTotals();
+      }, 100);
     }
-
-    console.log("Setting taxes:", loadedTaxes);
-    setTaxes(loadedTaxes);
-
-    // Calculate totals immediately with the new taxes
-    setTimeout(() => {
-      const gstAmount = loadedTaxes.reduce(
-        (sum, t) => sum + (Number(t.taxAmount) || 0),
-        0,
-      );
-      console.log("Immediate GST calculation:", gstAmount);
-
-      const totalQty = details.reduce(
-        (sum, d) => sum + (Number(d.weight) || 0),
-        0,
-      );
-      const totalRolls = details.reduce((sum, d) => sum + (d.rolls || 0), 0);
-      const totalAmount = details.reduce(
-        (sum, d) => sum + (Number(d.amount) || 0),
-        0,
-      );
-
-      const designAmount =
-        (form.getFieldValue("noOfDesign") || 0) *
-        (form.getFieldValue("designRate") || 0);
-      const screenAmount =
-        (form.getFieldValue("noOfScreen") || 0) *
-        (form.getFieldValue("screenRate") || 0);
-      const otherCharges = form.getFieldValue("otherCharges") || 0;
-      const recAmount = form.getFieldValue("recAmount") || 0;
-      const diffAmount = form.getFieldValue("diffAmount") || 0;
-      const grantAmount = form.getFieldValue("grantAmount") || 0;
-
-      const netBeforeRound =
-        totalAmount +
-        gstAmount +
-        designAmount +
-        screenAmount +
-        otherCharges +
-        recAmount +
-        diffAmount +
-        grantAmount;
-      const roundOff = Math.round(netBeforeRound) - netBeforeRound;
-      const netAmount = Math.round(netBeforeRound);
-
-      form.setFieldsValue({
-        totalQty,
-        totalRolls,
-        totalAmount,
-        designAmount,
-        screenAmount,
-        gstAmount,
-        roundOff: roundOff.toFixed(2),
-        netAmount,
-      });
-    }, 100);
-
-    message.success(
-      `Loaded ${isSameState ? "CGST + SGST" : "IGST"} taxes (${isSameState ? "Same State" : "Different State"})`,
-    );
   };
 
   const handleDeleteTax = (key) => {
@@ -876,131 +810,43 @@ const FabricBill = () => {
       title: "Inward No",
       dataIndex: "inwardNo",
       width: 100,
-      render: (v, r) => (
-        <Input
-          disabled
-          value={v}
-          onChange={(e) =>
-            handleDetailChange(r.key, "inwardNo", e.target.value)
-          }
-          size="small"
-          autoComplete="off"
-        />
-      ),
+      render: (v) => <span>{v || ''}</span>,
     },
     {
       title: "Our DC No",
       dataIndex: "dcNo",
       width: 100,
-      render: (v, r) => (
-        <Input
-          disabled
-          value={v}
-          onChange={(e) => handleDetailChange(r.key, "dcNo", e.target.value)}
-          size="small"
-          autoComplete="off"
-        />
-      ),
+      render: (v) => <span>{v || ''}</span>,
     },
     {
       title: "Our DC Date",
       dataIndex: "dcDate",
       width: 120,
-      render: (v, r) => (
-        <DatePicker
-          disabled
-          value={v ? dayjs(v) : null}
-          onChange={(date) =>
-            handleDetailChange(r.key, "dcDate", date?.toISOString())
-          }
-          format="DD-MM-YYYY"
-          size="small"
-          style={{ width: "100%" }}
-        />
-      ),
+      render: (v) => <span>{v ? dayjs(v).format('DD-MM-YYYY') : ''}</span>,
     },
     {
       title: "Fabric",
       dataIndex: "fabricId",
       width: 120,
-      render: (v, r) => (
-        <Select
-          disabled
-          value={v}
-          onChange={(val) => handleDetailChange(r.key, "fabricId", val)}
-          showSearch
-          size="small"
-          style={{ width: "100%" }}
-        >
-          {masters
-            .filter((m) => m.masterType === "Fabric")
-            .map((m) => (
-              <Option key={m.id} value={m.id}>
-                {m.masterName}
-              </Option>
-            ))}
-        </Select>
-      ),
+      render: (v) => <span>{masters.find(m => m.id === v && m.masterType === 'Fabric')?.masterName || ''}</span>,
     },
     {
       title: "Dia",
       dataIndex: "diaId",
       width: 80,
-      render: (v, r) => (
-        <Select
-          disabled
-          value={v}
-          onChange={(val) => handleDetailChange(r.key, "diaId", val)}
-          showSearch
-          size="small"
-          style={{ width: "100%" }}
-        >
-          {masters
-            .filter((m) => m.masterType === "Dia")
-            .map((m) => (
-              <Option key={m.id} value={m.id}>
-                {m.masterName}
-              </Option>
-            ))}
-        </Select>
-      ),
+      render: (v) => <span>{masters.find(m => m.id === v && m.masterType === 'Dia')?.masterName || ''}</span>,
     },
     {
       title: "Color",
       dataIndex: "colorId",
       width: 100,
-      render: (v, r) => (
-        <Select
-          disabled
-          value={v}
-          onChange={(val) => handleDetailChange(r.key, "colorId", val)}
-          showSearch
-          size="small"
-          style={{ width: "100%" }}
-        >
-          {masters
-            .filter((m) => m.masterType === "Color")
-            .map((m) => (
-              <Option key={m.id} value={m.id}>
-                {m.masterName}
-              </Option>
-            ))}
-        </Select>
-      ),
+      render: (v) => <span>{masters.find(m => m.id === v && m.masterType === 'Color')?.masterName || ''}</span>,
     },
     {
       title: "GSM",
       dataIndex: "gsm",
       width: 80,
-      render: (v, r) => (
-        <Input
-          disabled
-          value={v}
-          onChange={(e) => handleDetailChange(r.key, "gsm", e.target.value)}
-          size="small"
-          autoComplete="off"
-        />
-      ),
+      render: (v) => <span>{v || ''}</span>,
     },
     // Conditionally show design columns if any detail has design data
     ...(details.some((d) => d.designNo || d.designName || d.noOfColor)
@@ -1009,41 +855,19 @@ const FabricBill = () => {
             title: "Design No",
             dataIndex: "designNo",
             width: 100,
-            render: (val, record) => (
-              <Input
-                disabled
-                value={val || ""}
-                size="small"
-                autoComplete="off"
-              />
-            ),
+            render: (val) => <span>{val || ''}</span>,
           },
           {
             title: "Design Name",
             dataIndex: "designName",
             width: 120,
-            render: (val, record) => (
-              <Input
-                disabled
-                value={val || ""}
-                size="small"
-                autoComplete="off"
-              />
-            ),
+            render: (val) => <span>{val || ''}</span>,
           },
           {
             title: "No of Color",
             dataIndex: "noOfColor",
             width: 80,
-            render: (val, record) => (
-              <InputNumber
-                disabled
-                value={val || 0}
-                style={{ width: "100%" }}
-                size="small"
-                autoComplete="off"
-              />
-            ),
+            render: (val) => <span>{val || 0}</span>,
           },
         ]
       : []),
@@ -1051,113 +875,47 @@ const FabricBill = () => {
       title: "Rolls",
       dataIndex: "rolls",
       width: 80,
-      render: (v, r) => (
-        <InputNumber
-          disabled
-          value={v}
-          onChange={(val) => handleDetailChange(r.key, "rolls", val)}
-          style={{ width: "100%" }}
-          size="small"
-          autoComplete="off"
-        />
-      ),
+      render: (v) => <span>{v || 0}</span>,
     },
     {
       title: "Bill Weight",
       dataIndex: "weight",
       width: 100,
-      render: (v, r) => (
-        <InputNumber
-          disabled
-          value={v}
-          onChange={(val) => handleDetailChange(r.key, "weight", val)}
-          style={{ width: "100%" }}
-          precision={3}
-          size="small"
-          autoComplete="off"
-        />
-      ),
+      render: (v) => <span>{Number(v || 0).toFixed(3)}</span>,
     },
     {
       title: "Rate",
       dataIndex: "rate",
       width: 100,
-      render: (v, r) => (
-        <InputNumber
-          disabled
-          value={v}
-          onChange={(val) => handleDetailChange(r.key, "rate", val)}
-          style={{ width: "100%" }}
-          precision={2}
-          size="small"
-          autoComplete="off"
-        />
-      ),
+      render: (v, r) => {
+        if (isAdmin && !isViewMode) {
+          return (
+            <InputNumber
+              value={v}
+              onChange={(val) => handleDetailChange(r.key, "rate", val)}
+              style={{ width: "100%" }}
+              precision={2}
+              size="small"
+              autoComplete="off"
+            />
+          );
+        }
+        return <span>{Number(v || 0).toFixed(2)}</span>;
+      },
     },
     {
       title: "Amount",
       dataIndex: "amount",
       width: 120,
-      render: (v) => (
-        <InputNumber
-          value={v}
-          disabled
-          style={{ width: "100%" }}
-          precision={2}
-          size="small"
-          autoComplete="off"
-        />
-      ),
+      render: (v) => <span>{Number(v || 0).toFixed(2)}</span>,
     },
     {
       title: "Process",
       dataIndex: "processes",
       width: 200,
-      render: (val, record) => {
-        // Get available processes from the original DC detail
-        const availableProcesses = record.originalProcesses || [];
-
-        return (
-          <Select
-            disabled
-            mode="multiple"
-            value={val || []}
-            onChange={(selectedProcesses) => {
-              // Update the processes array
-              handleDetailChange(record.key, "processes", selectedProcesses);
-
-              // Auto-generate process and processList fields
-              const processText = selectedProcesses
-                ? selectedProcesses.join(", ")
-                : "";
-              const processListText = selectedProcesses
-                ? selectedProcesses.join(" / ")
-                : "";
-
-              // Update both database fields
-              handleDetailChange(record.key, "process", processText);
-              handleDetailChange(record.key, "processList", processListText);
-
-              // Calculate and update rate based on selected processes
-              const totalRate = calculateProcessRate(selectedProcesses);
-              handleDetailChange(record.key, "rate", totalRate);
-
-              // Recalculate amount
-              const weight = record.weight || 0;
-              const amount = weight * totalRate;
-              handleDetailChange(record.key, "amount", amount);
-            }}
-            style={{ width: "100%" }}
-            size="small"
-            placeholder="Select processes"
-          >
-            {availableProcesses.map((p, idx) => (
-              <Option key={idx} value={p}>
-                {p}
-              </Option>
-            ))}
-          </Select>
-        );
+      render: (val) => {
+        const processText = val && Array.isArray(val) ? val.join(', ') : '';
+        return <span>{processText}</span>;
       },
     },
     {
@@ -1447,6 +1205,9 @@ const FabricBill = () => {
                 />
               </Form.Item>
             </Col>
+          </Row>
+
+          <Row gutter={8}>
             <Col span={5}>
               <Form.Item
                 label="HSN Code"
@@ -1461,9 +1222,6 @@ const FabricBill = () => {
                 />
               </Form.Item>
             </Col>
-          </Row>
-
-          <Row gutter={8}>
             <Col span={6}>
               <Form.Item
                 label="Invoice To"
@@ -1501,34 +1259,6 @@ const FabricBill = () => {
                 />
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item
-                label="Order No"
-                name="orderNo"
-                style={{ marginBottom: 6 }}
-              >
-                <Input
-                  disabled={isViewMode}
-                  style={{ height: "32px" }}
-                  size="middle"
-                  autoComplete="off"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={10}>
-              <Form.Item
-                label="Remarks"
-                name="remarks"
-                style={{ marginBottom: 6 }}
-              >
-                <Input.TextArea
-                  disabled={isViewMode}
-                  rows={1}
-                  size="middle"
-                  autoComplete="off"
-                />
-              </Form.Item>
-            </Col>
           </Row>
 
           <div style={{ marginTop: 4 }}>
@@ -1558,20 +1288,6 @@ const FabricBill = () => {
                 >
                   Load DCs
                 </Button>
-                <Button
-                  type="dashed"
-                  size="small"
-                  icon={<PlusOutlined />}
-                  onClick={handleAddDetail}
-                  disabled={isViewMode}
-                  style={{
-                    backgroundColor: "#031d38",
-                    color: "#fff",
-                    borderColor: "#031d38",
-                  }}
-                >
-                  Add Row
-                </Button>
               </Space>
             </div>
             <Table
@@ -1598,14 +1314,6 @@ const FabricBill = () => {
                   <Title level={5} style={{ margin: 0, fontSize: "14px" }}>
                     GST
                   </Title>
-                  <Button
-                    type="dashed"
-                    size="small"
-                    onClick={handleLoadTaxes}
-                    disabled={isViewMode}
-                  >
-                    Load Taxes
-                  </Button>
                 </div>
                 <Table
                   columns={taxColumns}
