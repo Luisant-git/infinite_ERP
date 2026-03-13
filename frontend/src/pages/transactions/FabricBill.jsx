@@ -1021,10 +1021,22 @@ const FabricBill = () => {
       render: (v) => parties.find((p) => p.id === v)?.partyName || "",
     },
     {
-      title: "Total Qty",
+      title: "Bill Quantity",
       dataIndex: "totalQty",
       width: 100,
       render: (v) => Number(v).toFixed(3),
+    },
+    {
+      title: "Total Amount",
+      dataIndex: "totalAmount",
+      width: 120,
+      render: (v) => Number(v).toFixed(2),
+    },
+    {
+      title: "GST Amount",
+      dataIndex: "gstAmount",
+      width: 120,
+      render: (v) => Number(v).toFixed(2),
     },
     {
       title: "Net Amount",
@@ -1172,6 +1184,18 @@ const FabricBill = () => {
                   autoComplete="off"
                 />
               </Form.Item>
+              <Form.Item
+                label="HSN Code"
+                name="hsnCode"
+                style={{ marginBottom: 6 }}
+              >
+                <Input
+                  disabled={isViewMode}
+                  style={{ height: "32px" }}
+                  size="middle"
+                  autoComplete="off"
+                />
+              </Form.Item>
             </Col>
             <Col span={4}>
               <Form.Item
@@ -1185,6 +1209,18 @@ const FabricBill = () => {
                   style={{ width: "100%", height: "32px" }}
                   format="DD-MM-YYYY"
                   size="middle"
+                />
+              </Form.Item>
+              <Form.Item
+                label="Credit Days"
+                name="creditDays"
+                style={{ marginBottom: 6 }}
+              >
+                <InputNumber
+                  disabled={isViewMode}
+                  style={{ width: "100%", height: "32px" }}
+                  size="middle"
+                  autoComplete="off"
                 />
               </Form.Item>
             </Col>
@@ -1211,39 +1247,6 @@ const FabricBill = () => {
                   ))}
                 </Select>
               </Form.Item>
-            </Col>
-            <Col span={5}>
-              <Form.Item
-                label="E-way No"
-                name="ewayNo"
-                style={{ marginBottom: 6 }}
-              >
-                <Input
-                  disabled={isViewMode}
-                  style={{ height: "32px" }}
-                  size="middle"
-                  autoComplete="off"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={8}>
-            <Col span={5}>
-              <Form.Item
-                label="HSN Code"
-                name="hsnCode"
-                style={{ marginBottom: 6 }}
-              >
-                <Input
-                  disabled={isViewMode}
-                  style={{ height: "32px" }}
-                  size="middle"
-                  autoComplete="off"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
               <Form.Item
                 label="Invoice To"
                 name="invoiceTo"
@@ -1266,15 +1269,15 @@ const FabricBill = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={4}>
+            <Col span={5}>
               <Form.Item
-                label="Credit Days"
-                name="creditDays"
+                label="E-way No"
+                name="ewayNo"
                 style={{ marginBottom: 6 }}
               >
-                <InputNumber
+                <Input
                   disabled={isViewMode}
-                  style={{ width: "100%", height: "32px" }}
+                  style={{ height: "32px" }}
                   size="middle"
                   autoComplete="off"
                 />
@@ -1362,7 +1365,7 @@ const FabricBill = () => {
                 </Col>
                 <Col span={8}>
                   <Form.Item
-                    label="Total Qty"
+                    label="Bill Quantity"
                     name="totalQty"
                     style={{ marginBottom: 6 }}
                   >
