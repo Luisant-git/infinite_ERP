@@ -639,7 +639,7 @@ const FabricReturn = () => {
             rate: 0,
             amount: 0,
             processes: allProcesses,
-            remarks: d.remarks || ''
+            remarks: '' // Don't load remarks from inward
           };
         });
         setDetails(loadedDetails.filter(d => d.weight > 0 || d.rolls > 0));
@@ -796,7 +796,8 @@ const FabricReturn = () => {
             uomId: selectedDetail.uomId,
             weight: returnWt,
             processes: allProcesses,
-            amount: 0
+            amount: 0,
+            remarks: '' // Don't load remarks from inward detail
           };
         }
         return d;
@@ -866,64 +867,44 @@ const FabricReturn = () => {
       title: 'Fabric',
       dataIndex: 'fabricId',
       width: 120,
-      render: (val, record) => (
-        <Select disabled value={val} onChange={(v) => handleDetailChange(record.key, 'fabricId', v)} style={{ width: '100%' }} showSearch>
-          {fabrics.map(f => <Option key={f.id} value={f.id}>{f.masterName}</Option>)}
-        </Select>
-      )
+      render: (val) => <span>{fabrics.find(f => f.id === val)?.masterName || ''}</span>
     },
     {
       title: 'Color',
       dataIndex: 'colorId',
       width: 120,
-      render: (val, record) => (
-        <Select disabled value={val} onChange={(v) => handleDetailChange(record.key, 'colorId', v)} style={{ width: '100%' }} showSearch>
-          {colors.map(c => <Option key={c.id} value={c.id}>{c.masterName}</Option>)}
-        </Select>
-      )
+      render: (val) => <span>{colors.find(c => c.id === val)?.masterName || ''}</span>
     },
     {
       title: 'Dia',
       dataIndex: 'diaId',
       width: 80,
-      render: (val, record) => (
-        <Select disabled value={val} onChange={(v) => handleDetailChange(record.key, 'diaId', v)} style={{ width: '100%' }}>
-          {dias.map(d => <Option key={d.id} value={d.id}>{d.masterName}</Option>)}
-        </Select>
-      )
+      render: (val) => <span>{dias.find(d => d.id === val)?.masterName || ''}</span>
     },
     {
       title: 'GSM',
       dataIndex: 'gsm',
       width: 80,
-      render: (val, record) => (
-        <Input disabled value={val} onChange={(e) => handleDetailChange(record.key, 'gsm', e.target.value)} autoComplete="off" />
-      )
+      render: (val) => <span>{val || ''}</span>
     },
     ...(fabricType === 'Print Lot' ? [
       {
         title: 'Design No',
         dataIndex: 'designNo',
         width: 100,
-        render: (val, record) => (
-          <Input disabled value={val} autoComplete="off" />
-        )
+        render: (val) => <span>{val || ''}</span>
       },
       {
         title: 'Design Name',
         dataIndex: 'designName',
         width: 120,
-        render: (val, record) => (
-          <Input disabled value={val} autoComplete="off" />
-        )
+        render: (val) => <span>{val || ''}</span>
       },
       {
         title: 'No of Color',
         dataIndex: 'noOfColor',
         width: 80,
-        render: (val, record) => (
-          <InputNumber disabled value={val} style={{ width: '100%' }} autoComplete="off" />
-        )
+        render: (val) => <span>{val || 0}</span>
       }
     ] : []),
     {
@@ -945,12 +926,8 @@ const FabricReturn = () => {
     {
       title: 'Uom',
       dataIndex: 'uomId',
-      width: 80,
-      render: (val, record) => (
-        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'uomId', v)} style={{ width: '100%' }}>
-          {uoms.map(u => <Option key={u.id} value={u.id}>{u.masterName}</Option>)}
-        </Select>
-      )
+      width: 120,
+      render: (val) => <span>{uoms.find(u => u.id === val)?.masterName || ''}</span>
     },
     {
       title: 'Rate',
@@ -964,7 +941,7 @@ const FabricReturn = () => {
       title: 'Amount',
       dataIndex: 'amount',
       width: 100,
-      render: (val) => <InputNumber value={val} disabled style={{ width: '100%' }} precision={2} autoComplete="off" />
+      render: (val) => <span>{Number(val || 0).toFixed(2)}</span>
     },
     ...(enableItemWiseProcess ? [{
       title: 'Process',
