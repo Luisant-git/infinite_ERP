@@ -716,7 +716,7 @@ const FabricDc = () => {
             rate: 0,
             amount: 0,
             processes: allProcesses,
-            remarks: d.remarks || ''
+            remarks: '' // Don't load remarks from inward
           };
         });
         setDetails(loadedDetails.filter(d => d.processWeight > 0 || d.rolls > 0));
@@ -848,7 +848,8 @@ const FabricDc = () => {
               weightLoss: weightLoss,
               lossPercentage: lossPercentage,
               processes: allProcesses,
-              amount: 0
+              amount: 0,
+              remarks: '' // Don't load remarks from inward detail
             };
           }
           return d;
@@ -984,34 +985,26 @@ const FabricDc = () => {
       title: 'GSM',
       dataIndex: 'gsm',
       width: 80,
-      render: (val) => (
-        <Input disabled value={val} style={{ width: '100%' }} autoComplete="off" />
-      )
+      render: (val) => <span>{val || ''}</span>
     },
     ...(fabricType === 'Print Lot' ? [
       {
         title: 'Design No',
         dataIndex: 'designNo',
         width: 100,
-        render: (val, record) => (
-          <Input disabled value={val} autoComplete="off" />
-        )
+        render: (val) => <span>{val || ''}</span>
       },
       {
         title: 'Design Name',
         dataIndex: 'designName',
         width: 120,
-        render: (val, record) => (
-          <Input disabled value={val} autoComplete="off" />
-        )
+        render: (val) => <span>{val || ''}</span>
       },
       {
         title: 'No of Color',
         dataIndex: 'noOfColor',
         width: 80,
-        render: (val, record) => (
-          <InputNumber disabled value={val} style={{ width: '100%' }} autoComplete="off" />
-        )
+        render: (val) => <span>{val || 0}</span>
       }
     ] : []),
     {
@@ -1034,13 +1027,13 @@ const FabricDc = () => {
       title: 'Weight Loss',
       dataIndex: 'weightLoss',
       width: 100,
-      render: (val) => <InputNumber value={val} disabled style={{ width: '100%' }} precision={3} autoComplete="off" />
+      render: (val) => <span>{Number(val || 0).toFixed(3)}</span>
     },
     {
       title: 'Loss %',
       dataIndex: 'lossPercentage',
       width: 80,
-      render: (val) => <InputNumber value={val} disabled style={{ width: '100%' }} precision={2} autoComplete="off" />
+      render: (val) => <span>{Number(val || 0).toFixed(2)}%</span>
     },
     {
       title: 'Rolls',
@@ -1053,12 +1046,8 @@ const FabricDc = () => {
     {
       title: 'Uom',
       dataIndex: 'uomId',
-      width: 80,
-      render: (val, record) => (
-        <Select disabled={isViewMode} value={val} onChange={(v) => handleDetailChange(record.key, 'uomId', v)} style={{ width: '100%' }}>
-          {uoms.map(u => <Option key={u.id} value={u.id}>{u.masterName}</Option>)}
-        </Select>
-      )
+      width: 120,
+      render: (val) => <span>{uoms.find(u => u.id === val)?.masterName || ''}</span>
     },
     {
       title: 'Rate',
@@ -1072,7 +1061,7 @@ const FabricDc = () => {
       title: 'Amount',
       dataIndex: 'amount',
       width: 100,
-      render: (val) => <InputNumber value={val} disabled style={{ width: '100%' }} precision={2} autoComplete="off" />
+      render: (val) => <span>{Number(val || 0).toFixed(2)}</span>
     },
     ...(enableItemWiseProcess ? [{
       title: 'Process',
