@@ -159,6 +159,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           key: ROUTES.RATE_QUOTATION_APPROVAL,
           icon: <FileTextOutlined />,
           label: 'Rate Quotation Approval'
+        },
+        {
+          key: ROUTES.BILL_APPROVAL,
+          icon: <FileTextOutlined />,
+          label: 'Bill Approval'
         }
       ]
     }] : []),

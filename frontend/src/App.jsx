@@ -28,6 +28,7 @@ import FabricReturn from './pages/transactions/FabricReturn';
 import FabricBill from './pages/transactions/FabricBill';
 import RateQuotation from './pages/transactions/RateQuotation';
 import RateQuotationApproval from './pages/transactions/RateQuotationApproval';
+import BillApproval from './pages/transactions/BillApproval';
 import InwardSummary from './pages/reports/InwardSummary';
 import { ROUTES } from './constants/permissions';
 import './App.css';
@@ -71,6 +72,7 @@ function App() {
                     <Route path={ROUTES.FABRIC_BILL} element={<FabricBill />} />
                     <Route path={ROUTES.RATE_QUOTATION} element={<RateQuotation />} />
                     <Route path={ROUTES.RATE_QUOTATION_APPROVAL} element={<MDRoute><RateQuotationApproval /></MDRoute>} />
+                    <Route path={ROUTES.BILL_APPROVAL} element={<MDRoute><BillApproval /></MDRoute>} />
                     <Route path={ROUTES.DC_ENTRY} element={<div>DC Entry</div>} />
                     <Route path={ROUTES.DC_CLOSE} element={<div>DC Close</div>} />
                     <Route path={ROUTES.REPORTS} element={<div>Reports</div>} />

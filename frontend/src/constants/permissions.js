@@ -34,6 +34,7 @@ export const ROUTES = {
   FABRIC_BILL: '/transactions/fabric-bill',
   RATE_QUOTATION: '/transactions/rate-quotation',
   RATE_QUOTATION_APPROVAL: '/transactions/rate-quotation-approval',
+  BILL_APPROVAL: '/transactions/bill-approval',
   DC_ENTRY: '/transactions/dc-entry',
   DC_CLOSE: '/transactions/dc-close',
   REPORTS: '/reports',

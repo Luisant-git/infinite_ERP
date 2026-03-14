@@ -24,6 +24,7 @@ import {
   CloseOutlined,
   UnorderedListOutlined,
   EyeOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
@@ -42,6 +43,7 @@ import { getPartyScreenRateByParty } from "../../api/partyScreenRate";
 import { getProcesses } from "../../api/process";
 import { getSettings } from "../../api/settings";
 import { useMenuPermissions } from "../../hooks/useMenuPermissions";
+import { useSelector } from 'react-redux';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -59,6 +61,8 @@ const FabricBill = () => {
     canEdit,
     canDelete,
   } = useMenuPermissions();
+  const { IsMD } = useSelector(state => state.auth);
+  const isAdminOrMD = isAdmin || IsMD === 1;
 
   const [parties, setParties] = useState([]);
   const [gstMasters, setGstMasters] = useState([]);
@@ -268,7 +272,8 @@ const FabricBill = () => {
     }
 
     try {
-      const dcs = await getAvailableDcs(selectedParty);
+      // Pass the current bill ID when in edit mode to include currently used DCs
+      const dcs = await getAvailableDcs(selectedParty, editingId);
       setAvailableDcs(dcs);
       
       // Get already loaded DC IDs from current details
@@ -414,6 +419,10 @@ const FabricBill = () => {
       message.warning("You do not have permission to edit");
       return;
     }
+    if (record.isApproval === 1 && !isAdminOrMD) {
+      message.warning('Only Admin/MD can edit approved bills');
+      return;
+    }
     setEditingId(record.id);
     setIsViewMode(false); // clear view mode when editing
     form.setFieldsValue({
@@ -549,6 +558,11 @@ const FabricBill = () => {
       message.warning("You do not have permission to delete");
       return;
     }
+    const bill = fabricBills.find(b => b.id === id);
+    if (bill?.isApproval === 1 && !isAdminOrMD) {
+      message.warning('Only Admin/MD can delete approved bills');
+      return;
+    }
     Modal.confirm({
       title: "Delete Fabric Bill",
       content: "Are you sure?",
@@ -644,6 +658,7 @@ const FabricBill = () => {
         ...values,
         billNo: trimmedBillNo,
         billDate: values.billDate?.toISOString(),
+        isApproval: editingId ? 0 : undefined,
         details: details.map((d) => ({
           inwardNo: d.inwardNo,
           grnId: d.grnId,
@@ -676,7 +691,7 @@ const FabricBill = () => {
 
       if (editingId) {
         await updateFabricBill(editingId, data);
-        message.success("Updated successfully");
+        message.success("Updated successfully - Sent for approval");
       } else {
         await createFabricBill(data);
         message.success("Created successfully");
@@ -1056,8 +1071,16 @@ const FabricBill = () => {
       render: (v) => Number(v).toFixed(2),
     },
     {
+      title: 'MD Approve',
+      dataIndex: 'isApproval',
+      key: 'isApproval',
+      width: 100,
+      align: 'center',
+      render: (val) => <Checkbox checked={val === 1} disabled />,
+    },
+    {
       title: "Actions",
-      width: 120,
+      width: 160,
       fixed: "right",
       render: (_, r) => (
         <Space size="small">
@@ -1069,7 +1092,7 @@ const FabricBill = () => {
             onClick={() => handleView(r)}
             style={{ color: "#1890ff" }}
           />
-          {canEdit("fabric_bill") && (
+          {(r.isApproval === 0 || isAdminOrMD) && canEdit("fabric_bill") && (
             <Button
               type="link"
               size="small"
@@ -1078,7 +1101,7 @@ const FabricBill = () => {
               style={{ color: "#52c41a" }}
             />
           )}
-          {canDelete("fabric_bill") && (
+          {(r.isApproval === 0 || isAdminOrMD) && canDelete("fabric_bill") && (
             <Button
               type="link"
               size="small"
@@ -1087,6 +1110,14 @@ const FabricBill = () => {
               onClick={() => handleDelete(r.id)}
             />
           )}
+          <Button
+            type="link"
+            size="small"
+            icon={<PrinterOutlined />}
+            onClick={() => message.info('Print functionality')}
+            style={{ color: r.isApproval === 1 ? "#722ed1" : "#d9d9d9" }}
+            disabled={r.isApproval !== 1}
+          />
         </Space>
       ),
     },
@@ -1176,7 +1207,7 @@ const FabricBill = () => {
           rowKey="id"
           size="small"
           className="compact-table"
-          scroll={{ x: 800 }}
+          scroll={{ x: 1000 }}
         />
       ) : (
         <Form form={form} layout="vertical" size="small">

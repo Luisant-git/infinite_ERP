@@ -67,6 +67,12 @@ export class FabricBillService {
         include: {
           details: { where: { deleteFlg: 0 } },
           taxes: { where: { deleteFlg: 0 } },
+          concern: true,
+          tenant: {
+            include: {
+              concern: true
+            }
+          }
         },
       }),
       this.prisma.fabricBillHeader.count({ where }),
@@ -75,7 +81,7 @@ export class FabricBillService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async getAvailableDcs(partyId: number, tenantId: number) {
+  async getAvailableDcs(partyId: number, tenantId: number, excludeBillId?: number) {
     // Get all DCs for the party that are not used in bills and not "Re-Process(Free)"
     const availableDcs = await this.prisma.fabricDcHeader.findMany({
       where: {
@@ -97,7 +103,7 @@ export class FabricBillService {
       orderBy: { createdDate: 'desc' }
     });
 
-    // Filter out DCs that are already used in bills
+    // Filter out DCs that are already used in bills (except the current bill being edited)
     const unusedDcs: typeof availableDcs = [];
     for (const dc of availableDcs) {
       const isUsedInBill = await this.prisma.fabricBillDetail.findFirst({
@@ -105,7 +111,9 @@ export class FabricBillService {
           dcId: dc.id,
           deleteFlg: 0,
           header: {
-            deleteFlg: 0
+            deleteFlg: 0,
+            // Exclude the current bill being edited
+            ...(excludeBillId && { id: { not: excludeBillId } })
           }
         }
       });
@@ -124,6 +132,12 @@ export class FabricBillService {
       include: {
         details: { where: { deleteFlg: 0 } },
         taxes: { where: { deleteFlg: 0 } },
+        concern: true,
+        tenant: {
+          include: {
+            concern: true
+          }
+        }
       },
     });
 
@@ -155,6 +169,17 @@ export class FabricBillService {
 
     const { details, taxes, ...headerData } = updateDto;
 
+    // Remove fields that shouldn't be updated
+    const {
+      id: _id,
+      createdBy: _createdBy,
+      createdDate: _createdDate,
+      modifiedDate: _modifiedDate,
+      concern: _concern,
+      tenant: _tenant,
+      ...cleanHeaderData
+    } = headerData as any;
+
     await this.prisma.fabricBillDetail.updateMany({
       where: { headerId: id },
       data: { deleteFlg: 1 },
@@ -165,17 +190,45 @@ export class FabricBillService {
       data: { deleteFlg: 1 },
     });
 
+    // Clean details data
+    const cleanDetails = details?.map(detail => {
+      const {
+        id: _detailId,
+        headerId: _headerId,
+        deleteFlg: _deleteFlg,
+        ...cleanDetail
+      } = detail as any;
+      return cleanDetail;
+    }) || [];
+
+    // Clean taxes data
+    const cleanTaxes = taxes?.map(tax => {
+      const {
+        id: _taxId,
+        headerId: _taxHeaderId,
+        deleteFlg: _taxDeleteFlg,
+        ...cleanTax
+      } = tax as any;
+      return cleanTax;
+    }) || [];
+
     return this.prisma.fabricBillHeader.update({
       where: { id },
       data: {
-        ...headerData,
+        ...cleanHeaderData,
         modifiedBy: username,
-        details: { create: details },
-        taxes: { create: taxes },
+        details: { create: cleanDetails },
+        taxes: { create: cleanTaxes },
       },
       include: {
         details: { where: { deleteFlg: 0 } },
         taxes: { where: { deleteFlg: 0 } },
+        concern: true,
+        tenant: {
+          include: {
+            concern: true
+          }
+        }
       },
     });
   }

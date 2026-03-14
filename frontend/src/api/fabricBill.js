@@ -20,8 +20,16 @@ export const getFabricBill = async (id) => {
   return response.data;
 };
 
-export const getAvailableDcs = async (partyId) => {
-  const response = await apiClient.get(`/fabric-bill/available-dcs/${partyId}`);
+export const getAvailableDcs = async (partyId, excludeBillId = null) => {
+  const params = new URLSearchParams();
+  if (excludeBillId) {
+    params.append('excludeBillId', excludeBillId.toString());
+  }
+  
+  const queryString = params.toString();
+  const url = `/fabric-bill/available-dcs/${partyId}${queryString ? `?${queryString}` : ''}`;
+  
+  const response = await apiClient.get(url);
   return response.data;
 };
 

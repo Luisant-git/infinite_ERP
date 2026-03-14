@@ -694,6 +694,7 @@ model FabricBillHeader {
   ewbDate         DateTime?
   validDate       DateTime?
   ewbAlert        String?  @db.VarChar(100)
+  isApproval      Int      @default(0)
   
   tenant    Tenant              @relation(fields: [tenantId], references: [id])
   concern   Concern?            @relation(fields: [concernId], references: [id])

@@ -92,7 +92,7 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
           <div className="header-right">
             <div className="delivery-note-title">DELIVERY NOTE</div>
             <div className="dc-details">
-              <div className="doc-info-row"><strong>GRN No</strong> : {data.dcNo || ''}</div>
+              <div className="doc-info-row"><strong>DC No</strong> : {data.dcNo || ''}</div>
               <div className="doc-info-row"><strong>DC Date</strong> : {data.dcDate ? dayjs(data.dcDate).format('DD-MMM-YYYY') : ''}</div>
             </div>
           </div>
@@ -116,7 +116,7 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
           </div>
           <div className="party-right">
             <div className="party-details">
-              <div className="doc-info-row"><strong>Inward From</strong> : {data.dyeParty || '-'}</div>
+              <div className="doc-info-row"><strong>Received From</strong> : {data.dyeParty || '-'}</div>
               <div className="doc-info-row"><strong>DC No</strong> : {data.dyeDcNo || ''}</div>
               <div className="doc-info-row"><strong>Party DC No</strong> : {data.pdcNo || ''}</div>
             </div>

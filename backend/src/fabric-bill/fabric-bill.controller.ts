@@ -26,9 +26,14 @@ export class FabricBillController {
   @ApiOperation({ summary: 'Get available DCs for billing' })
   async getAvailableDcs(
     @Param('partyId') partyId: string,
-    @Headers('tenant-id') tenantId: string
+    @Headers('tenant-id') tenantId: string,
+    @Query('excludeBillId') excludeBillId?: string
   ) {
-    return this.fabricBillService.getAvailableDcs(parseInt(partyId), parseInt(tenantId));
+    return this.fabricBillService.getAvailableDcs(
+      parseInt(partyId), 
+      parseInt(tenantId),
+      excludeBillId ? parseInt(excludeBillId) : undefined
+    );
   }
 
   @Get(':id')

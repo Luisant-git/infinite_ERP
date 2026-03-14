@@ -122,6 +122,10 @@ export class CreateFabricBillDto {
   ewayNo?: string;
 
   @IsOptional()
+  @IsInt()
+  isApproval?: number;
+
+  @IsOptional()
   @IsString()
   remarks?: string;
 
@@ -133,6 +137,18 @@ export class CreateFabricBillDto {
 
   @IsNumber()
   totalAmount: number;
+
+  @IsOptional()
+  @IsInt()
+  noOfScreen?: number;
+
+  @IsOptional()
+  @IsNumber()
+  screenRate?: number;
+
+  @IsOptional()
+  @IsNumber()
+  screenAmount?: number;
 
   @IsOptional()
   @IsNumber()
