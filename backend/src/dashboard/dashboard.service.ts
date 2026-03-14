@@ -6,7 +6,7 @@ export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
   async getApprovalsPending(tenantId: number) {
-    const [rateQuotationApprovals, partyApprovals, designApprovals] = await Promise.all([
+    const [rateQuotationApprovals, partyApprovals, designApprovals, billApprovals] = await Promise.all([
       // Rate Quotation Approvals Pending
       this.prisma.rateQuotationHeader.count({
         where: {
@@ -44,13 +44,22 @@ export class DashboardService {
         where: {
           isApproval: 0
         }
+      }),
+      // Bill Approvals Pending
+      this.prisma.fabricBillHeader.count({
+        where: {
+          tenantId,
+          deleteFlg: 0,
+          isApproval: 0
+        }
       })
     ]);
 
     return {
       rateQuotationApprovals,
       partyApprovals,
-      designApprovals
+      designApprovals,
+      billApprovals
     };
   }
 }
