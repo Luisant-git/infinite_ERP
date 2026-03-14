@@ -1360,7 +1360,7 @@ const FabricBill = () => {
               columns={detailColumns}
               dataSource={details}
               pagination={false}
-              scroll={{ x: 2000, y: 200 }}
+              scroll={{ x: 2000, y: 100 }}
               size="small"
               bordered
               className="compact-table"
