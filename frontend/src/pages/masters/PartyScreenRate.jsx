@@ -238,7 +238,7 @@ const PartyScreenRate = () => {
       
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={3} style={{ margin: 0 }}>
-          Party Screen Rate
+          Screen Rate Fixing
         </Title>
         <Space style={{ width: 'auto' }}>
           <Input
@@ -255,7 +255,7 @@ const PartyScreenRate = () => {
             onClick={handleNew}
             disabled={!canAdd('party_screen_rate')}
           >
-            Add Party Screen Rate
+            Add Screen Rate Fixing
           </Button>
         </Space>
       </div>

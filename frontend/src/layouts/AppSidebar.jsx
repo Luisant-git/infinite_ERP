@@ -78,7 +78,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
         ...(canView('party_screen_rate') ? [{
           key: ROUTES.PARTY_SCREEN_RATE,
           icon: <SettingOutlined />,
-          label: 'Party Screen Rate'
+          label: 'Screen Rate Fixing'
         }] : []),
         ...(canView('master_data') ? [{
           key: ROUTES.MASTER_DATA,
