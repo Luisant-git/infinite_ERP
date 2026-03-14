@@ -103,6 +103,7 @@ model Party {
   rateQuotations RateQuotationHeader[]
   fabricBills FabricBillHeader[] @relation("BillParty")
   fabricBillInvoices FabricBillHeader[] @relation("BillInvoiceTo")
+  screenRate PartyScreenRate?
   
   @@map("parties")
 }
@@ -273,6 +274,21 @@ model PartyProcessRateSetting {
   updatedAt     DateTime @updatedAt
   
   @@map("party_process_rate_settings")
+}
+
+model PartyScreenRate {
+  id         Int      @id @default(autoincrement())
+  partyId    Int      @unique
+  screenRate Decimal  @default(0) @db.Decimal(12, 2)
+  isDeleted  Boolean  @default(false)
+  deletedAt  DateTime?
+  deletedBy  Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  party Party @relation(fields: [partyId], references: [id])
+  
+  @@map("party_screen_rates")
 }
 
 model GstMaster {

@@ -22,6 +22,7 @@ export const ROUTES = {
   PARTY_TYPE_MASTER: '/masters/party-types',
   PROCESS_MASTER: '/masters/processes',
   PARTY_PROCESS_RATE: '/masters/party-process-rate',
+  PARTY_SCREEN_RATE: '/masters/party-screen-rate',
   DESIGN_MASTER: '/masters/designs',
   DESIGN_APPROVAL: '/masters/design-approval',
   STRIKEOFF_APPROVAL: '/masters/strikeoff-approval',
@@ -36,5 +37,6 @@ export const ROUTES = {
   DC_ENTRY: '/transactions/dc-entry',
   DC_CLOSE: '/transactions/dc-close',
   REPORTS: '/reports',
+  INWARD_SUMMARY: '/reports/overall-summary/inward-summary',
   SETTINGS: '/settings'
 };

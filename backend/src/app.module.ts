@@ -10,6 +10,7 @@ import { DesignModule } from './design/design.module';
 import { UploadModule } from './upload/upload.module';
 import { ProcessModule } from './process/process.module';
 import { PartyProcessRateModule } from './party-process-rate/party-process-rate.module';
+import { PartyScreenRateModule } from './party-screen-rate/party-screen-rate.module';
 import { MasterModule } from './master/master.module';
 import { FabricInwardModule } from './fabric-inward/fabric-inward.module';
 import { RateQuotationModule } from './rate-quotation/rate-quotation.module';
@@ -21,7 +22,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { SettingsModule } from './settings/settings.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule, MasterModule, FabricInwardModule, RateQuotationModule, FabricDcModule, FabricReturnModule, GstMasterModule, FabricBillModule, DashboardModule, SettingsModule],
+  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule, PartyScreenRateModule, MasterModule, FabricInwardModule, RateQuotationModule, FabricDcModule, FabricReturnModule, GstMasterModule, FabricBillModule, DashboardModule, SettingsModule],
   controllers: [AppController],
   providers: [AppService],
 })

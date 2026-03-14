@@ -38,6 +38,7 @@ import { getParties } from "../../api/party";
 import { getGstMasters } from "../../api/gstMaster";
 import { getMastersByType } from "../../api/fabricInward";
 import { getPartyProcessRates } from "../../api/partyProcessRate";
+import { getPartyScreenRateByParty } from "../../api/partyScreenRate";
 import { getProcesses } from "../../api/process";
 import { getSettings } from "../../api/settings";
 import { useMenuPermissions } from "../../hooks/useMenuPermissions";
@@ -217,8 +218,34 @@ const FabricBill = () => {
         console.error("Error loading party process rates:", error);
         setPartyProcessRates([]);
       }
+
+      // Load party screen rate
+      try {
+        const screenRateData = await getPartyScreenRateByParty(partyId);
+        if (screenRateData) {
+          form.setFieldsValue({
+            screenRate: Number(screenRateData.screenRate) || 0,
+          });
+          // Trigger calculation after setting screen rate
+          setTimeout(() => {
+            calculateTotals();
+          }, 100);
+        } else {
+          form.setFieldsValue({
+            screenRate: 0,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading party screen rate:", error);
+        form.setFieldsValue({
+          screenRate: 0,
+        });
+      }
     } else {
       setPartyProcessRates([]);
+      form.setFieldsValue({
+        screenRate: 0,
+      });
     }
 
     // Clear existing taxes when party changes
@@ -396,18 +423,11 @@ const FabricBill = () => {
       totalQty: Number(record.totalQty) || 0,
       totalRolls: Number(record.totalRolls) || 0,
       totalAmount: Number(record.totalAmount) || 0,
-      noOfDesign: Number(record.noOfDesign) || 0,
-      designRate: Number(record.designRate) || 0,
-      designAmount: Number(record.designAmount) || 0,
       noOfScreen: Number(record.noOfScreen) || 0,
       screenRate: Number(record.screenRate) || 0,
       screenAmount: Number(record.screenAmount) || 0,
       gstAmount: Number(record.gstAmount) || 0,
-      otherCharges: Number(record.otherCharges) || 0,
       roundOff: Number(record.roundOff) || 0,
-      recAmount: Number(record.recAmount) || 0,
-      diffAmount: Number(record.diffAmount) || 0,
-      grantAmount: Number(record.grantAmount) || 0,
       netAmount: Number(record.netAmount) || 0,
       creditDays: Number(record.creditDays) || 0,
     });
@@ -471,18 +491,11 @@ const FabricBill = () => {
       totalQty: Number(record.totalQty) || 0,
       totalRolls: Number(record.totalRolls) || 0,
       totalAmount: Number(record.totalAmount) || 0,
-      noOfDesign: Number(record.noOfDesign) || 0,
-      designRate: Number(record.designRate) || 0,
-      designAmount: Number(record.designAmount) || 0,
       noOfScreen: Number(record.noOfScreen) || 0,
       screenRate: Number(record.screenRate) || 0,
       screenAmount: Number(record.screenAmount) || 0,
       gstAmount: Number(record.gstAmount) || 0,
-      otherCharges: Number(record.otherCharges) || 0,
       roundOff: Number(record.roundOff) || 0,
-      recAmount: Number(record.recAmount) || 0,
-      diffAmount: Number(record.diffAmount) || 0,
-      grantAmount: Number(record.grantAmount) || 0,
       netAmount: Number(record.netAmount) || 0,
       creditDays: Number(record.creditDays) || 0,
     });
@@ -561,11 +574,18 @@ const FabricBill = () => {
       (sum, d) => sum + (Number(d.amount) || 0),
       0,
     );
+
+    const screenAmount =
+      (form.getFieldValue("noOfScreen") || 0) *
+      (form.getFieldValue("screenRate") || 0);
+
+    // Calculate GST on (Total Amount + Screen Amount)
+    const baseAmountForGst = totalAmount + screenAmount;
     
-    // Recalculate tax amounts based on new total amount
+    // Recalculate tax amounts based on base amount
     const updatedTaxes = taxes.map(tax => ({
       ...tax,
-      taxAmount: (totalAmount * Number(tax.taxPercentage)) / 100
+      taxAmount: (baseAmountForGst * Number(tax.taxPercentage)) / 100
     }));
     
     const gstAmount = updatedTaxes.reduce(
@@ -578,26 +598,10 @@ const FabricBill = () => {
       setTaxes(updatedTaxes);
     }
 
-    const designAmount =
-      (form.getFieldValue("noOfDesign") || 0) *
-      (form.getFieldValue("designRate") || 0);
-    const screenAmount =
-      (form.getFieldValue("noOfScreen") || 0) *
-      (form.getFieldValue("screenRate") || 0);
-    const otherCharges = form.getFieldValue("otherCharges") || 0;
-    const recAmount = form.getFieldValue("recAmount") || 0;
-    const diffAmount = form.getFieldValue("diffAmount") || 0;
-    const grantAmount = form.getFieldValue("grantAmount") || 0;
-
     const netBeforeRound =
       totalAmount +
-      gstAmount +
-      designAmount +
       screenAmount +
-      otherCharges +
-      recAmount +
-      diffAmount +
-      grantAmount;
+      gstAmount;
     const roundOff = Math.round(netBeforeRound) - netBeforeRound;
     const netAmount = Math.round(netBeforeRound);
 
@@ -605,7 +609,6 @@ const FabricBill = () => {
       totalQty,
       totalRolls,
       totalAmount,
-      designAmount,
       screenAmount,
       gstAmount,
       roundOff: roundOff.toFixed(2),
@@ -743,6 +746,8 @@ const FabricBill = () => {
 
   const autoLoadTaxes = (partyId) => {
     const totalAmount = form.getFieldValue("totalAmount") || 0;
+    const screenAmount = form.getFieldValue("screenAmount") || 0;
+    const baseAmountForGst = totalAmount + screenAmount;
 
     if (!partyId || !concernData) {
       return;
@@ -772,7 +777,7 @@ const FabricBill = () => {
       );
 
       if (cgstTax) {
-        const cgstAmount = (totalAmount * Number(cgstTax.taxPercent)) / 100;
+        const cgstAmount = (baseAmountForGst * Number(cgstTax.taxPercent)) / 100;
         loadedTaxes.push({
           key: Date.now() + cgstTax.id,
           taxName: cgstTax.id,
@@ -782,7 +787,7 @@ const FabricBill = () => {
       }
 
       if (sgstTax) {
-        const sgstAmount = (totalAmount * Number(sgstTax.taxPercent)) / 100;
+        const sgstAmount = (baseAmountForGst * Number(sgstTax.taxPercent)) / 100;
         loadedTaxes.push({
           key: Date.now() + sgstTax.id + 1,
           taxName: sgstTax.id,
@@ -798,7 +803,7 @@ const FabricBill = () => {
       );
 
       if (igstTax) {
-        const igstAmount = (totalAmount * Number(igstTax.taxPercent)) / 100;
+        const igstAmount = (baseAmountForGst * Number(igstTax.taxPercent)) / 100;
         loadedTaxes.push({
           key: Date.now() + igstTax.id,
           taxName: igstTax.id,
@@ -1031,6 +1036,12 @@ const FabricBill = () => {
       dataIndex: "totalAmount",
       width: 120,
       render: (v) => Number(v).toFixed(2),
+    },
+    {
+      title: "Screen Amount",
+      dataIndex: "screenAmount",
+      width: 120,
+      render: (v) => Number(v || 0).toFixed(2),
     },
     {
       title: "GST Amount",
@@ -1393,49 +1404,6 @@ const FabricBill = () => {
                 </Col>
                 <Col span={8}>
                   <Form.Item
-                    label="No of Design"
-                    name="noOfDesign"
-                    style={{ marginBottom: 6 }}
-                  >
-                    <InputNumber
-                      disabled={isViewMode}
-                      style={{ width: "100%" }}
-                      onChange={calculateTotals}
-                      autoComplete="off"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
-                    label="Design Rate"
-                    name="designRate"
-                    style={{ marginBottom: 6 }}
-                  >
-                    <InputNumber
-                      disabled={isViewMode}
-                      style={{ width: "100%" }}
-                      precision={2}
-                      onChange={calculateTotals}
-                      autoComplete="off"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
-                    label="Design Amount"
-                    name="designAmount"
-                    style={{ marginBottom: 6 }}
-                  >
-                    <InputNumber
-                      disabled
-                      style={{ width: "100%" }}
-                      precision={2}
-                      autoComplete="off"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
                     label="No of Screen"
                     name="noOfScreen"
                     style={{ marginBottom: 6 }}
@@ -1455,24 +1423,10 @@ const FabricBill = () => {
                     style={{ marginBottom: 6 }}
                   >
                     <InputNumber
-                      disabled={isViewMode}
+                      disabled={isViewMode || !isAdmin}
                       style={{ width: "100%" }}
                       precision={2}
                       onChange={calculateTotals}
-                      autoComplete="off"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
-                    label="Screen Amount"
-                    name="screenAmount"
-                    style={{ marginBottom: 6 }}
-                  >
-                    <InputNumber
-                      disabled
-                      style={{ width: "100%" }}
-                      precision={2}
                       autoComplete="off"
                     />
                   </Form.Item>
@@ -1493,20 +1447,19 @@ const FabricBill = () => {
                 </Col>
                 <Col span={8}>
                   <Form.Item
-                    label="Other Charges"
-                    name="otherCharges"
+                    label="Screen Amount"
+                    name="screenAmount"
                     style={{ marginBottom: 6 }}
                   >
                     <InputNumber
-                      disabled={isViewMode}
+                      disabled
                       style={{ width: "100%" }}
                       precision={2}
-                      onChange={calculateTotals}
                       autoComplete="off"
                     />
                   </Form.Item>
                 </Col>
-                <Col span={8}>
+                <Col span={8} offset={8}>
                   <Form.Item
                     label="Round Off"
                     name="roundOff"
@@ -1520,52 +1473,7 @@ const FabricBill = () => {
                     />
                   </Form.Item>
                 </Col>
-                <Col span={8}>
-                  <Form.Item
-                    label="Rec Amount"
-                    name="recAmount"
-                    style={{ marginBottom: 6 }}
-                  >
-                    <InputNumber
-                      disabled={isViewMode}
-                      style={{ width: "100%" }}
-                      precision={2}
-                      onChange={calculateTotals}
-                      autoComplete="off"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
-                    label="Diff Amount"
-                    name="diffAmount"
-                    style={{ marginBottom: 6 }}
-                  >
-                    <InputNumber
-                      disabled={isViewMode}
-                      style={{ width: "100%" }}
-                      precision={2}
-                      onChange={calculateTotals}
-                      autoComplete="off"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
-                    label="Grant Amount"
-                    name="grantAmount"
-                    style={{ marginBottom: 6 }}
-                  >
-                    <InputNumber
-                      disabled={isViewMode}
-                      style={{ width: "100%" }}
-                      precision={2}
-                      onChange={calculateTotals}
-                      autoComplete="off"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
+                <Col span={8} offset={16}>
                   <Form.Item
                     label="Net Amount"
                     name="netAmount"

@@ -75,6 +75,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           icon: <SettingOutlined />,
           label: 'Party Process Rate'
         }] : []),
+        ...(canView('party_screen_rate') ? [{
+          key: ROUTES.PARTY_SCREEN_RATE,
+          icon: <SettingOutlined />,
+          label: 'Party Screen Rate'
+        }] : []),
         ...(canView('master_data') ? [{
           key: ROUTES.MASTER_DATA,
           icon: <DatabaseOutlined />,
@@ -158,9 +163,23 @@ const AppSidebar = ({ collapsed, isMobile }) => {
       ]
     }] : []),
     {
-      key: ROUTES.REPORTS,
+      key: 'reports',
       icon: <BarChartOutlined />,
-      label: 'Reports'
+      label: 'Reports',
+      children: [
+        {
+          key: 'overall-summary',
+          icon: <FileTextOutlined />,
+          label: 'Overall Summary',
+          children: [
+            {
+              key: ROUTES.INWARD_SUMMARY,
+              icon: <FileTextOutlined />,
+              label: 'Inward Summary'
+            }
+          ]
+        }
+      ]
     },
     {
       key: 'settings',

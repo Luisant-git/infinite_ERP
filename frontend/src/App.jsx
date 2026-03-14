@@ -15,6 +15,7 @@ import PartyApproval from './pages/masters/PartyApproval';
 import PartyTypeMaster from './pages/masters/PartyTypeMaster';
 import ProcessMaster from './pages/masters/ProcessMaster';
 import PartyProcessRateSetting from './pages/masters/PartyProcessRateSetting';
+import PartyScreenRate from './pages/masters/PartyScreenRate';
 import DesignMaster from './pages/masters/DesignMaster';
 import DesignApproval from './pages/masters/DesignApproval';
 import StrikeOffApproval from './pages/masters/StrikeOffApproval';
@@ -27,6 +28,7 @@ import FabricReturn from './pages/transactions/FabricReturn';
 import FabricBill from './pages/transactions/FabricBill';
 import RateQuotation from './pages/transactions/RateQuotation';
 import RateQuotationApproval from './pages/transactions/RateQuotationApproval';
+import InwardSummary from './pages/reports/InwardSummary';
 import { ROUTES } from './constants/permissions';
 import './App.css';
 import './styles/mobile.css';
@@ -57,6 +59,7 @@ function App() {
                     <Route path={ROUTES.PARTY_TYPE_MASTER} element={<PartyTypeMaster />} />
                     <Route path={ROUTES.PROCESS_MASTER} element={<ProcessMaster />} />
                     <Route path={ROUTES.PARTY_PROCESS_RATE} element={<PartyProcessRateSetting />} />
+                    <Route path={ROUTES.PARTY_SCREEN_RATE} element={<PartyScreenRate />} />
                     <Route path={ROUTES.DESIGN_MASTER} element={<DesignMaster />} />
                     <Route path={ROUTES.DESIGN_APPROVAL} element={<MDRoute><DesignApproval /></MDRoute>} />
                     <Route path={ROUTES.STRIKEOFF_APPROVAL} element={<StrikeOffApproval />} />
@@ -71,6 +74,7 @@ function App() {
                     <Route path={ROUTES.DC_ENTRY} element={<div>DC Entry</div>} />
                     <Route path={ROUTES.DC_CLOSE} element={<div>DC Close</div>} />
                     <Route path={ROUTES.REPORTS} element={<div>Reports</div>} />
+                    <Route path={ROUTES.INWARD_SUMMARY} element={<InwardSummary />} />
                     <Route path={ROUTES.SETTINGS} element={<Settings />} />
                   </Routes>
                 </AppLayout>
