@@ -46,6 +46,7 @@ model Tenant {
   fabricReturns FabricReturnHeader[]
   fabricBills FabricBillHeader[]
   settings Settings?
+  einvoiceSettings EinvoiceSettings?
   
   @@unique([concernId, financialYear])
   @@map("tenants")
@@ -702,6 +703,7 @@ model FabricBillHeader {
   invoiceParty Party?           @relation("BillInvoiceTo", fields: [invoiceTo], references: [id])
   details   FabricBillDetail[]
   taxes     FabricBillTax[]
+  einvoice  BillEinvoice?
   
   @@map("fabric_bill_headers")
 }
@@ -767,4 +769,48 @@ model Settings {
   tenant Tenant @relation(fields: [tenantId], references: [id])
   
   @@map("settings")
+}
+
+model EinvoiceSettings {
+  id            Int      @id @default(autoincrement())
+  tenantId      Int      @unique
+  apiUrl        String   @db.VarChar(500)
+  aspId         String   @db.VarChar(50)
+  password      String   @db.VarChar(100)
+  authToken     String   @db.VarChar(100)
+  qrCodeSize    Int      @default(250)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  
+  @@map("einvoice_settings")
+}
+
+model BillEinvoice {
+  id              Int      @id @default(autoincrement())
+  billId          Int      @unique
+  ackNo           String?  @db.VarChar(100)
+  ackDate         DateTime?
+  irnNo           String?  @db.VarChar(100)
+  qrText          String?  @db.Text
+  ewbNo           String?  @db.VarChar(50)
+  ewbDate         DateTime?
+  ewbValidDate    DateTime?
+  ewbAlert        String?  @db.VarChar(100)
+  signedInvoice   String?  @db.Text
+  signedQrCode    String?  @db.Text
+  status          Int      @default(0) // 0: Cancelled/Not Generated, 1: Generated
+  isCanceled      Int      @default(0)
+  cancelReason    String?  @db.VarChar(50)
+  errorMessage    String?  @db.Text
+  requestPayload  String?  @db.Text
+  responsePayload String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  bill FabricBillHeader @relation(fields: [billId], references: [id])
+  
+  @@map("bill_einvoices")
 }

@@ -26,6 +26,8 @@ import FabricInward from './pages/transactions/FabricInward';
 import FabricDc from './pages/transactions/FabricDc';
 import FabricReturn from './pages/transactions/FabricReturn';
 import FabricBill from './pages/transactions/FabricBill';
+import BillEinvoice from './pages/transactions/BillEinvoice';
+import EinvoiceSettings from './pages/transactions/EinvoiceSettings';
 import RateQuotation from './pages/transactions/RateQuotation';
 import RateQuotationApproval from './pages/transactions/RateQuotationApproval';
 import BillApproval from './pages/transactions/BillApproval';
@@ -70,6 +72,8 @@ function App() {
                     <Route path={ROUTES.FABRIC_DC} element={<FabricDc />} />
                     <Route path={ROUTES.FABRIC_RETURN} element={<FabricReturn />} />
                     <Route path={ROUTES.FABRIC_BILL} element={<FabricBill />} />
+                    <Route path={ROUTES.BILL_EINVOICE} element={<BillEinvoice />} />
+                    <Route path={ROUTES.EINVOICE_SETTINGS} element={<EinvoiceSettings />} />
                     <Route path={ROUTES.RATE_QUOTATION} element={<RateQuotation />} />
                     <Route path={ROUTES.RATE_QUOTATION_APPROVAL} element={<MDRoute><RateQuotationApproval /></MDRoute>} />
                     <Route path={ROUTES.BILL_APPROVAL} element={<MDRoute><BillApproval /></MDRoute>} />

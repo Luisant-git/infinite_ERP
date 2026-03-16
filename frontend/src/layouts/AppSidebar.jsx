@@ -11,7 +11,9 @@ import {
   CloseOutlined,
   BarChartOutlined,
   SettingOutlined,
-  DatabaseOutlined
+  DatabaseOutlined,
+  FileProtectOutlined,
+  CloudUploadOutlined
 } from '@ant-design/icons';
 import { LuSettings2 } from 'react-icons/lu';
 import { usePermissions } from '../hooks/usePermissions';
@@ -122,6 +124,16 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           key: ROUTES.FABRIC_BILL,
           icon: <FileTextOutlined />,
           label: 'Fabric Bill'
+        },
+        {
+          key: ROUTES.BILL_EINVOICE,
+          icon: <FileProtectOutlined />,
+          label: 'Bill E-invoice'
+        },
+        {
+          key: ROUTES.EINVOICE_SETTINGS,
+          icon: <SettingOutlined />,
+          label: 'E-invoice Settings'
         }
         // {
         //   key: ROUTES.DC_ENTRY,

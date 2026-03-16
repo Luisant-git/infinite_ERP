@@ -18,12 +18,13 @@ import { FabricDcModule } from './fabric-dc/fabric-dc.module';
 import { FabricReturnModule } from './fabric-return/fabric-return.module';
 import { GstMasterModule } from './gst-master/gst-master.module';
 import { FabricBillModule } from './fabric-bill/fabric-bill.module';
+import { BillEinvoiceModule } from './bill-einvoice/bill-einvoice.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { SettingsModule } from './settings/settings.module';
 import { InwardSummaryModule } from './inward-summary/inward-summary.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule, PartyScreenRateModule, MasterModule, FabricInwardModule, RateQuotationModule, FabricDcModule, FabricReturnModule, GstMasterModule, FabricBillModule, DashboardModule, SettingsModule, InwardSummaryModule],
+  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule, PartyScreenRateModule, MasterModule, FabricInwardModule, RateQuotationModule, FabricDcModule, FabricReturnModule, GstMasterModule, FabricBillModule, BillEinvoiceModule, DashboardModule, SettingsModule, InwardSummaryModule],
   controllers: [AppController],
   providers: [AppService],
 })
