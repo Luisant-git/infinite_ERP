@@ -1,6 +1,14 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateEinvoiceSettingsDto, UpdateEinvoiceSettingsDto, GenerateEinvoiceDto } from './dto/bill-einvoice.dto';
+import {
+  CreateEinvoiceSettingsDto,
+  UpdateEinvoiceSettingsDto,
+  GenerateEinvoiceDto,
+} from './dto/bill-einvoice.dto';
 import axios from 'axios';
 
 @Injectable()
@@ -10,11 +18,13 @@ export class BillEinvoiceService {
   // E-invoice Settings CRUD
   async createSettings(tenantId: number, createDto: CreateEinvoiceSettingsDto) {
     const existingSettings = await this.prisma.einvoiceSettings.findUnique({
-      where: { tenantId }
+      where: { tenantId },
     });
 
     if (existingSettings) {
-      throw new BadRequestException('E-invoice settings already exist for this tenant');
+      throw new BadRequestException(
+        'E-invoice settings already exist for this tenant',
+      );
     }
 
     return this.prisma.einvoiceSettings.create({
@@ -27,7 +37,7 @@ export class BillEinvoiceService {
 
   async getSettings(tenantId: number) {
     const settings = await this.prisma.einvoiceSettings.findUnique({
-      where: { tenantId }
+      where: { tenantId },
     });
 
     if (!settings) {
@@ -39,7 +49,7 @@ export class BillEinvoiceService {
 
   async updateSettings(tenantId: number, updateDto: UpdateEinvoiceSettingsDto) {
     const settings = await this.prisma.einvoiceSettings.findUnique({
-      where: { tenantId }
+      where: { tenantId },
     });
 
     if (!settings) {
@@ -54,7 +64,7 @@ export class BillEinvoiceService {
 
   async deleteSettings(tenantId: number) {
     const settings = await this.prisma.einvoiceSettings.findUnique({
-      where: { tenantId }
+      where: { tenantId },
     });
 
     if (!settings) {
@@ -62,22 +72,25 @@ export class BillEinvoiceService {
     }
 
     return this.prisma.einvoiceSettings.delete({
-      where: { tenantId }
+      where: { tenantId },
     });
   }
 
   // Bill E-invoice operations
-  async getBillsForEinvoice(tenantId: number, search?: string, page = 1, limit = 10) {
+  async getBillsForEinvoice(
+    tenantId: number,
+    search?: string,
+    page = 1,
+    limit = 10,
+  ) {
     const skip = (page - 1) * limit;
-    
+
     const where = {
       tenantId,
       deleteFlg: 0,
       isApproval: 1, // Only approved bills
       ...(search && {
-        OR: [
-          { billNo: { contains: search, mode: 'insensitive' as const } },
-        ],
+        OR: [{ billNo: { contains: search, mode: 'insensitive' as const } }],
       }),
     };
 
@@ -103,34 +116,34 @@ export class BillEinvoiceService {
 
     // Get bill details
     const bill = await this.prisma.fabricBillHeader.findFirst({
-      where: { 
-        id: billId, 
+      where: {
+        id: billId,
         tenantId,
         deleteFlg: 0,
-        isApproval: 1 // Only approved bills
+        isApproval: 1, // Only approved bills
       },
       include: {
-        details: { 
+        details: {
           where: { deleteFlg: 0 },
           include: {
             fabric: true,
             color: true,
             dia: true,
-            uom: true
-          }
+            uom: true,
+          },
         },
-        taxes: { 
+        taxes: {
           where: { deleteFlg: 0 },
           include: {
-            taxMaster: true
-          }
+            taxMaster: true,
+          },
         },
         party: true,
         concern: true,
         tenant: {
           include: {
-            concern: true
-          }
+            concern: true,
+          },
         },
         einvoice: true,
       },
@@ -147,54 +160,70 @@ export class BillEinvoiceService {
       concernId: bill.concernId,
       concern: bill.concern,
       tenantConcern: bill.tenant?.concern,
-      party: bill.party
+      party: bill.party,
     });
 
     // Use concern from bill or tenant
     const concernData = bill.concern || bill.tenant?.concern;
-    
+
     if (bill.einvoice && bill.einvoice.status === 1) {
-      throw new BadRequestException('E-invoice already generated for this bill');
+      throw new BadRequestException(
+        'E-invoice already generated for this bill',
+      );
     }
 
     // Get E-invoice settings
     const settings = await this.getSettings(tenantId);
-    
+
     if (!settings.isActive) {
-      throw new BadRequestException('E-invoice settings are not active. Please activate settings first.');
+      throw new BadRequestException(
+        'E-invoice settings are not active. Please activate settings first.',
+      );
     }
-    
-    if (!settings.apiUrl || !settings.aspId || !settings.password || 
-        !settings.authToken) {
-      throw new BadRequestException('E-invoice settings are incomplete. Please check all required fields.');
+
+    if (
+      !settings.apiUrl ||
+      !settings.aspId ||
+      !settings.password ||
+      !settings.authToken
+    ) {
+      throw new BadRequestException(
+        'E-invoice settings are incomplete. Please check all required fields.',
+      );
     }
-    
+
     console.log('E-invoice settings:', {
       apiUrl: settings.apiUrl,
       aspId: settings.aspId,
       aspIdLength: settings.aspId?.length,
       password: '***masked***',
       authToken: '***masked***',
-      qrCodeSize: settings.qrCodeSize
+      qrCodeSize: settings.qrCodeSize,
     });
-    
+
     // Validate bill data
     console.log('Validating bill data:', {
       partyGstNo: bill.party?.gstNo,
       concernGstNo: concernData?.gstNo,
-      hsnCode: bill.hsnCode
+      hsnCode: bill.hsnCode,
     });
-    
+
     if (!bill.party?.gstNo) {
-      throw new BadRequestException('Party GST number is required for E-invoice generation.');
+      throw new BadRequestException(
+        'Party GST number is required for E-invoice generation.',
+      );
     }
-    
+
     if (!concernData?.gstNo) {
-      throw new BadRequestException('Concern GST number is required for E-invoice generation.');
+      throw new BadRequestException(
+        'Concern GST number is required for E-invoice generation.',
+      );
     }
-    
+
     if (!bill.hsnCode) {
-      throw new BadRequestException('HSN Code is required for E-invoice generation.');
+      throw new BadRequestException(
+        'HSN Code is required for E-invoice generation.',
+      );
     }
 
     // Build E-invoice payload
@@ -203,7 +232,11 @@ export class BillEinvoiceService {
     try {
       // Make API call to generate E-invoice
       const concernName = concernData?.partyName || 'DefaultConcern';
-      const response = await this.callEinvoiceAPI(settings, einvoicePayload, concernName);
+      const response = await this.callEinvoiceAPI(
+        settings,
+        einvoicePayload,
+        concernName,
+      );
 
       // Save E-invoice record
       const einvoiceRecord = await this.prisma.billEinvoice.upsert({
@@ -288,7 +321,7 @@ export class BillEinvoiceService {
     console.log('Bill screen info:', {
       noOfScreen: bill.noOfScreen,
       screenRate: bill.screenRate,
-      screenAmount: bill.screenAmount
+      screenAmount: bill.screenAmount,
     });
 
     // Build item list
@@ -299,19 +332,21 @@ export class BillEinvoiceService {
     for (const detail of bill.details) {
       const hsnCode = bill.hsnCode || '998821';
       const isService = hsnCode.startsWith('99') ? 'Y' : 'N';
-      
+
       const gstRate = this.calculateGstRate(bill.taxes);
       const itemAmount = Number(detail.amount) || 0;
-      
+
       // Get UOM from detail or default to KGS
       const uomName = detail.uom?.masterName || 'KGS';
-      
+
       // Ensure required fields are not empty
       const productDesc = this.buildProductDescription(detail);
       if (!productDesc || productDesc.trim() === '') {
-        throw new BadRequestException(`Product description is required for item ${slNo}`);
+        throw new BadRequestException(
+          `Product description is required for item ${slNo}`,
+        );
       }
-      
+
       itemList.push({
         SlNo: slNo.toString(),
         PrdDesc: productDesc,
@@ -337,13 +372,15 @@ export class BillEinvoiceService {
         StateCesAmt: 0.0,
         StateCesNonAdvlAmt: 0.0,
         OthChrg: 0.0,
-        TotItemVal: itemAmount + (isSameState ? 
-          (itemAmount * gstRate) / 100 : 
-          (itemAmount * gstRate) / 100),
+        TotItemVal:
+          itemAmount +
+          (isSameState
+            ? (itemAmount * gstRate) / 100
+            : (itemAmount * gstRate) / 100),
         OrdLineRef: null,
         OrgCntry: null,
         PrdSlNo: null,
-        BchDtls: null
+        BchDtls: null,
       });
       slNo++;
     }
@@ -352,20 +389,20 @@ export class BillEinvoiceService {
     if (bill.noOfScreen > 0 && bill.screenRate > 0) {
       const screenAmount = Number(bill.screenAmount) || 0;
       const gstRate = this.calculateGstRate(bill.taxes);
-      
+
       // Apply same HSN logic for screen charges
       const screenHsnCode = bill.hsnCode || '';
       const screenIsService = screenHsnCode.startsWith('99') ? 'Y' : 'N';
-      
+
       itemList.push({
         SlNo: slNo.toString(),
-        PrdDesc: "Screen Charges",
+        PrdDesc: 'Screen Charges',
         IsServc: screenIsService,
         HsnCd: screenHsnCode,
         Barcde: null,
         Qty: Number(bill.noOfScreen) || 0,
         FreeQty: 0.0,
-        Unit: "NOS",
+        Unit: 'NOS',
         UnitPrice: Number(bill.screenRate) || 0,
         TotAmt: screenAmount,
         Discount: 0.0,
@@ -382,69 +419,73 @@ export class BillEinvoiceService {
         StateCesAmt: 0.0,
         StateCesNonAdvlAmt: 0.0,
         OthChrg: 0.0,
-        TotItemVal: screenAmount + (isSameState ? 
-          (screenAmount * gstRate) / 100 : 
-          (screenAmount * gstRate) / 100),
+        TotItemVal:
+          screenAmount +
+          (isSameState
+            ? (screenAmount * gstRate) / 100
+            : (screenAmount * gstRate) / 100),
         OrdLineRef: null,
         OrgCntry: null,
         PrdSlNo: null,
-        BchDtls: null
+        BchDtls: null,
       });
     }
-    
+
     // Ensure at least one item exists
     if (itemList.length === 0) {
-      throw new BadRequestException('No items found in bill. Please ensure the bill has details or screen charges before generating E-invoice.');
+      throw new BadRequestException(
+        'No items found in bill. Please ensure the bill has details or screen charges before generating E-invoice.',
+      );
     }
-    
+
     console.log('Generated ItemList:', itemList);
 
     const payload = {
-      Version: "1.1",
+      Version: '1.1',
       TranDtls: {
-        TaxSch: "GST",
-        SupTyp: "B2B",
-        IgstOnIntra: "N",
+        TaxSch: 'GST',
+        SupTyp: 'B2B',
+        IgstOnIntra: 'N',
         RegRev: null,
-        EcmGstin: null
+        EcmGstin: null,
       },
       DocDtls: {
-        Typ: "INV",
+        Typ: 'INV',
         No: bill.billNo,
-        Dt: this.formatDate(bill.billDate)
+        Dt: this.formatDate(bill.billDate),
       },
       SellerDtls: {
-        Gstin: concern?.gstNo || "",
-        LglNm: concern?.partyName || "",
-        TrdNm: concern?.partyName || "",
-        Addr1: concern?.address1 || "",
-        Addr2: concern?.address2 || "",
-        Loc: concern?.district || "",
-        Pin: parseInt(concern?.pincode || "0"),
-        Stcd: concern?.gstNo?.substring(0, 2) || "",
+        Gstin: concern?.gstNo || '',
+        LglNm: concern?.partyName || '',
+        TrdNm: concern?.partyName || '',
+        Addr1: concern?.address1 || '',
+        Addr2: concern?.address2 || '',
+        Loc: concern?.district || '',
+        Pin: parseInt(concern?.pincode || '0'),
+        Stcd: concern?.gstNo?.substring(0, 2) || '',
         Ph: null,
-        Em: null
+        Em: null,
       },
       BuyerDtls: {
-        Gstin: party?.gstNo || "",
-        LglNm: party?.partyName || "",
-        TrdNm: party?.partyName || "",
-        Addr1: party?.address1 || "",
-        Addr2: party?.address2 || "",
-        Pos: party?.gstNo?.substring(0, 2) || "",
-        Loc: party?.district || "",
-        Pin: parseInt(party?.pincode || "0"),
-        Stcd: party?.gstNo?.substring(0, 2) || "",
+        Gstin: party?.gstNo || '',
+        LglNm: party?.partyName || '',
+        TrdNm: party?.partyName || '',
+        Addr1: party?.address1 || '',
+        Addr2: party?.address2 || '',
+        Pos: party?.gstNo?.substring(0, 2) || '',
+        Loc: party?.district || '',
+        Pin: parseInt(party?.pincode || '0'),
+        Stcd: party?.gstNo?.substring(0, 2) || '',
         Ph: null,
-        Em: null
+        Em: null,
       },
       DispDtls: {
-        Nm: concern?.partyName || "",
-        Addr1: concern?.address1 || "",
-        Addr2: concern?.address2 || "",
-        Loc: concern?.district || "",
-        Pin: parseInt(concern?.pincode || "0"),
-        Stcd: concern?.gstNo?.substring(0, 2) || ""
+        Nm: concern?.partyName || '',
+        Addr1: concern?.address1 || '',
+        Addr2: concern?.address2 || '',
+        Loc: concern?.district || '',
+        Pin: parseInt(concern?.pincode || '0'),
+        Stcd: concern?.gstNo?.substring(0, 2) || '',
       },
       ShipDtls: null,
       ValDtls: {
@@ -458,12 +499,12 @@ export class BillEinvoiceService {
         OthChrg: Number(bill.otherCharges) || 0,
         RndOffAmt: Number(bill.roundOff) || 0,
         TotInvVal: Number(bill.netAmount) || 0,
-        TotInvValFc: 0.0
+        TotInvValFc: 0.0,
       },
       EwbDtls: null,
       PayDtls: null,
       ExpDtls: null,
-      ItemList: itemList
+      ItemList: itemList,
     };
 
     return payload;
@@ -471,20 +512,20 @@ export class BillEinvoiceService {
 
   private buildProductDescription(detail: any): string {
     const parts: string[] = [];
-    
+
     if (detail.fabric?.masterName) parts.push(detail.fabric.masterName);
     if (detail.dia?.masterName) parts.push(detail.dia.masterName);
     if (detail.color?.masterName) parts.push(detail.color.masterName);
     if (detail.gsm) parts.push(`GSM: ${detail.gsm}`);
     if (detail.designNo) parts.push(`Design: ${detail.designNo}`);
     if (detail.process) parts.push(detail.process);
-    
+
     return parts.join(' - ') || 'Fabric Processing Service';
   }
 
   private calculateGstRate(taxes: any[]): number {
     let totalRate = 0;
-    taxes.forEach(tax => {
+    taxes.forEach((tax) => {
       totalRate += Number(tax.taxPercentage) || 0;
     });
     return totalRate;
@@ -498,21 +539,27 @@ export class BillEinvoiceService {
     return `${day}/${month}/${year}`;
   }
 
-  private async callEinvoiceAPI(settings: any, payload: any, concernName: string) {
+  private async callEinvoiceAPI(
+    settings: any,
+    payload: any,
+    concernName: string,
+  ) {
     const gstin = payload.SellerDtls?.Gstin || '';
-    const qrCodeSize = '250';
-    
+    const qrCodeSize = settings.qrCodeSize
+      ? String(settings.qrCodeSize)
+      : '250';
+
     const queryParams = new URLSearchParams({
       aspid: settings.aspId,
       password: settings.password,
       Gstin: gstin,
       AuthToken: settings.authToken,
       user_name: concernName,
-      QrCodeSize: qrCodeSize
+      QrCodeSize: qrCodeSize,
     });
-    
+
     const url = `${settings.apiUrl}?${queryParams.toString()}`;
-    
+
     try {
       console.log('E-invoice API URL:', url);
       console.log('Headers:', {
@@ -521,17 +568,17 @@ export class BillEinvoiceService {
         AuthToken: '***masked***',
         aspid: settings.aspId,
         password: '***masked***',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       });
       console.log('E-invoice Payload:', JSON.stringify(payload, null, 2));
-      
+
       const response = await axios.post(url, payload, {
         headers: {
-          'Gstin': gstin,
-          'user_name': concernName,
-          'AuthToken': settings.authToken,
-          'aspid': settings.aspId,
-          'password': settings.password,
+          Gstin: gstin,
+          user_name: concernName,
+          AuthToken: settings.authToken,
+          aspid: settings.aspId,
+          password: settings.password,
           'Content-Type': 'application/json',
         },
       });
@@ -539,7 +586,9 @@ export class BillEinvoiceService {
       console.log('E-invoice API Response:', response.data);
 
       if (response.data.Status === 0) {
-        throw new Error(response.data.ErrorDetails || 'E-invoice generation failed');
+        throw new Error(
+          response.data.ErrorDetails || 'E-invoice generation failed',
+        );
       }
 
       return response.data;
@@ -549,36 +598,41 @@ export class BillEinvoiceService {
         statusText: error.response?.statusText,
         data: error.response?.data,
         message: error.message,
-        url: url
+        url: url,
       });
-      
+
       // Handle specific HTTP status codes
       if (error.response?.status === 412) {
-        const errorMsg = error.response?.data?.ErrorDetails || 
-                        error.response?.data?.error?.message ||
-                        error.response?.data?.message || 
-                        'Precondition Failed - Please check your API credentials and payload data';
+        const errorMsg =
+          error.response?.data?.ErrorDetails ||
+          error.response?.data?.error?.message ||
+          error.response?.data?.message ||
+          'Precondition Failed - Please check your API credentials and payload data';
         throw new Error(`E-invoice API Error (412): ${errorMsg}`);
       }
-      
+
       if (error.response?.status === 401) {
-        throw new Error('E-invoice API Error (401): Invalid credentials or authentication failed');
+        throw new Error(
+          'E-invoice API Error (401): Invalid credentials or authentication failed',
+        );
       }
-      
+
       if (error.response?.status === 400) {
-        const errorMsg = error.response?.data?.ErrorDetails || 
-                        error.response?.data?.message || 
-                        'Bad Request - Invalid payload data';
+        const errorMsg =
+          error.response?.data?.ErrorDetails ||
+          error.response?.data?.message ||
+          'Bad Request - Invalid payload data';
         throw new Error(`E-invoice API Error (400): ${errorMsg}`);
       }
-      
+
       // Generic error handling
-      const errorMessage = error.response?.data?.ErrorDetails || 
-                          error.response?.data?.error?.message ||
-                          error.response?.data?.message || 
-                          error.message || 
-                          'E-invoice API call failed';
-      
+      const errorMessage =
+        error.response?.data?.ErrorDetails ||
+        error.response?.data?.error?.message ||
+        error.response?.data?.message ||
+        error.message ||
+        'E-invoice API call failed';
+
       throw new Error(`E-invoice API Error: ${errorMessage}`);
     }
   }
@@ -589,10 +643,10 @@ export class BillEinvoiceService {
       include: {
         bill: {
           include: {
-            party: true
-          }
-        }
-      }
+            party: true,
+          },
+        },
+      },
     });
 
     if (!einvoice) {
@@ -604,7 +658,7 @@ export class BillEinvoiceService {
 
   async cancelEinvoice(tenantId: number, billId: number, reason: string) {
     const einvoice = await this.prisma.billEinvoice.findUnique({
-      where: { billId }
+      where: { billId },
     });
 
     if (!einvoice || einvoice.status !== 1) {
