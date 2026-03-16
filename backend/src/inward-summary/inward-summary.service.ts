@@ -26,8 +26,6 @@ export class InwardSummaryService {
         concernId: true,
         tenantId: true,
         isClosed: true,
-      },
-      include: {
         tenant: {
           select: {
             id: true,
