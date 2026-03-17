@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Layout, Menu } from 'antd';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from "react";
+import { Layout, Menu } from "antd";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import {
   DashboardOutlined,
   UserOutlined,
@@ -13,13 +13,13 @@ import {
   SettingOutlined,
   DatabaseOutlined,
   FileProtectOutlined,
-  CloudUploadOutlined
-} from '@ant-design/icons';
-import { LuSettings2 } from 'react-icons/lu';
-import { usePermissions } from '../hooks/usePermissions';
-import { useMenuPermissions } from '../hooks/useMenuPermissions';
-import { ROUTES } from '../constants/permissions';
-import { toggleSidebar } from '../store/slices/uiSlice';
+  CloudUploadOutlined,
+} from "@ant-design/icons";
+import { LuSettings2 } from "react-icons/lu";
+import { usePermissions } from "../hooks/usePermissions";
+import { useMenuPermissions } from "../hooks/useMenuPermissions";
+import { ROUTES } from "../constants/permissions";
+import { toggleSidebar } from "../store/slices/uiSlice";
 
 const { Sider } = Layout;
 
@@ -27,109 +27,154 @@ const AppSidebar = ({ collapsed, isMobile }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { canDCClose, user, isMD } = usePermissions();
+  const { canDCClose, canSettings, user, isMD } = usePermissions();
   const { canView } = useMenuPermissions();
   const menuItems = [
-    ...(canView('dashboard') ? [{
-      key: ROUTES.DASHBOARD,
-      icon: <DashboardOutlined />,
-      label: 'Dashboard'
-    }] : []),
+    ...(canView("dashboard")
+      ? [
+          {
+            key: ROUTES.DASHBOARD,
+            icon: <DashboardOutlined />,
+            label: "Dashboard",
+          },
+        ]
+      : []),
     {
-      key: 'masters',
+      key: "masters",
       icon: <TeamOutlined />,
-      label: 'Masters',
+      label: "Masters",
       children: [
-        ...(user?.adminUser === true ? [
-          ...(canView('user_master') ? [{
-            key: ROUTES.USER_MASTER,
-            icon: <UserOutlined />,
-            label: 'Login Creation'
-          }] : []),
-          ...(canView('concern_master') ? [{
-            key: ROUTES.CONCERN_MASTER,
-            icon: <ShopOutlined />,
-            label: 'Concern Master'
-          }] : [])
-        ] : []),
-        ...(canView('party_master') ? [{
-          key: ROUTES.PARTY_MASTER,
-          icon: <TeamOutlined />,
-          label: 'Party Master'
-        }] : []),
-        ...(canView('party_type_master') ? [{
-          key: ROUTES.PARTY_TYPE_MASTER,
-          icon: <TeamOutlined />,
-          label: 'Party Type'
-        }] : []),
-        ...(canView('design_master') ? [{
-          key: ROUTES.DESIGN_MASTER,
-          icon: <FileTextOutlined />,
-          label: 'Design Master'
-        }] : []),
-        ...(canView('process_master') ? [{
-          key: ROUTES.PROCESS_MASTER,
-          icon: <LuSettings2 size={16} />,
-          label: 'Process Master'
-        }] : []),
-        ...(canView('party_process_rate') ? [{
-          key: ROUTES.PARTY_PROCESS_RATE,
-          icon: <SettingOutlined />,
-          label: 'Party Process Rate'
-        }] : []),
-        ...(canView('party_screen_rate') ? [{
-          key: ROUTES.PARTY_SCREEN_RATE,
-          icon: <SettingOutlined />,
-          label: 'Screen Rate Fixing'
-        }] : []),
-        ...(canView('master_data') ? [{
-          key: ROUTES.MASTER_DATA,
-          icon: <DatabaseOutlined />,
-          label: 'Master Data'
-        }] : []),
-        ...(canView('gst_master') ? [{
-          key: ROUTES.GST_MASTER,
-          icon: <FileTextOutlined />,
-          label: 'GST Master'
-        }] : [])
-        
-      ].filter(item => item)
+        ...(user?.adminUser === true
+          ? [
+              ...(canView("user_master")
+                ? [
+                    {
+                      key: ROUTES.USER_MASTER,
+                      icon: <UserOutlined />,
+                      label: "Login Creation",
+                    },
+                  ]
+                : []),
+              ...(canView("concern_master")
+                ? [
+                    {
+                      key: ROUTES.CONCERN_MASTER,
+                      icon: <ShopOutlined />,
+                      label: "Concern Master",
+                    },
+                  ]
+                : []),
+            ]
+          : []),
+        ...(canView("party_master")
+          ? [
+              {
+                key: ROUTES.PARTY_MASTER,
+                icon: <TeamOutlined />,
+                label: "Party Master",
+              },
+            ]
+          : []),
+        ...(canView("party_type_master")
+          ? [
+              {
+                key: ROUTES.PARTY_TYPE_MASTER,
+                icon: <TeamOutlined />,
+                label: "Party Type",
+              },
+            ]
+          : []),
+        ...(canView("design_master")
+          ? [
+              {
+                key: ROUTES.DESIGN_MASTER,
+                icon: <FileTextOutlined />,
+                label: "Design Master",
+              },
+            ]
+          : []),
+        ...(canView("process_master")
+          ? [
+              {
+                key: ROUTES.PROCESS_MASTER,
+                icon: <LuSettings2 size={16} />,
+                label: "Process Master",
+              },
+            ]
+          : []),
+        ...(canView("party_process_rate")
+          ? [
+              {
+                key: ROUTES.PARTY_PROCESS_RATE,
+                icon: <SettingOutlined />,
+                label: "Party Process Rate",
+              },
+            ]
+          : []),
+        ...(canView("party_screen_rate")
+          ? [
+              {
+                key: ROUTES.PARTY_SCREEN_RATE,
+                icon: <SettingOutlined />,
+                label: "Screen Rate Fixing",
+              },
+            ]
+          : []),
+        ...(canView("master_data")
+          ? [
+              {
+                key: ROUTES.MASTER_DATA,
+                icon: <DatabaseOutlined />,
+                label: "Master Data",
+              },
+            ]
+          : []),
+        ...(canView("gst_master")
+          ? [
+              {
+                key: ROUTES.GST_MASTER,
+                icon: <FileTextOutlined />,
+                label: "GST Master",
+              },
+            ]
+          : []),
+      ].filter((item) => item),
     },
     {
-      key: 'transactions',
+      key: "transactions",
       icon: <FileTextOutlined />,
-      label: 'Transactions',
+      label: "Transactions",
       children: [
         {
           key: ROUTES.RATE_QUOTATION,
           icon: <FileTextOutlined />,
-          label: 'Rate Quotation'
+          label: "Rate Quotation",
         },
         {
           key: ROUTES.FABRIC_INWARD,
           icon: <FileTextOutlined />,
-          label: 'Fabric Inward'
+          label: "Fabric Inward",
         },
         {
           key: ROUTES.FABRIC_DC,
           icon: <FileTextOutlined />,
-          label: 'Fabric DC'
+          label: "Fabric DC",
         },
         {
           key: ROUTES.FABRIC_RETURN,
           icon: <FileTextOutlined />,
-          label: 'Fabric Return'
+          label: "Fabric Return",
         },
         {
           key: ROUTES.FABRIC_BILL,
           icon: <FileTextOutlined />,
-          label: 'Fabric Bill'
+          label: "Fabric Bill",
         },
         {
           key: ROUTES.BILL_EINVOICE,
           icon: <FileProtectOutlined />,
-          label: 'Bill E-invoice'
-        }
+          label: "Bill E-invoice",
+        },
         // {
         //   key: ROUTES.DC_ENTRY,
         //   icon: <FileTextOutlined />,
@@ -140,69 +185,77 @@ const AppSidebar = ({ collapsed, isMobile }) => {
         //   icon: <CloseOutlined />,
         //   label: 'DC Close'
         // }] : [])
-      ]
+      ],
     },
-    ...(isMD === 1 ? [{
-      key: 'approval',
-      icon: <FileTextOutlined />,
-      label: 'Approval',
-      children: [
-        {
-          key: ROUTES.PARTY_APPROVAL,
-          icon: <TeamOutlined />,
-          label: 'Party Approval'
-        },
-        {
-          key: ROUTES.DESIGN_APPROVAL,
-          icon: <FileTextOutlined />,
-          label: 'Design Approval'
-        },
-        {
-          key: ROUTES.STRIKEOFF_APPROVAL,
-          icon: <FileTextOutlined />,
-          label: 'Strike Off Approval'
-        },
-        {
-          key: ROUTES.RATE_QUOTATION_APPROVAL,
-          icon: <FileTextOutlined />,
-          label: 'Rate Quotation Approval'
-        },
-        {
-          key: ROUTES.BILL_APPROVAL,
-          icon: <FileTextOutlined />,
-          label: 'Bill Approval'
-        }
-      ]
-    }] : []),
+    ...(isMD === 1
+      ? [
+          {
+            key: "approval",
+            icon: <FileTextOutlined />,
+            label: "Approval",
+            children: [
+              {
+                key: ROUTES.PARTY_APPROVAL,
+                icon: <TeamOutlined />,
+                label: "Party Approval",
+              },
+              {
+                key: ROUTES.DESIGN_APPROVAL,
+                icon: <FileTextOutlined />,
+                label: "Design Approval",
+              },
+              {
+                key: ROUTES.STRIKEOFF_APPROVAL,
+                icon: <FileTextOutlined />,
+                label: "Strike Off Approval",
+              },
+              {
+                key: ROUTES.RATE_QUOTATION_APPROVAL,
+                icon: <FileTextOutlined />,
+                label: "Rate Quotation Approval",
+              },
+              {
+                key: ROUTES.BILL_APPROVAL,
+                icon: <FileTextOutlined />,
+                label: "Bill Approval",
+              },
+            ],
+          },
+        ]
+      : []),
     {
-      key: 'reports',
+      key: "reports",
       icon: <BarChartOutlined />,
-      label: 'Reports',
+      label: "Reports",
       children: [
         {
           key: ROUTES.INWARD_SUMMARY,
           icon: <FileTextOutlined />,
-          label: 'Inward Summary'
-        }
-      ]
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-      children: [
-        {
-          key: ROUTES.SETTINGS,
-          icon: <SettingOutlined />,
-          label: 'General Settings'
+          label: "Inward Summary",
         },
-        {
-          key: ROUTES.EINVOICE_SETTINGS,
-          icon: <FileProtectOutlined />,
-          label: 'E-invoice Settings'
-        }
-      ]
-    }
+      ],
+    },
+    ...(canSettings()
+      ? [
+          {
+            key: "settings",
+            icon: <SettingOutlined />,
+            label: "Settings",
+            children: [
+              {
+                key: ROUTES.SETTINGS,
+                icon: <SettingOutlined />,
+                label: "General Settings",
+              },
+              {
+                key: ROUTES.EINVOICE_SETTINGS,
+                icon: <FileProtectOutlined />,
+                label: "E-invoice Settings",
+              },
+            ],
+          },
+        ]
+      : []),
   ];
 
   const handleMenuClick = ({ key }) => {
@@ -213,21 +266,21 @@ const AppSidebar = ({ collapsed, isMobile }) => {
   };
 
   return (
-    <Sider 
-      trigger={null} 
-      collapsible 
+    <Sider
+      trigger={null}
+      collapsible
       collapsed={collapsed}
       style={{
-        background: '#001529',
+        background: "#001529",
         ...(isMobile && {
-          position: 'fixed',
+          position: "fixed",
           left: 0,
           top: 0,
           bottom: 0,
           zIndex: 1000,
-          transform: collapsed ? 'translateX(-100%)' : 'translateX(0)',
-          transition: 'transform 0.3s ease'
-        })
+          transform: collapsed ? "translateX(-100%)" : "translateX(0)",
+          transition: "transform 0.3s ease",
+        }),
       }}
       width={isMobile ? 250 : 200}
     >

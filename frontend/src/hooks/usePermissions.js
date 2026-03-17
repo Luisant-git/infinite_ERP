@@ -1,34 +1,41 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { validateToken } from '../api/token';
-import { ROUTES } from '../constants/permissions';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { validateToken } from "../api/token";
+import { ROUTES } from "../constants/permissions";
 
 export const usePermissions = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     const loadUserFromToken = async () => {
       try {
         const userData = await validateToken();
         setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem("user", JSON.stringify(userData));
       } catch (error) {
-        console.error('Token validation failed:', error);
+        console.error("Token validation failed:", error);
         localStorage.clear();
         navigate(ROUTES.LOGIN);
       }
     };
-    
-    if (localStorage.getItem('token')) {
+
+    if (localStorage.getItem("token")) {
       loadUserFromToken();
     }
   }, [navigate]);
-  
+
   const canAdd = () => user?.adminUser || user?.canAdd || false;
   const canEdit = () => user?.adminUser || user?.canEdit || false;
   const canDelete = () => user?.adminUser || user?.canDelete || false;
   const canDCClose = () => user?.adminUser || user?.dcClose || false;
+  // Settings access is controlled by the canSettings flag, but 'developer' always gets access.
+  const canSettings = () => {
+    if (!user) return false;
+    const username = (user.username || "").toString().toLowerCase();
+    if (username === "developer") return true;
+    return user?.canSettings || false;
+  };
   const isAdmin = () => user?.adminUser || false;
   const isMD = user?.IsMD || 0;
 
@@ -38,7 +45,8 @@ export const usePermissions = () => {
     canEdit,
     canDelete,
     canDCClose,
+    canSettings,
     isAdmin,
-    isMD
+    isMD,
   };
 };
