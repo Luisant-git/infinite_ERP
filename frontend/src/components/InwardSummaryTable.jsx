@@ -1,54 +1,24 @@
-import React, { useState } from 'react';
-import {
-  Table,
-  Input,
-  Checkbox,
-  Button,
-  Space,
-} from 'antd';
-import { FilterOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
+import React, { useState } from "react";
+import { Table, Input, Checkbox, Button, Space } from "antd";
+import { FilterOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 
-const InwardSummaryTable = ({ 
-  data, 
-  loading = false, 
+const InwardSummaryTable = ({
+  data,
+  loading = false,
   showPagination = true,
-  tableId = 'default'
+  tableId = "default",
 }) => {
   const [filteredInfo, setFilteredInfo] = useState({});
   const [searchText, setSearchText] = useState({});
-  const [columnSearchText, setColumnSearchText] = useState({});
+  const [hiddenColumns, setHiddenColumns] = useState([]);
 
-  const handleColumnSearch = (dataIndex, value) => {
-    setColumnSearchText(prev => ({ 
-      ...prev, 
-      [dataIndex]: value 
-    }));
+  const handleColumnHide = (columnKey) => {
+    setHiddenColumns((prev) => [...prev, columnKey]);
   };
 
-  const getFilteredDataByColumnSearch = () => {
-    if (!columnSearchText || Object.keys(columnSearchText).length === 0) {
-      return data;
-    }
-
-    return data.filter(item => {
-      return Object.keys(columnSearchText).every(key => {
-        const searchValue = columnSearchText[key];
-        if (!searchValue) return true;
-        
-        let itemValue = item[key];
-        
-        if (key === 'inwardDate' && itemValue) {
-          itemValue = dayjs(itemValue).format('DD-MM-YYYY');
-        }
-        
-        if (typeof itemValue === 'number') {
-          itemValue = itemValue.toString();
-        }
-        
-        return itemValue?.toString().toLowerCase().includes(searchValue.toLowerCase());
-      });
-    });
+  const handleColumnShow = (columnKey) => {
+    setHiddenColumns((prev) => prev.filter((key) => key !== columnKey));
   };
 
   const handleTableChange = (pagination, filters) => {
@@ -56,36 +26,66 @@ const InwardSummaryTable = ({
   };
 
   const getColumnSearchProps = (dataIndex, title) => {
-    const uniqueValues = [...new Set(data.map(item => {
-      const value = item[dataIndex];
-      if (dataIndex === 'inwardDate' && value) {
-        return dayjs(value).format('DD-MM-YYYY');
-      }
-      return value;
-    }).filter(Boolean))];
-    
-    const currentSearch = searchText[dataIndex] || '';
-    
-    const filteredValues = uniqueValues.filter(value =>
-      value.toString().toLowerCase().includes(currentSearch.toLowerCase())
+    const uniqueValues = [
+      ...new Set(
+        data
+          .map((item) => {
+            const value = item[dataIndex];
+            if (dataIndex === "inwardDate" && value) {
+              return dayjs(value).format("DD-MM-YYYY");
+            }
+            return value;
+          })
+          .filter(Boolean),
+      ),
+    ];
+
+    const currentSearch = searchText[dataIndex] || "";
+
+    const filteredValues = uniqueValues.filter((value) =>
+      value.toString().toLowerCase().includes(currentSearch.toLowerCase()),
     );
 
     return {
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+      }) => (
         <div style={{ padding: 8, width: 250 }}>
           <Input
             placeholder={`Search ${title}`}
             value={currentSearch}
             onChange={(e) => {
-              setSearchText(prev => ({ ...prev, [dataIndex]: e.target.value }));
+              setSearchText((prev) => ({
+                ...prev,
+                [dataIndex]: e.target.value,
+              }));
             }}
-            style={{ marginBottom: 8, display: 'block' }}
+            onPressEnter={() => {
+              // Filter by search text directly
+              if (currentSearch.trim()) {
+                const matchingValues = uniqueValues.filter((value) =>
+                  value.toString().toLowerCase().includes(currentSearch.toLowerCase())
+                );
+                setSelectedKeys(matchingValues);
+              }
+              confirm();
+            }}
+            style={{ marginBottom: 8, display: "block" }}
             size="small"
           />
-          <div style={{ maxHeight: 200, overflow: 'auto', marginBottom: 8 }}>
+          <div style={{ maxHeight: 200, overflow: "auto", marginBottom: 8 }}>
             <Checkbox
-              indeterminate={selectedKeys.length > 0 && selectedKeys.length < uniqueValues.length}
-              checked={selectedKeys.length === uniqueValues.length && uniqueValues.length > 0}
+              indeterminate={
+                selectedKeys.length > 0 &&
+                selectedKeys.length < uniqueValues.length
+              }
+              checked={
+                selectedKeys.length === uniqueValues.length &&
+                uniqueValues.length > 0
+              }
               onChange={(e) => {
                 if (e.target.checked) {
                   setSelectedKeys(uniqueValues);
@@ -95,9 +95,9 @@ const InwardSummaryTable = ({
               }}
               style={{ marginBottom: 4, fontWeight: 600 }}
             >
-              Select All
+              Select All ({uniqueValues.length})
             </Checkbox>
-            {filteredValues.map(value => (
+            {filteredValues.map((value) => (
               <div key={value} style={{ marginBottom: 4 }}>
                 <Checkbox
                   checked={selectedKeys.includes(value)}
@@ -105,7 +105,9 @@ const InwardSummaryTable = ({
                     if (e.target.checked) {
                       setSelectedKeys([...selectedKeys, value]);
                     } else {
-                      setSelectedKeys(selectedKeys.filter(key => key !== value));
+                      setSelectedKeys(
+                        selectedKeys.filter((key) => key !== value),
+                      );
                     }
                   }}
                 >
@@ -117,20 +119,29 @@ const InwardSummaryTable = ({
           <Space>
             <Button
               type="primary"
-              onClick={() => confirm()}
+              onClick={() => {
+                // Filter by search text if entered
+                if (currentSearch.trim()) {
+                  const matchingValues = uniqueValues.filter((value) =>
+                    value.toString().toLowerCase().includes(currentSearch.toLowerCase())
+                  );
+                  setSelectedKeys(matchingValues);
+                }
+                confirm();
+              }}
               size="small"
-              style={{ width: 90 }}
+              style={{ width: 70 }}
             >
               Filter
             </Button>
             <Button
               onClick={() => {
                 clearFilters();
-                setSearchText(prev => ({ ...prev, [dataIndex]: '' }));
+                setSearchText((prev) => ({ ...prev, [dataIndex]: "" }));
                 confirm();
               }}
               size="small"
-              style={{ width: 90 }}
+              style={{ width: 70 }}
             >
               Reset
             </Button>
@@ -138,12 +149,13 @@ const InwardSummaryTable = ({
         </div>
       ),
       filterIcon: (filtered) => (
-        <FilterOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+        <FilterOutlined style={{ color: filtered ? "#ffff00" : "#bfbfbf", fontSize: "12px" }} />
       ),
       onFilter: (value, record) => {
-        const recordValue = dataIndex === 'inwardDate' && record[dataIndex]
-          ? dayjs(record[dataIndex]).format('DD-MM-YYYY')
-          : record[dataIndex];
+        const recordValue =
+          dataIndex === "inwardDate" && record[dataIndex]
+            ? dayjs(record[dataIndex]).format("DD-MM-YYYY")
+            : record[dataIndex];
         return recordValue === value;
       },
       filteredValue: filteredInfo[dataIndex] || null,
@@ -152,158 +164,327 @@ const InwardSummaryTable = ({
 
   const columns = [
     {
-      title: 'S.No',
-      key: 'sno',
+      title: "S.No",
+      key: "sno",
       width: 50,
-      render: (_, record, index) => {
-        if (record.isSearchRow) return '';
-        return index + 1;
-      },
+      render: (_, record, index) => index + 1,
     },
     {
-      title: 'Inward No',
-      dataIndex: 'inwardNo',
-      key: 'inwardNo',
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          Inward No
+          <span
+            onClick={() => handleColumnHide("inwardNo")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "inwardNo",
+      key: "inwardNo",
       width: 100,
-      ...getColumnSearchProps('inwardNo', 'Inward No'),
+      ...getColumnSearchProps("inwardNo", "Inward No"),
     },
     {
-      title: 'Inward Date',
-      dataIndex: 'inwardDate',
-      key: 'inwardDate',
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          Inward Date
+          <span
+            onClick={() => handleColumnHide("inwardDate")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "inwardDate",
+      key: "inwardDate",
       width: 110,
-      render: (date) => dayjs(date).format('DD-MM-YYYY'),
-      ...getColumnSearchProps('inwardDate', 'Inward Date'),
+      render: (date) => dayjs(date).format("DD-MM-YYYY"),
+      ...getColumnSearchProps("inwardDate", "Inward Date"),
     },
     {
-      title: 'PDC No',
-      dataIndex: 'pdcNo',
-      key: 'pdcNo',
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          PDC No
+          <span
+            onClick={() => handleColumnHide("pdcNo")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "pdcNo",
+      key: "pdcNo",
       width: 100,
-      ...getColumnSearchProps('pdcNo', 'PDC No'),
+      ...getColumnSearchProps("pdcNo", "PDC No"),
     },
     {
-      title: 'Order No',
-      dataIndex: 'orderNo',
-      key: 'orderNo',
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          Order No
+          <span
+            onClick={() => handleColumnHide("orderNo")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "orderNo",
+      key: "orderNo",
       width: 100,
-      ...getColumnSearchProps('orderNo', 'Order No'),
+      ...getColumnSearchProps("orderNo", "Order No"),
     },
     {
-      title: 'Fabric',
-      dataIndex: 'fabric',
-      key: 'fabric',
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          Fabric
+          <span
+            onClick={() => handleColumnHide("fabric")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "fabric",
+      key: "fabric",
       width: 120,
-      ...getColumnSearchProps('fabric', 'Fabric'),
+      ...getColumnSearchProps("fabric", "Fabric"),
     },
     {
-      title: 'Dia',
-      dataIndex: 'dia',
-      key: 'dia',
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          Dia
+          <span
+            onClick={() => handleColumnHide("dia")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "dia",
+      key: "dia",
       width: 80,
-      ...getColumnSearchProps('dia', 'Dia'),
+      ...getColumnSearchProps("dia", "Dia"),
     },
     {
-      title: 'Color',
-      dataIndex: 'color',
-      key: 'color',
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          Color
+          <span
+            onClick={() => handleColumnHide("color")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "color",
+      key: "color",
       width: 100,
-      ...getColumnSearchProps('color', 'Color'),
+      ...getColumnSearchProps("color", "Color"),
     },
     {
-      title: 'Inward Kgs',
-      dataIndex: 'inwardKgs',
-      key: 'inwardKgs',
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          Inward Kgs
+          <span
+            onClick={() => handleColumnHide("inwardKgs")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "inwardKgs",
+      key: "inwardKgs",
       width: 100,
-      align: 'right',
+      align: "right",
       render: (qty) => Number(qty).toFixed(3),
-      ...getColumnSearchProps('inwardKgs', 'Inward Kgs'),
+      ...getColumnSearchProps("inwardKgs", "Inward Kgs"),
     },
     {
-      title: 'DC Kgs',
-      dataIndex: 'dcKgs',
-      key: 'dcKgs',
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          DC Kgs
+          <span
+            onClick={() => handleColumnHide("dcKgs")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "dcKgs",
+      key: "dcKgs",
       width: 100,
-      align: 'right',
+      align: "right",
       render: (qty) => Number(qty).toFixed(3),
-      ...getColumnSearchProps('dcKgs', 'DC Kgs'),
+      ...getColumnSearchProps("dcKgs", "DC Kgs"),
     },
     {
-      title: 'Return Kgs',
-      dataIndex: 'returnKgs',
-      key: 'returnKgs',
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          Return Kgs
+          <span
+            onClick={() => handleColumnHide("returnKgs")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "returnKgs",
+      key: "returnKgs",
       width: 100,
-      align: 'right',
+      align: "right",
       render: (qty) => Number(qty).toFixed(3),
-      ...getColumnSearchProps('returnKgs', 'Return Kgs'),
+      ...getColumnSearchProps("returnKgs", "Return Kgs"),
     },
     {
-      title: 'Balance Kgs',
-      dataIndex: 'balanceKgs',
-      key: 'balanceKgs',
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          Balance Kgs
+          <span
+            onClick={() => handleColumnHide("balanceKgs")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "balanceKgs",
+      key: "balanceKgs",
       width: 100,
-      align: 'right',
+      align: "right",
       render: (qty) => Number(qty).toFixed(3),
-      ...getColumnSearchProps('balanceKgs', 'Balance Kgs'),
+      ...getColumnSearchProps("balanceKgs", "Balance Kgs"),
     },
     {
-      title: 'UOM',
-      dataIndex: 'uom',
-      key: 'uom',
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          UOM
+          <span
+            onClick={() => handleColumnHide("uom")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "uom",
+      key: "uom",
       width: 120,
-      ...getColumnSearchProps('uom', 'UOM'),
+      ...getColumnSearchProps("uom", "UOM"),
     },
-  ];
-
-  const SearchRow = () => {
-    const handleInputChange = (dataIndex, e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      handleColumnSearch(dataIndex, e.target.value);
-    };
-
-    return (
-      <tr className="search-row" style={{ backgroundColor: '#f5f5f5' }}>
-        <td style={{ padding: '4px' }}></td>
-        {columns.slice(1).map((col) => (
-          <td key={`search-${tableId}-${col.key}`} style={{ padding: '4px', borderBottom: '1px solid #d9d9d9' }}>
-            <Input
-              key={`input-${tableId}-${col.key}`}
-              placeholder={`Search...`}
-              value={columnSearchText[col.dataIndex] || ''}
-              onChange={(e) => handleInputChange(col.dataIndex, e)}
-              size="small"
-              allowClear
-              style={{ width: '100%', fontSize: '11px', height: '24px' }}
-              onPressEnter={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-              onFocus={(e) => e.stopPropagation()}
-            />
-          </td>
-        ))}
-      </tr>
-    );
-  };
+  ].filter((col) => !hiddenColumns.includes(col.key));
 
   const getFilteredData = () => {
-    let filtered = getFilteredDataByColumnSearch();
-    
-    if (filteredInfo && Object.keys(filteredInfo).length > 0) {
-      filtered = filtered.filter(item => {
-        return Object.keys(filteredInfo).every(key => {
-          if (!filteredInfo[key] || filteredInfo[key].length === 0) return true;
-          
-          let itemValue = item[key];
-          if (key === 'inwardDate' && itemValue) {
-            itemValue = dayjs(itemValue).format('DD-MM-YYYY');
-          }
-          
-          return filteredInfo[key].includes(itemValue);
-        });
-      });
+    if (!filteredInfo || Object.keys(filteredInfo).length === 0) {
+      return data;
     }
-    
-    return filtered;
+
+    return data.filter((item) => {
+      return Object.keys(filteredInfo).every((key) => {
+        if (!filteredInfo[key] || filteredInfo[key].length === 0) return true;
+
+        let itemValue = item[key];
+        if (key === "inwardDate" && itemValue) {
+          itemValue = dayjs(itemValue).format("DD-MM-YYYY");
+        }
+
+        return filteredInfo[key].includes(itemValue);
+      });
+    });
   };
 
   const filteredData = getFilteredData();
@@ -315,35 +496,42 @@ const InwardSummaryTable = ({
       returnKgs: acc.returnKgs + (Number(item.returnKgs) || 0),
       balanceKgs: acc.balanceKgs + (Number(item.balanceKgs) || 0),
     }),
-    { inwardKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 }
+    { inwardKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 },
   );
 
   return (
     <>
       <style>{`
-        .compact-table-${tableId} {
-          border-collapse: collapse !important;
-        }
         .compact-table-${tableId} .ant-table-thead > tr > th {
           padding: 6px 8px !important;
           font-size: 12px !important;
           font-weight: 600 !important;
-          border-bottom: 0 !important;
-          line-height: 1.2 !important;
-          height: auto !important;
         }
         .compact-table-${tableId} .ant-table-tbody > tr > td {
           padding: 4px 8px !important;
           font-size: 12px !important;
-          border-top: 0 !important;
-          line-height: 1.2 !important;
         }
         .compact-table-${tableId} .ant-table-tbody > tr {
-          height: 32px !important;
+          height: auto !important;
         }
-        .compact-table-${tableId} .ant-table-tbody > tr:first-child > td {
-          border-top: 0 !important;
-          padding-top: 4px !important;
+        .compact-table-${tableId} .ant-table-container table {
+  border-collapse: collapse; /* ensures no gaps */
+}
+
+.compact-table-${tableId} .ant-table-thead > tr > th {
+  border-bottom: 1px solid #d9d9d9 !important;
+  padding: 6px 8px !important;
+}
+
+.compact-table-${tableId} .ant-table-tbody > tr > td {
+  padding: 4px 8px !important;
+}
+
+.compact-table-${tableId} .ant-table-tbody > tr:first-child > td {
+  border-top: none !important; /* let table collapse naturally */
+}
+        .compact-table-${tableId} .ant-table-container {
+          border: none !important;
         }
         .compact-table-${tableId} .ant-btn-link {
           padding: 0 4px !important;
@@ -351,32 +539,6 @@ const InwardSummaryTable = ({
         }
         .compact-table-${tableId} .ant-space-item {
           line-height: 1 !important;
-        }
-        .compact-table-${tableId} .ant-table {
-          margin: 0 !important;
-          border-spacing: 0 !important;
-        }
-        .compact-table-${tableId} .ant-table-container {
-          border-top: none !important;
-        }
-        .compact-table-${tableId} .ant-table-content {
-          margin: 0 !important;
-        }
-        .compact-table-${tableId} .ant-table-thead {
-          margin-bottom: 0 !important;
-        }
-        .compact-table-${tableId} .ant-table-tbody {
-          margin-top: 0 !important;
-        }
-        .compact-table-${tableId} .ant-table-thead th {
-          position: relative !important;
-        }
-        .compact-table-${tableId} .ant-table-thead th::after {
-          display: none !important;
-        }
-        .compact-table-${tableId} table {
-          border-collapse: collapse !important;
-          border-spacing: 0 !important;
         }
         .compact-table-${tableId} .ant-table-filter-trigger {
           display: inline-flex !important;
@@ -395,55 +557,66 @@ const InwardSummaryTable = ({
         .compact-table-${tableId} .ant-table-column-has-sorters {
           cursor: pointer !important;
         }
-        .search-row {
-          background-color: #f5f5f5 !important;
-        }
-        .search-row td {
-          padding: 4px !important;
-          border-bottom: 1px solid #d9d9d9 !important;
-          border-top: 1px solid #d9d9d9 !important;
-          line-height: 1 !important;
-        }
-        .search-row .ant-input {
-          height: 24px !important;
-          font-size: 11px !important;
-        }
-        .compact-table-${tableId} .ant-table-tbody > tr.search-row:hover > td {
-          background-color: #f5f5f5 !important;
-        }
       `}</style>
-      
+
+      {hiddenColumns.length > 0 && (
+        <div
+          style={{
+            marginBottom: 8,
+            padding: 8,
+            backgroundColor: "#f0f0f0",
+            borderRadius: 4,
+          }}
+        >
+          <span style={{ marginRight: 8, fontSize: "12px", color: "#666" }}>
+            Hidden columns:
+          </span>
+          {hiddenColumns.map((columnKey) => (
+            <span
+              key={columnKey}
+              onClick={() => handleColumnShow(columnKey)}
+              style={{
+                cursor: "pointer",
+                backgroundColor: "#1890ff",
+                color: "white",
+                padding: "2px 6px",
+                borderRadius: 3,
+                fontSize: "11px",
+                marginRight: 4,
+                display: "inline-block",
+              }}
+              title="Click to show column"
+            >
+              {columnKey} ×
+            </span>
+          ))}
+        </div>
+      )}
+
       <Table
         columns={columns}
-        dataSource={[
-          { id: 'search-row', isSearchRow: true },
-          ...filteredData
-        ]}
-        rowKey={(record) => record.isSearchRow ? 'search-row' : record.id}
+        dataSource={filteredData}
+        rowKey="id"
         loading={loading}
         size="small"
         className={`compact-table-${tableId}`}
         onChange={handleTableChange}
-        rowClassName={(record) => record.isSearchRow ? 'search-row' : ''}
-        components={{
-          body: {
-            row: (props) => {
-              if (props.className?.includes('search-row')) {
-                return <SearchRow />;
+        pagination={
+          showPagination
+            ? {
+                showSizeChanger: true,
+                showQuickJumper: true,
+                pageSizeOptions: ["10", "20", "50", "100"],
+                showTotal: (total, range) =>
+                  `${range[0]}-${range[1]} of ${total} items`,
               }
-              return <tr {...props} />;
-            },
-          },
-        }}
-        pagination={showPagination ? {
-          showSizeChanger: true,
-          showQuickJumper: true,
-          pageSizeOptions: ['10', '20', '50', '100'],
-          showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
-        } : false}
+            : false
+        }
         scroll={{ x: 1200 }}
         summary={() => (
-          <Table.Summary.Row style={{ backgroundColor: '#fafafa', fontWeight: 600 }}>
+          <Table.Summary.Row
+            style={{ backgroundColor: "#fafafa", fontWeight: 600 }}
+          >
             <Table.Summary.Cell index={0} colSpan={8}>
               <strong>Total</strong>
             </Table.Summary.Cell>
