@@ -45,6 +45,65 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
+.inward-summary-card {
+  background: white;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.inward-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.inward-summary-table thead th {
+  background: #000;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.inward-summary-table thead th:nth-child(even) {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.inward-summary-table tbody tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.inward-summary-table tbody tr:hover {
+  background: rgba(75, 140, 245, 0.12);
+}
+
+.inward-summary-cell {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.inward-summary-table .text-right {
+  text-align: right;
+}
+
+.inward-summary-action {
+  color: #1a73e8;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.inward-summary-action:hover {
+  text-decoration: underline;
+}
+
+.inward-summary-empty {
+  padding: 18px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.65);
+}
 .card-title {
   font-size: 15px;
   font-weight: 500;
@@ -79,7 +138,7 @@
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .dashboard-container {
     padding: 16px;
   }

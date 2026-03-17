@@ -1,29 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  DatePicker,
-  Button,
-  Typography,
-  Space,
-  message,
-} from 'antd';
+import React, { useState, useEffect } from "react";
+import { Card, DatePicker, Button, Typography, Space, message } from "antd";
 import {
   SearchOutlined,
   FileExcelOutlined,
   PrinterOutlined,
-} from '@ant-design/icons';
-import { useSelector } from 'react-redux';
-import dayjs from 'dayjs';
-import { getInwardSummary } from '../../api/inwardSummary';
-import InwardSummaryTable from '../../components/InwardSummaryTable';
-import InwardSummaryMD from './InwardSummaryMD';
+} from "@ant-design/icons";
+import { useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
+import dayjs from "dayjs";
+import { getInwardSummary } from "../../api/inwardSummary";
+import InwardSummaryTable from "../../components/InwardSummaryTable";
+import InwardSummaryMD from "./InwardSummaryMD";
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
 const InwardSummary = () => {
   const { IsMD } = useSelector((state) => state.auth);
-  
+  const location = useLocation();
+
   // If user is MD, show the accordion view
   if (IsMD === 1) {
     return <InwardSummaryMD />;
@@ -33,8 +28,8 @@ const InwardSummary = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [dateRange, setDateRange] = useState([
-    dayjs().startOf('month'),
-    dayjs().endOf('month')
+    dayjs().startOf("month"),
+    dayjs().endOf("month"),
   ]);
   const [pagination, setPagination] = useState({
     current: 1,
@@ -43,10 +38,19 @@ const InwardSummary = () => {
   });
 
   useEffect(() => {
+    if (location?.state?.fromDate && location?.state?.toDate) {
+      setDateRange([
+        dayjs(location.state.fromDate),
+        dayjs(location.state.toDate),
+      ]);
+    }
+  }, [location]);
+
+  useEffect(() => {
     if (dateRange && dateRange[0] && dateRange[1]) {
       loadData();
     }
-  }, []);
+  }, [dateRange, pagination.current, pagination.pageSize]);
 
   const loadData = async () => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
@@ -64,13 +68,13 @@ const InwardSummary = () => {
 
       const response = await getInwardSummary(params);
       setData(response.data || []);
-      setPagination(prev => ({
+      setPagination((prev) => ({
         ...prev,
         total: response.pagination?.total || 0,
       }));
     } catch (error) {
-      message.error('Failed to load inward summary data');
-      console.error('Error:', error);
+      message.error("Failed to load inward summary data");
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
@@ -78,23 +82,35 @@ const InwardSummary = () => {
 
   const handleSearch = () => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
-      message.warning('Please select date range');
+      message.warning("Please select date range");
       return;
     }
-    setPagination(prev => ({ ...prev, current: 1 }));
+    setPagination((prev) => ({ ...prev, current: 1 }));
     loadData();
   };
 
-
-
   const handleExport = () => {
     // Create CSV content
-    const headers = ['S.No', 'Inward No', 'Inward Date', 'PDC No', 'Order No', 'Fabric', 'Dia', 'Color', 'Inward Kgs', 'DC Kgs', 'Return Kgs', 'Balance Kgs', 'UOM'];
-    
+    const headers = [
+      "S.No",
+      "Inward No",
+      "Inward Date",
+      "PDC No",
+      "Order No",
+      "Fabric",
+      "Dia",
+      "Color",
+      "Inward Kgs",
+      "DC Kgs",
+      "Return Kgs",
+      "Balance Kgs",
+      "UOM",
+    ];
+
     const csvData = data.map((item, index) => [
       index + 1,
       item.inwardNo,
-      dayjs(item.inwardDate).format('DD-MM-YYYY'),
+      dayjs(item.inwardDate).format("DD-MM-YYYY"),
       item.pdcNo,
       item.orderNo,
       item.fabric,
@@ -115,48 +131,51 @@ const InwardSummary = () => {
         returnKgs: acc.returnKgs + (Number(item.returnKgs) || 0),
         balanceKgs: acc.balanceKgs + (Number(item.balanceKgs) || 0),
       }),
-      { inwardKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 }
+      { inwardKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 },
     );
 
     // Add totals row
     csvData.push([
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      'Total',
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Total",
       totals.inwardKgs.toFixed(3),
       totals.dcKgs.toFixed(3),
       totals.returnKgs.toFixed(3),
       totals.balanceKgs.toFixed(3),
-      '',
+      "",
     ]);
 
     // Convert to CSV string
     const csvContent = [
-      headers.join(','),
-      ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
+      headers.join(","),
+      ...csvData.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n");
 
     // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Inward_Summary_${dayjs().format('YYYY-MM-DD')}.csv`);
-    link.style.visibility = 'hidden';
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `Inward_Summary_${dayjs().format("YYYY-MM-DD")}.csv`,
+    );
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    message.success('CSV exported successfully');
+    message.success("CSV exported successfully");
   };
 
   const handlePrint = () => {
-    const printWindow = window.open('', '', 'height=600,width=800');
-    
+    const printWindow = window.open("", "", "height=600,width=800");
+
     // Calculate totals
     const totals = data.reduce(
       (acc, item) => ({
@@ -165,9 +184,9 @@ const InwardSummary = () => {
         returnKgs: acc.returnKgs + (Number(item.returnKgs) || 0),
         balanceKgs: acc.balanceKgs + (Number(item.balanceKgs) || 0),
       }),
-      { inwardKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 }
+      { inwardKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 },
     );
-    
+
     const printContent = `
       <!DOCTYPE html>
       <html>
@@ -254,7 +273,7 @@ const InwardSummary = () => {
         <body>
           <h2>Inward Summary Report</h2>
           <div class="date-range">
-            Period: ${dateRange[0].format('DD-MM-YYYY')} to ${dateRange[1].format('DD-MM-YYYY')}
+            Period: ${dateRange[0].format("DD-MM-YYYY")} to ${dateRange[1].format("DD-MM-YYYY")}
           </div>
           <table>
             <thead>
@@ -275,11 +294,13 @@ const InwardSummary = () => {
               </tr>
             </thead>
             <tbody>
-              ${data.map((item, index) => `
+              ${data
+                .map(
+                  (item, index) => `
                 <tr>
                   <td>${index + 1}</td>
                   <td>${item.inwardNo}</td>
-                  <td>${dayjs(item.inwardDate).format('DD-MM-YYYY')}</td>
+                  <td>${dayjs(item.inwardDate).format("DD-MM-YYYY")}</td>
                   <td>${item.pdcNo}</td>
                   <td>${item.orderNo}</td>
                   <td>${item.fabric}</td>
@@ -291,7 +312,9 @@ const InwardSummary = () => {
                   <td class="text-right">${Number(item.balanceKgs).toFixed(3)}</td>
                   <td>${item.uom}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join("")}
             </tbody>
             <tfoot>
               <tr>
@@ -307,11 +330,11 @@ const InwardSummary = () => {
         </body>
       </html>
     `;
-    
+
     printWindow.document.write(printContent);
     printWindow.document.close();
     printWindow.focus();
-    
+
     setTimeout(() => {
       printWindow.print();
       printWindow.close();
@@ -320,7 +343,15 @@ const InwardSummary = () => {
 
   return (
     <Card>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div
+        className="page-header"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
         <Title level={3} style={{ margin: 0 }}>
           Inward Summary Report
         </Title>

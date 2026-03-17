@@ -371,9 +371,6 @@ const DesignMaster = () => {
           {(record.isApproval === 0 || isAdminOrMD) && canDelete('design_master') && (
             <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
           )}
-          {(record.isApproval === 0 || isAdminOrMD) && (
-            <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => message.info('Print functionality')} />
-          )}
         </Space>
       ),
     },

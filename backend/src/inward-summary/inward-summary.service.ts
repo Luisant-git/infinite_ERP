@@ -48,10 +48,14 @@ export class InwardSummaryService {
   }
 
   async getInwardSummaryForMD(query: InwardSummaryQueryDto) {
-    const { fromDate, toDate } = query;
+    const { fromDate, toDate, tenantId, concernId } = query;
+
+    // Normalize numeric filter params (query params arrive as strings unless transformed)
+    const tenantIdNum = tenantId ? Number(tenantId) : undefined;
+    const concernIdNum = concernId ? Number(concernId) : undefined;
 
     // Get all concerns/tenants
-    const concerns = await this.prisma.concern.findMany({
+    let concerns = await this.prisma.concern.findMany({
       select: {
         id: true,
         partyName: true,
@@ -62,6 +66,33 @@ export class InwardSummaryService {
       },
       orderBy: { partyName: 'asc' },
     });
+
+    // If tenantId (branch) filter is provided, limit to that tenant's concern only
+    if (tenantIdNum) {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { id: tenantIdNum },
+        include: { concern: true },
+      });
+      if (tenant && tenant.concern) {
+        concerns = [
+          { id: tenant.concern.id, partyName: tenant.concern.partyName },
+        ];
+      } else {
+        // No matching tenant, return empty
+        return { concerns: [], grandTotals: this.calculateGrandTotals([]) };
+      }
+    }
+
+    // If concernId filter is provided, limit to that concern only
+    if (concernIdNum) {
+      const concern = concerns.find((c) => c.id === concernIdNum);
+      if (concern) {
+        concerns = [concern];
+      } else {
+        // No matching concern, return empty
+        return { concerns: [], grandTotals: this.calculateGrandTotals([]) };
+      }
+    }
 
     // Get data for each concern
     const concernsData = await Promise.all(
@@ -76,7 +107,7 @@ export class InwardSummaryService {
           data: data.data,
           totals: this.calculateTotals(data.data),
         };
-      })
+      }),
     );
 
     return {
@@ -85,8 +116,10 @@ export class InwardSummaryService {
     };
   }
 
-  private async getInwardSummaryByConcern(query: InwardSummaryQueryDto & { concernId: number }) {
-    const { fromDate, toDate, concernId, search } = query;
+  private async getInwardSummaryByConcern(
+    query: InwardSummaryQueryDto & { concernId: number },
+  ) {
+    const { fromDate, toDate, concernId, search, tenantId } = query;
 
     const where: any = {
       isClosed: 0,
@@ -101,6 +134,11 @@ export class InwardSummaryService {
         },
       ],
     };
+
+    // If tenantId is provided, restrict to that tenant (branch)
+    if (tenantId) {
+      where.tenantId = tenantId;
+    }
 
     // Date range filter
     if (fromDate && toDate) {
@@ -259,7 +297,7 @@ export class InwardSummaryService {
           }),
         );
 
-        return detailsWithCalculations.filter(item => item !== null);
+        return detailsWithCalculations.filter((item) => item !== null);
       }),
     );
 
@@ -272,27 +310,65 @@ export class InwardSummaryService {
   }
 
   private calculateTotals(data: any[]) {
-    return data.reduce(
-      (acc, item) => ({
-        inwardKgs: acc.inwardKgs + (Number(item.inwardKgs) || 0),
-        dcKgs: acc.dcKgs + (Number(item.dcKgs) || 0),
-        returnKgs: acc.returnKgs + (Number(item.returnKgs) || 0),
-        balanceKgs: acc.balanceKgs + (Number(item.balanceKgs) || 0),
-      }),
-      { inwardKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 }
-    );
+    // Get distinct inward numbers
+    const distinctInwardNos = [
+      ...new Set(data.map((item) => item.inwardNo)),
+    ].filter(Boolean);
+
+    return {
+      inwardKgs: data.reduce(
+        (acc, item) => acc + (Number(item.inwardKgs) || 0),
+        0,
+      ),
+      dcKgs: data.reduce((acc, item) => acc + (Number(item.dcKgs) || 0), 0),
+      returnKgs: data.reduce(
+        (acc, item) => acc + (Number(item.returnKgs) || 0),
+        0,
+      ),
+      balanceKgs: data.reduce(
+        (acc, item) => acc + (Number(item.balanceKgs) || 0),
+        0,
+      ),
+      totalRecords: data.length,
+      distinctInwardCount: distinctInwardNos.length,
+      distinctInwardNos: distinctInwardNos,
+    };
   }
 
   private calculateGrandTotals(concernsData: any[]) {
-    return concernsData.reduce(
-      (acc, concern) => ({
-        inwardKgs: acc.inwardKgs + concern.totals.inwardKgs,
-        dcKgs: acc.dcKgs + concern.totals.dcKgs,
-        returnKgs: acc.returnKgs + concern.totals.returnKgs,
-        balanceKgs: acc.balanceKgs + concern.totals.balanceKgs,
-      }),
-      { inwardKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 }
-    );
+    // Get all distinct inward numbers across all concerns
+    const allDistinctInwardNos = [
+      ...new Set(
+        concernsData.flatMap(
+          (concern) => concern.totals.distinctInwardNos || [],
+        ),
+      ),
+    ].filter(Boolean);
+
+    return {
+      inwardKgs: concernsData.reduce(
+        (acc, concern) => acc + concern.totals.inwardKgs,
+        0,
+      ),
+      dcKgs: concernsData.reduce(
+        (acc, concern) => acc + concern.totals.dcKgs,
+        0,
+      ),
+      returnKgs: concernsData.reduce(
+        (acc, concern) => acc + concern.totals.returnKgs,
+        0,
+      ),
+      balanceKgs: concernsData.reduce(
+        (acc, concern) => acc + concern.totals.balanceKgs,
+        0,
+      ),
+      totalRecords: concernsData.reduce(
+        (acc, concern) => acc + concern.totals.totalRecords,
+        0,
+      ),
+      distinctInwardCount: allDistinctInwardNos.length,
+      distinctInwardNos: allDistinctInwardNos,
+    };
   }
 
   async getInwardSummary(query: InwardSummaryQueryDto) {
@@ -456,7 +532,7 @@ export class InwardSummaryService {
           }),
         );
 
-        return detailsWithCalculations.filter(item => item !== null);
+        return detailsWithCalculations.filter((item) => item !== null);
       }),
     );
 

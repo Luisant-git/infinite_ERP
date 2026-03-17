@@ -19,6 +19,7 @@ import {
   ExclamationCircleOutlined,
   EyeOutlined,
   StopOutlined,
+  FileAddOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import {
@@ -217,15 +218,14 @@ const BillEinvoice = () => {
           </Tooltip>
           
           {(!record.einvoice || (record.einvoice.status === 0 && record.einvoice.isCanceled === 0)) && canAdd('einvoice') && (
-            <Tooltip title={record.einvoice?.status === 0 ? "Regenerate E-invoice" : "Generate E-invoice"}>
-              <Button
-                type="link"
-                size="small"
-                icon={<SyncOutlined />}
-                onClick={() => handleGenerateEinvoice(record.id)}
-                style={{ color: '#52c41a' }}
-              />
-            </Tooltip>
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => handleGenerateEinvoice(record.id)}
+              style={{ fontSize: '11px', height: '24px', padding: '0 8px' }}
+            >
+              Generate
+            </Button>
           )}
           
           {record.einvoice?.status === 1 && 

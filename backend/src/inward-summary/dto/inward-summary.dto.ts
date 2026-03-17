@@ -1,4 +1,10 @@
-import { IsOptional, IsString, IsDateString, IsInt, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsDateString,
+  IsInt,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class InwardSummaryQueryDto {
@@ -25,4 +31,14 @@ export class InwardSummaryQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  tenantId?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  concernId?: number;
 }

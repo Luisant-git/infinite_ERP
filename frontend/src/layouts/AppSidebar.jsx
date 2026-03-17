@@ -129,11 +129,6 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           key: ROUTES.BILL_EINVOICE,
           icon: <FileProtectOutlined />,
           label: 'Bill E-invoice'
-        },
-        {
-          key: ROUTES.EINVOICE_SETTINGS,
-          icon: <SettingOutlined />,
-          label: 'E-invoice Settings'
         }
         // {
         //   key: ROUTES.DC_ENTRY,
@@ -185,16 +180,9 @@ const AppSidebar = ({ collapsed, isMobile }) => {
       label: 'Reports',
       children: [
         {
-          key: 'overall-summary',
+          key: ROUTES.INWARD_SUMMARY,
           icon: <FileTextOutlined />,
-          label: 'Overall Summary',
-          children: [
-            {
-              key: ROUTES.INWARD_SUMMARY,
-              icon: <FileTextOutlined />,
-              label: 'Inward Summary'
-            }
-          ]
+          label: 'Inward Summary'
         }
       ]
     },
@@ -207,6 +195,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           key: ROUTES.SETTINGS,
           icon: <SettingOutlined />,
           label: 'General Settings'
+        },
+        {
+          key: ROUTES.EINVOICE_SETTINGS,
+          icon: <FileProtectOutlined />,
+          label: 'E-invoice Settings'
         }
       ]
     }
