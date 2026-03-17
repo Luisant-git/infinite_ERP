@@ -71,7 +71,8 @@ const BillEinvoice = () => {
     }
   };
 
-  const handleSearch = () => {
+  const handleSearch = (value) => {
+    setSearchText(value);
     setPagination(prev => ({ ...prev, current: 1 }));
     loadBills();
   };
@@ -297,24 +298,23 @@ const BillEinvoice = () => {
           height: 22px !important;
         }
       `}</style>
-      <div
-        style={{
+      <div className="page-header" style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: 16,
         }}
       >
-        <Title level={4} style={{ margin: 0 }}>
+        <Title level={3} style={{ margin: 0 }}>
           Bill E-invoice
         </Title>
-        <Space>
-          <Search
-            placeholder="Search bills..."
+        <Space style={{ width: 'auto' }}>
+          <Input 
+            placeholder="Search by bill no, party name" 
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            onSearch={handleSearch}
-            style={{ width: 300 }}
+            onChange={(e) => handleSearch(e.target.value)}
+            style={{ width: 280, height: 32 }}
+            size="small"
             allowClear
           />
           <Button
@@ -322,6 +322,7 @@ const BillEinvoice = () => {
             icon={<SyncOutlined />}
             onClick={loadBills}
             loading={loading}
+            size="small"
           >
             Refresh
           </Button>
