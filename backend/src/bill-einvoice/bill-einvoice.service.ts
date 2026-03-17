@@ -293,26 +293,52 @@ export class BillEinvoiceService {
     const concern = concernData;
     const party = bill.party;
 
-    // Determine tax type based on state
-    const concernState = concern?.state?.toLowerCase().trim();
-    const partyState = party?.state?.toLowerCase().trim();
-    const isSameState = concernState === partyState;
+    // Check if same state for GST calculation using state names
+    const concernStateName = concern?.state?.toLowerCase().trim() || '';
+    const partyStateName = party?.state?.toLowerCase().trim() || '';
+    const concernStateCode = this.getStateCodeFromStateName(concernStateName);
+    const partyStateCode = this.getStateCodeFromStateName(partyStateName);
+    const isSameState = concernStateCode === partyStateCode;
+    
+    console.log('States - Concern:', concernStateName, 'Code:', concernStateCode);
+    console.log('States - Party:', partyStateName, 'Code:', partyStateCode);
+    console.log('Same state:', isSameState);
 
-    // Calculate tax values
+    // Calculate tax values based on state logic
     let igstVal = 0;
     let cgstVal = 0;
     let sgstVal = 0;
+    let totalAssVal = 0;
 
-    bill.taxes.forEach((tax: any) => {
-      const taxAmount = Number(tax.taxAmount) || 0;
-      if (tax.taxMaster?.taxName?.toLowerCase().includes('igst')) {
-        igstVal += taxAmount;
-      } else if (tax.taxMaster?.taxName?.toLowerCase().includes('cgst')) {
-        cgstVal += taxAmount;
-      } else if (tax.taxMaster?.taxName?.toLowerCase().includes('sgst')) {
-        sgstVal += taxAmount;
+    // Calculate from item list
+    for (const detail of bill.details) {
+      const itemAmount = Number(detail.amount) || 0;
+      const gstRate = this.calculateGstRate(bill.taxes);
+      
+      totalAssVal += itemAmount;
+      
+      if (!isSameState) {
+        igstVal += (itemAmount * gstRate) / 100;
+      } else {
+        cgstVal += (itemAmount * gstRate) / 200;
+        sgstVal += (itemAmount * gstRate) / 200;
       }
-    });
+    }
+
+    // Add screen charges if exists
+    if (bill.noOfScreen > 0 && bill.screenRate > 0) {
+      const screenAmount = Number(bill.screenAmount) || 0;
+      const gstRate = this.calculateGstRate(bill.taxes);
+      
+      totalAssVal += screenAmount;
+      
+      if (!isSameState) {
+        igstVal += (screenAmount * gstRate) / 100;
+      } else {
+        cgstVal += (screenAmount * gstRate) / 200;
+        sgstVal += (screenAmount * gstRate) / 200;
+      }
+    }
 
     // Log bill details for debugging
     console.log('Bill details count:', bill.details?.length || 0);
@@ -362,7 +388,7 @@ export class BillEinvoiceService {
         PreTaxVal: 0.0,
         AssAmt: itemAmount,
         GstRt: gstRate,
-        IgstAmt: isSameState ? 0 : (itemAmount * gstRate) / 100,
+        IgstAmt: !isSameState ? (itemAmount * gstRate) / 100 : 0,
         CgstAmt: isSameState ? (itemAmount * gstRate) / 200 : 0,
         SgstAmt: isSameState ? (itemAmount * gstRate) / 200 : 0,
         CesRt: 0.0,
@@ -372,11 +398,7 @@ export class BillEinvoiceService {
         StateCesAmt: 0.0,
         StateCesNonAdvlAmt: 0.0,
         OthChrg: 0.0,
-        TotItemVal:
-          itemAmount +
-          (isSameState
-            ? (itemAmount * gstRate) / 100
-            : (itemAmount * gstRate) / 100),
+        TotItemVal: itemAmount + (itemAmount * gstRate) / 100,
         OrdLineRef: null,
         OrgCntry: null,
         PrdSlNo: null,
@@ -409,7 +431,7 @@ export class BillEinvoiceService {
         PreTaxVal: 0.0,
         AssAmt: screenAmount,
         GstRt: gstRate,
-        IgstAmt: isSameState ? 0 : (screenAmount * gstRate) / 100,
+        IgstAmt: !isSameState ? (screenAmount * gstRate) / 100 : 0,
         CgstAmt: isSameState ? (screenAmount * gstRate) / 200 : 0,
         SgstAmt: isSameState ? (screenAmount * gstRate) / 200 : 0,
         CesRt: 0.0,
@@ -419,11 +441,7 @@ export class BillEinvoiceService {
         StateCesAmt: 0.0,
         StateCesNonAdvlAmt: 0.0,
         OthChrg: 0.0,
-        TotItemVal:
-          screenAmount +
-          (isSameState
-            ? (screenAmount * gstRate) / 100
-            : (screenAmount * gstRate) / 100),
+        TotItemVal: screenAmount + (screenAmount * gstRate) / 100,
         OrdLineRef: null,
         OrgCntry: null,
         PrdSlNo: null,
@@ -462,7 +480,7 @@ export class BillEinvoiceService {
         Addr2: concern?.address2 || '',
         Loc: concern?.district || '',
         Pin: parseInt(concern?.pincode || '0'),
-        Stcd: concern?.gstNo?.substring(0, 2) || '',
+        Stcd: this.getStateCodeFromStateName(concern?.state || ''),
         Ph: null,
         Em: null,
       },
@@ -472,10 +490,10 @@ export class BillEinvoiceService {
         TrdNm: party?.partyName || '',
         Addr1: party?.address1 || '',
         Addr2: party?.address2 || '',
-        Pos: party?.gstNo?.substring(0, 2) || '',
+        Pos: this.getStateCodeFromStateName(party?.state || ''),
         Loc: party?.district || '',
         Pin: parseInt(party?.pincode || '0'),
-        Stcd: party?.gstNo?.substring(0, 2) || '',
+        Stcd: this.getStateCodeFromStateName(party?.state || ''),
         Ph: null,
         Em: null,
       },
@@ -485,11 +503,11 @@ export class BillEinvoiceService {
         Addr2: concern?.address2 || '',
         Loc: concern?.district || '',
         Pin: parseInt(concern?.pincode || '0'),
-        Stcd: concern?.gstNo?.substring(0, 2) || '',
+        Stcd: this.getStateCodeFromStateName(concern?.state || ''),
       },
       ShipDtls: null,
       ValDtls: {
-        AssVal: Number(bill.totalAmount) || 0,
+        AssVal: totalAssVal,
         IgstVal: igstVal,
         CgstVal: cgstVal,
         SgstVal: sgstVal,
@@ -508,6 +526,50 @@ export class BillEinvoiceService {
     };
 
     return payload;
+  }
+
+  private getStateCodeFromStateName(stateName: string): string {
+    const stateCodeMap: { [key: string]: string } = {
+      'andhra pradesh': '37',
+      'arunachal pradesh': '12',
+      'assam': '18',
+      'bihar': '10',
+      'chhattisgarh': '22',
+      'goa': '30',
+      'gujarat': '24',
+      'haryana': '06',
+      'himachal pradesh': '02',
+      'jharkhand': '20',
+      'karnataka': '29',
+      'kerala': '32',
+      'madhya pradesh': '23',
+      'maharashtra': '27',
+      'manipur': '14',
+      'meghalaya': '17',
+      'mizoram': '15',
+      'nagaland': '13',
+      'odisha': '21',
+      'punjab': '03',
+      'rajasthan': '08',
+      'sikkim': '11',
+      'tamil nadu': '33',
+      'telangana': '36',
+      'tripura': '16',
+      'uttar pradesh': '09',
+      'uttarakhand': '05',
+      'west bengal': '19',
+      'andaman and nicobar islands': '35',
+      'chandigarh': '04',
+      'dadra and nagar haveli and daman and diu': '26',
+      'delhi': '07',
+      'jammu and kashmir': '01',
+      'ladakh': '38',
+      'lakshadweep': '31',
+      'puducherry': '34'
+    };
+    
+    const normalizedState = stateName?.toLowerCase().trim() || '';
+    return stateCodeMap[normalizedState] || '';
   }
 
   private buildProductDescription(detail: any): string {
