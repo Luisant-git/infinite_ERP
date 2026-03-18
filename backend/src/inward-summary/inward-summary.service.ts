@@ -207,76 +207,102 @@ export class InwardSummaryService {
       },
     });
 
-    // Calculate DC and Return quantities for each inward detail
+    // Calculate DC, Process & Return quantities for each inward detail
     const summaryData = await Promise.all(
       inwards.map(async (inward) => {
+        const inwardReturnTotalAssigned = new Set<string>();
         const detailsWithCalculations = await Promise.all(
           inward.details.map(async (detail) => {
-            // Get DC quantity
-            const dcData = await this.prisma.fabricDcHeader.findMany({
+            // Get DC data for this inward
+            const dcDataForInward = await this.prisma.fabricDcHeader.findMany({
               where: {
-                details: {
-                  some: {
-                    inwardDetailId: detail.id,
-                  },
-                },
+                deleteFlg: 0,
+                inwardNo: { equals: inward.grnNo, mode: 'insensitive' },
               },
               include: {
                 details: {
                   where: {
-                    inwardDetailId: detail.id,
+                    deleteFlg: 0,
                   },
                 },
               },
             });
 
-            const dcKgs = dcData.reduce((sum, dc) => {
-              return (
-                sum +
-                dc.details.reduce(
-                  (detailSum, dcDetail) =>
-                    detailSum + Number(dcDetail.dcWeight || 0),
-                  0,
-                )
-              );
-            }, 0);
+            // Try to match DC details by inwardDetailId first
+            let processKgs = 0;
+            let dcKgs = 0;
 
-            // Get Return quantity
-            const returnData = await this.prisma.fabricReturnHeader.findMany({
-              where: {
-                details: {
-                  some: {
-                    inwardDetailId: detail.id,
-                  },
-                },
-              },
-              include: {
-                details: {
-                  where: {
-                    inwardDetailId: detail.id,
-                  },
-                },
-              },
+            dcDataForInward.forEach((dc) => {
+              dc.details.forEach((dcDetail) => {
+                // If inwardDetailId matches, add to this detail
+                if (dcDetail.inwardDetailId === detail.id) {
+                  processKgs += Number(dcDetail.processWeight || 0);
+                  dcKgs += Number(dcDetail.dcWeight || 0);
+                }
+                // If inwardDetailId is null, try to match by fabric/color/dia/gsm
+                else if (
+                  !dcDetail.inwardDetailId &&
+                  dcDetail.fabricId === detail.fabricId &&
+                  dcDetail.colorId === detail.colorId &&
+                  dcDetail.diaId === detail.diaId &&
+                  dcDetail.gsm === detail.gsm
+                ) {
+                  processKgs += Number(dcDetail.processWeight || 0);
+                  dcKgs += Number(dcDetail.dcWeight || 0);
+                }
+              });
             });
 
-            const returnKgs = returnData.reduce((sum, ret) => {
-              return (
-                sum +
-                ret.details.reduce(
-                  (detailSum, retDetail) =>
-                    detailSum + Number(retDetail.weight || 0),
-                  0,
-                )
+            // Load all return details for this inward
+            const returnDetailsForInward =
+              await this.prisma.fabricReturnDetail.findMany({
+                where: {
+                  deleteFlg: 0,
+                  header: {
+                    inwardNo: { equals: inward.grnNo, mode: 'insensitive' },
+                    deleteFlg: 0,
+                  },
+                },
+                include: { header: true },
+              });
+
+            // Match return details by inwardDetailId or fabric/color/dia/gsm
+            let returnKgs = 0;
+            returnDetailsForInward.forEach((rd) => {
+              // If inwardDetailId matches, add to this detail
+              if (rd.inwardDetailId === detail.id) {
+                returnKgs += Number(rd.weight || 0);
+              }
+              // If inwardDetailId is null, try to match by fabric/color/dia/gsm
+              else if (
+                !rd.inwardDetailId &&
+                rd.fabricId === detail.fabricId &&
+                rd.colorId === detail.colorId &&
+                rd.diaId === detail.diaId &&
+                rd.gsm === detail.gsm
+              ) {
+                returnKgs += Number(rd.weight || 0);
+              }
+            });
+
+            // If no match found and there's a total, assign it once
+            if (returnKgs === 0) {
+              const totalReturnKgsForInward = returnDetailsForInward.reduce(
+                (sum, rd) => sum + Number(rd.weight || 0),
+                0,
               );
-            }, 0);
+
+              if (totalReturnKgsForInward > 0) {
+                const inwardKey = inward.grnNo || '';
+                if (!inwardReturnTotalAssigned.has(inwardKey)) {
+                  inwardReturnTotalAssigned.add(inwardKey);
+                  returnKgs = totalReturnKgsForInward;
+                }
+              }
+            }
 
             const inwardKgs = Number(detail.weight || 0);
-            const balanceKgs = inwardKgs - dcKgs - returnKgs;
-
-            // Only include records with positive balance
-            if (balanceKgs <= 0) {
-              return null;
-            }
+            const balanceKgs = inwardKgs - processKgs - returnKgs;
 
             return {
               id: detail.id,
@@ -289,6 +315,7 @@ export class InwardSummaryService {
               dia: detail.dia?.masterName || '',
               color: detail.color?.masterName || '',
               inwardKgs: Number(inwardKgs.toFixed(3)),
+              processKgs: Number(processKgs.toFixed(3)),
               dcKgs: Number(dcKgs.toFixed(3)),
               returnKgs: Number(returnKgs.toFixed(3)),
               balanceKgs: Number(balanceKgs.toFixed(3)),
@@ -304,8 +331,18 @@ export class InwardSummaryService {
     // Flatten the array and filter out nulls
     const flattenedData = summaryData.flat();
 
+    // Group by inward detail ID to ensure distinct items
+    const distinctData = Object.values(
+      flattenedData.reduce((acc, item) => {
+        if (!acc[item.id]) {
+          acc[item.id] = item;
+        }
+        return acc;
+      }, {} as Record<number, any>),
+    );
+
     return {
-      data: flattenedData,
+      data: distinctData,
     };
   }
 
@@ -318,6 +355,10 @@ export class InwardSummaryService {
     return {
       inwardKgs: data.reduce(
         (acc, item) => acc + (Number(item.inwardKgs) || 0),
+        0,
+      ),
+      processKgs: data.reduce(
+        (acc, item) => acc + (Number(item.processKgs) || 0),
         0,
       ),
       dcKgs: data.reduce((acc, item) => acc + (Number(item.dcKgs) || 0), 0),
@@ -348,6 +389,10 @@ export class InwardSummaryService {
     return {
       inwardKgs: concernsData.reduce(
         (acc, concern) => acc + concern.totals.inwardKgs,
+        0,
+      ),
+      processKgs: concernsData.reduce(
+        (acc, concern) => acc + concern.totals.processKgs,
         0,
       ),
       dcKgs: concernsData.reduce(
@@ -445,73 +490,99 @@ export class InwardSummaryService {
     // Calculate DC and Return quantities for each inward detail
     const summaryData = await Promise.all(
       inwards.map(async (inward) => {
+        const inwardReturnTotalAssigned = new Set<string>();
         const detailsWithCalculations = await Promise.all(
           inward.details.map(async (detail) => {
-            // Get DC quantity
-            const dcData = await this.prisma.fabricDcHeader.findMany({
+            // Get DC data for this inward
+            const dcDataForInward = await this.prisma.fabricDcHeader.findMany({
               where: {
-                details: {
-                  some: {
-                    inwardDetailId: detail.id,
-                  },
-                },
+                deleteFlg: 0,
+                inwardNo: { equals: inward.grnNo, mode: 'insensitive' },
               },
               include: {
                 details: {
                   where: {
-                    inwardDetailId: detail.id,
+                    deleteFlg: 0,
                   },
                 },
               },
             });
 
-            const dcKgs = dcData.reduce((sum, dc) => {
-              return (
-                sum +
-                dc.details.reduce(
-                  (detailSum, dcDetail) =>
-                    detailSum + Number(dcDetail.dcWeight || 0),
-                  0,
-                )
-              );
-            }, 0);
+            // Try to match DC details by inwardDetailId first
+            let processKgs = 0;
+            let dcKgs = 0;
 
-            // Get Return quantity
-            const returnData = await this.prisma.fabricReturnHeader.findMany({
-              where: {
-                details: {
-                  some: {
-                    inwardDetailId: detail.id,
-                  },
-                },
-              },
-              include: {
-                details: {
-                  where: {
-                    inwardDetailId: detail.id,
-                  },
-                },
-              },
+            dcDataForInward.forEach((dc) => {
+              dc.details.forEach((dcDetail) => {
+                // If inwardDetailId matches, add to this detail
+                if (dcDetail.inwardDetailId === detail.id) {
+                  processKgs += Number(dcDetail.processWeight || 0);
+                  dcKgs += Number(dcDetail.dcWeight || 0);
+                }
+                // If inwardDetailId is null, try to match by fabric/color/dia/gsm
+                else if (
+                  !dcDetail.inwardDetailId &&
+                  dcDetail.fabricId === detail.fabricId &&
+                  dcDetail.colorId === detail.colorId &&
+                  dcDetail.diaId === detail.diaId &&
+                  dcDetail.gsm === detail.gsm
+                ) {
+                  processKgs += Number(dcDetail.processWeight || 0);
+                  dcKgs += Number(dcDetail.dcWeight || 0);
+                }
+              });
             });
 
-            const returnKgs = returnData.reduce((sum, ret) => {
-              return (
-                sum +
-                ret.details.reduce(
-                  (detailSum, retDetail) =>
-                    detailSum + Number(retDetail.weight || 0),
-                  0,
-                )
+            // Load all return details for this inward
+            const returnDetailsForInward =
+              await this.prisma.fabricReturnDetail.findMany({
+                where: {
+                  deleteFlg: 0,
+                  header: {
+                    inwardNo: { equals: inward.grnNo, mode: 'insensitive' },
+                    deleteFlg: 0,
+                  },
+                },
+                include: { header: true },
+              });
+
+            // Match return details by inwardDetailId or fabric/color/dia/gsm
+            let returnKgs = 0;
+            returnDetailsForInward.forEach((rd) => {
+              // If inwardDetailId matches, add to this detail
+              if (rd.inwardDetailId === detail.id) {
+                returnKgs += Number(rd.weight || 0);
+              }
+              // If inwardDetailId is null, try to match by fabric/color/dia/gsm
+              else if (
+                !rd.inwardDetailId &&
+                rd.fabricId === detail.fabricId &&
+                rd.colorId === detail.colorId &&
+                rd.diaId === detail.diaId &&
+                rd.gsm === detail.gsm
+              ) {
+                returnKgs += Number(rd.weight || 0);
+              }
+            });
+
+            // If no match found and there's a total, assign it once
+            if (returnKgs === 0) {
+              const totalReturnKgsForInward = returnDetailsForInward.reduce(
+                (sum, rd) => sum + Number(rd.weight || 0),
+                0,
               );
-            }, 0);
+
+              if (totalReturnKgsForInward > 0) {
+                const inwardKey = inward.grnNo || '';
+                if (!inwardReturnTotalAssigned.has(inwardKey)) {
+                  inwardReturnTotalAssigned.add(inwardKey);
+                  returnKgs = totalReturnKgsForInward;
+                }
+              }
+            }
 
             const inwardKgs = Number(detail.weight || 0);
-            const balanceKgs = inwardKgs - dcKgs - returnKgs;
-
-            // Only include records with positive balance
-            if (balanceKgs <= 0) {
-              return null;
-            }
+            const balanceKgs = inwardKgs - processKgs - returnKgs;
 
             return {
               id: detail.id,
@@ -524,6 +595,7 @@ export class InwardSummaryService {
               dia: detail.dia?.masterName || '',
               color: detail.color?.masterName || '',
               inwardKgs: Number(inwardKgs.toFixed(3)),
+              processKgs: Number(processKgs.toFixed(3)),
               dcKgs: Number(dcKgs.toFixed(3)),
               returnKgs: Number(returnKgs.toFixed(3)),
               balanceKgs: Number(balanceKgs.toFixed(3)),
@@ -539,8 +611,19 @@ export class InwardSummaryService {
     // Flatten the array and filter out nulls
     const flattenedData = summaryData.flat();
 
+    // Group by inward detail ID to ensure distinct items
+    const distinctData = Object.values(
+      flattenedData.reduce((acc, item) => {
+        if (!acc[item.id]) {
+          acc[item.id] = item;
+        }
+        return acc;
+      }, {} as Record<number, any>),
+    );
+
     return {
-      data: flattenedData,
+      data: distinctData,
+      totals: this.calculateTotals(distinctData),
       pagination: {
         total,
         page: pageNum,

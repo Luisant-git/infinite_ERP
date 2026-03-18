@@ -8,6 +8,7 @@ const InwardSummaryTable = ({
   loading = false,
   showPagination = true,
   tableId = "default",
+  totals: totalsProp,
 }) => {
   const [filteredInfo, setFilteredInfo] = useState({});
   const [searchText, setSearchText] = useState({});
@@ -67,7 +68,10 @@ const InwardSummaryTable = ({
               // Filter by search text directly
               if (currentSearch.trim()) {
                 const matchingValues = uniqueValues.filter((value) =>
-                  value.toString().toLowerCase().includes(currentSearch.toLowerCase())
+                  value
+                    .toString()
+                    .toLowerCase()
+                    .includes(currentSearch.toLowerCase()),
                 );
                 setSelectedKeys(matchingValues);
               }
@@ -123,7 +127,10 @@ const InwardSummaryTable = ({
                 // Filter by search text if entered
                 if (currentSearch.trim()) {
                   const matchingValues = uniqueValues.filter((value) =>
-                    value.toString().toLowerCase().includes(currentSearch.toLowerCase())
+                    value
+                      .toString()
+                      .toLowerCase()
+                      .includes(currentSearch.toLowerCase()),
                   );
                   setSelectedKeys(matchingValues);
                 }
@@ -149,7 +156,9 @@ const InwardSummaryTable = ({
         </div>
       ),
       filterIcon: (filtered) => (
-        <FilterOutlined style={{ color: filtered ? "#ffff00" : "#bfbfbf", fontSize: "12px" }} />
+        <FilterOutlined
+          style={{ color: filtered ? "#ffff00" : "#bfbfbf", fontSize: "12px" }}
+        />
       ),
       onFilter: (value, record) => {
         const recordValue =
@@ -373,6 +382,32 @@ const InwardSummaryTable = ({
             alignItems: "center",
           }}
         >
+          Process Kgs
+          <span
+            onClick={() => handleColumnHide("processKgs")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "processKgs",
+      key: "processKgs",
+      width: 100,
+      align: "right",
+      render: (qty) => Number(qty).toFixed(3),
+      ...getColumnSearchProps("processKgs", "Process Kgs"),
+    },
+    {
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           DC Kgs
           <span
             onClick={() => handleColumnHide("dcKgs")}
@@ -489,15 +524,18 @@ const InwardSummaryTable = ({
 
   const filteredData = getFilteredData();
 
-  const totals = filteredData.reduce(
-    (acc, item) => ({
-      inwardKgs: acc.inwardKgs + (Number(item.inwardKgs) || 0),
-      dcKgs: acc.dcKgs + (Number(item.dcKgs) || 0),
-      returnKgs: acc.returnKgs + (Number(item.returnKgs) || 0),
-      balanceKgs: acc.balanceKgs + (Number(item.balanceKgs) || 0),
-    }),
-    { inwardKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 },
-  );
+  const totals =
+    totalsProp ||
+    filteredData.reduce(
+      (acc, item) => ({
+        inwardKgs: acc.inwardKgs + (Number(item.inwardKgs) || 0),
+        processKgs: acc.processKgs + (Number(item.processKgs) || 0),
+        dcKgs: acc.dcKgs + (Number(item.dcKgs) || 0),
+        returnKgs: acc.returnKgs + (Number(item.returnKgs) || 0),
+        balanceKgs: acc.balanceKgs + (Number(item.balanceKgs) || 0),
+      }),
+      { inwardKgs: 0, processKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 },
+    );
 
   return (
     <>
@@ -624,15 +662,18 @@ const InwardSummaryTable = ({
               <strong>{totals.inwardKgs.toFixed(3)}</strong>
             </Table.Summary.Cell>
             <Table.Summary.Cell index={9} align="right">
-              <strong>{totals.dcKgs.toFixed(3)}</strong>
+              <strong>{totals.processKgs.toFixed(3)}</strong>
             </Table.Summary.Cell>
             <Table.Summary.Cell index={10} align="right">
-              <strong>{totals.returnKgs.toFixed(3)}</strong>
+              <strong>{totals.dcKgs.toFixed(3)}</strong>
             </Table.Summary.Cell>
             <Table.Summary.Cell index={11} align="right">
+              <strong>{totals.returnKgs.toFixed(3)}</strong>
+            </Table.Summary.Cell>
+            <Table.Summary.Cell index={12} align="right">
               <strong>{totals.balanceKgs.toFixed(3)}</strong>
             </Table.Summary.Cell>
-            <Table.Summary.Cell index={12} />
+            <Table.Summary.Cell index={13} />
           </Table.Summary.Row>
         )}
       />

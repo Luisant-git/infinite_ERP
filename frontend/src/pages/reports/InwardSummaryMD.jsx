@@ -102,6 +102,7 @@ const InwardSummaryMD = () => {
       "Dia",
       "Color",
       "Inward Kgs",
+      "Process Kgs",
       "DC Kgs",
       "Return Kgs",
       "Balance Kgs",
@@ -123,6 +124,7 @@ const InwardSummaryMD = () => {
           item.dia,
           item.color,
           Number(item.inwardKgs).toFixed(3),
+          Number(item.processKgs || 0).toFixed(3),
           Number(item.dcKgs).toFixed(3),
           Number(item.returnKgs).toFixed(3),
           Number(item.balanceKgs).toFixed(3),
@@ -142,6 +144,7 @@ const InwardSummaryMD = () => {
         "",
         "",
         concern.totals.inwardKgs.toFixed(3),
+        concern.totals.processKgs.toFixed(3),
         concern.totals.dcKgs.toFixed(3),
         concern.totals.returnKgs.toFixed(3),
         concern.totals.balanceKgs.toFixed(3),
@@ -164,6 +167,7 @@ const InwardSummaryMD = () => {
       "",
       "",
       data.grandTotals.inwardKgs?.toFixed(3) || "0.000",
+      data.grandTotals.processKgs?.toFixed(3) || "0.000",
       data.grandTotals.dcKgs?.toFixed(3) || "0.000",
       data.grandTotals.returnKgs?.toFixed(3) || "0.000",
       data.grandTotals.balanceKgs?.toFixed(3) || "0.000",
@@ -212,6 +216,7 @@ const InwardSummaryMD = () => {
                 <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Dia</th>
                 <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Color</th>
                 <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">Inward Kgs</th>
+                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">Process Kgs</th>
                 <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">DC Kgs</th>
                 <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">Return Kgs</th>
                 <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">Balance Kgs</th>
@@ -232,6 +237,7 @@ const InwardSummaryMD = () => {
                   <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.dia}</td>
                   <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.color}</td>
                   <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px; text-align: right;">${Number(item.inwardKgs).toFixed(3)}</td>
+                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px; text-align: right;">${Number(item.processKgs || 0).toFixed(3)}</td>
                   <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px; text-align: right;">${Number(item.dcKgs).toFixed(3)}</td>
                   <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px; text-align: right;">${Number(item.returnKgs).toFixed(3)}</td>
                   <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px; text-align: right;">${Number(item.balanceKgs).toFixed(3)}</td>
@@ -245,6 +251,7 @@ const InwardSummaryMD = () => {
               <tr style="background-color: #f0f0f0; font-weight: bold;">
                 <td colspan="8" style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Total</td>
                 <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.inwardKgs.toFixed(3)}</td>
+                <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.processKgs.toFixed(3)}</td>
                 <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.dcKgs.toFixed(3)}</td>
                 <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.returnKgs.toFixed(3)}</td>
                 <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.balanceKgs.toFixed(3)}</td>
@@ -288,7 +295,7 @@ const InwardSummaryMD = () => {
             }
             .totals-grid {
               display: grid;
-              grid-template-columns: repeat(4, 1fr);
+              grid-template-columns: repeat(5, 1fr);
               gap: 15px;
             }
             .total-item {
@@ -332,6 +339,10 @@ const InwardSummaryMD = () => {
               <div class="total-item">
                 <div class="total-label">Inward Kgs</div>
                 <div class="total-value">${data.grandTotals.inwardKgs?.toFixed(3) || "0.000"}</div>
+              </div>
+              <div class="total-item">
+                <div class="total-label">Process Kgs</div>
+                <div class="total-value">${data.grandTotals.processKgs?.toFixed(3) || "0.000"}</div>
               </div>
               <div class="total-item">
                 <div class="total-label">DC Kgs</div>

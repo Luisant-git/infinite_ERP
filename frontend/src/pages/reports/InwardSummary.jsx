@@ -27,6 +27,13 @@ const InwardSummary = () => {
   // Regular user view
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
+  const [totals, setTotals] = useState({
+    inwardKgs: 0,
+    processKgs: 0,
+    dcKgs: 0,
+    returnKgs: 0,
+    balanceKgs: 0,
+  });
   const [dateRange, setDateRange] = useState([
     dayjs().startOf("month"),
     dayjs().endOf("month"),
@@ -68,6 +75,15 @@ const InwardSummary = () => {
 
       const response = await getInwardSummary(params);
       setData(response.data || []);
+      setTotals(
+        response.totals || {
+          inwardKgs: 0,
+          processKgs: 0,
+          dcKgs: 0,
+          returnKgs: 0,
+          balanceKgs: 0,
+        },
+      );
       setPagination((prev) => ({
         ...prev,
         total: response.pagination?.total || 0,
@@ -101,6 +117,7 @@ const InwardSummary = () => {
       "Dia",
       "Color",
       "Inward Kgs",
+      "Process Kgs",
       "DC Kgs",
       "Return Kgs",
       "Balance Kgs",
@@ -117,22 +134,21 @@ const InwardSummary = () => {
       item.dia,
       item.color,
       Number(item.inwardKgs).toFixed(3),
+      Number(item.processKgs || 0).toFixed(3),
       Number(item.dcKgs).toFixed(3),
       Number(item.returnKgs).toFixed(3),
       Number(item.balanceKgs).toFixed(3),
       item.uom,
     ]);
 
-    // Calculate totals
-    const totals = data.reduce(
-      (acc, item) => ({
-        inwardKgs: acc.inwardKgs + (Number(item.inwardKgs) || 0),
-        dcKgs: acc.dcKgs + (Number(item.dcKgs) || 0),
-        returnKgs: acc.returnKgs + (Number(item.returnKgs) || 0),
-        balanceKgs: acc.balanceKgs + (Number(item.balanceKgs) || 0),
-      }),
-      { inwardKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 },
-    );
+    // Use totals from backend (if provided) so frontend doesn't re-sum and potentially double-count
+    const totalsToUse = totals || {
+      inwardKgs: 0,
+      processKgs: 0,
+      dcKgs: 0,
+      returnKgs: 0,
+      balanceKgs: 0,
+    };
 
     // Add totals row
     csvData.push([
@@ -144,12 +160,13 @@ const InwardSummary = () => {
       "",
       "",
       "Total",
-      totals.inwardKgs.toFixed(3),
-      totals.dcKgs.toFixed(3),
-      totals.returnKgs.toFixed(3),
-      totals.balanceKgs.toFixed(3),
+      totalsToUse.inwardKgs.toFixed(3),
+      totalsToUse.processKgs.toFixed(3),
+      totalsToUse.dcKgs.toFixed(3),
+      totalsToUse.returnKgs.toFixed(3),
+      totalsToUse.balanceKgs.toFixed(3),
       "",
-    ]);
+    ];
 
     // Convert to CSV string
     const csvContent = [
@@ -176,16 +193,14 @@ const InwardSummary = () => {
   const handlePrint = () => {
     const printWindow = window.open("", "", "height=600,width=800");
 
-    // Calculate totals
-    const totals = data.reduce(
-      (acc, item) => ({
-        inwardKgs: acc.inwardKgs + (Number(item.inwardKgs) || 0),
-        dcKgs: acc.dcKgs + (Number(item.dcKgs) || 0),
-        returnKgs: acc.returnKgs + (Number(item.returnKgs) || 0),
-        balanceKgs: acc.balanceKgs + (Number(item.balanceKgs) || 0),
-      }),
-      { inwardKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 },
-    );
+    // Use backend totals when available
+    const totalsToUse = totals || {
+      inwardKgs: 0,
+      processKgs: 0,
+      dcKgs: 0,
+      returnKgs: 0,
+      balanceKgs: 0,
+    };
 
     const printContent = `
       <!DOCTYPE html>
@@ -287,6 +302,7 @@ const InwardSummary = () => {
                 <th>Dia</th>
                 <th>Color</th>
                 <th class="text-right">Inward Kgs</th>
+                <th class="text-right">Process Kgs</th>
                 <th class="text-right">DC Kgs</th>
                 <th class="text-right">Return Kgs</th>
                 <th class="text-right">Balance Kgs</th>
@@ -307,6 +323,7 @@ const InwardSummary = () => {
                   <td>${item.dia}</td>
                   <td>${item.color}</td>
                   <td class="text-right">${Number(item.inwardKgs).toFixed(3)}</td>
+                  <td class="text-right">${Number(item.processKgs || 0).toFixed(3)}</td>
                   <td class="text-right">${Number(item.dcKgs).toFixed(3)}</td>
                   <td class="text-right">${Number(item.returnKgs).toFixed(3)}</td>
                   <td class="text-right">${Number(item.balanceKgs).toFixed(3)}</td>
@@ -320,6 +337,7 @@ const InwardSummary = () => {
               <tr>
                 <td colspan="8">Total</td>
                 <td class="text-right">${totals.inwardKgs.toFixed(3)}</td>
+                <td class="text-right">${totals.processKgs.toFixed(3)}</td>
                 <td class="text-right">${totals.dcKgs.toFixed(3)}</td>
                 <td class="text-right">${totals.returnKgs.toFixed(3)}</td>
                 <td class="text-right">${totals.balanceKgs.toFixed(3)}</td>
@@ -391,6 +409,7 @@ const InwardSummary = () => {
       <InwardSummaryTable
         data={data}
         loading={loading}
+        totals={totals}
         showPagination={true}
         tableId="main"
       />
