@@ -166,7 +166,7 @@ const InwardSummary = () => {
       totalsToUse.returnKgs.toFixed(3),
       totalsToUse.balanceKgs.toFixed(3),
       "",
-    ];
+    ]);
 
     // Convert to CSV string
     const csvContent = [
