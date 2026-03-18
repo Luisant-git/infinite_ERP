@@ -25,7 +25,9 @@ async function truncateFabricTransactions() {
         fabric_dc_headers,
         fabric_inward_processes,
         fabric_inward_details,
-        fabric_inward_headers
+        fabric_inward_headers,
+        rate_quotation_details,
+        rate_quotation_headers
       RESTART IDENTITY CASCADE;
     `);
     console.log('✓ All tables truncated successfully');
@@ -45,6 +47,8 @@ async function truncateFabricTransactions() {
       fabric_bills: await prisma.fabricBillHeader.count(),
       fabric_bill_details: await prisma.fabricBillDetail.count(),
       fabric_bill_taxes: await prisma.fabricBillTax.count(),
+      rate_quotations: await prisma.rateQuotationHeader.count(),
+      rate_quotation_details: await prisma.rateQuotationDetail.count(),
     };
 
     console.log('\nRecord counts after truncation:');
