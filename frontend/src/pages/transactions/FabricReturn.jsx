@@ -447,6 +447,7 @@ const FabricReturn = () => {
           recWeight: inwardQty || "",
           vehicleNo: values.vehicleNo || "",
           remarks: values.remarks || "",
+          receivedName: values.receivedName || "",
           items: details.map((d) => ({
             fabric: fabrics.find((f) => f.id === d.fabricId)?.masterName || "",
             color: colors.find((c) => c.id === d.colorId)?.masterName || "",
@@ -520,6 +521,7 @@ const FabricReturn = () => {
       recWeight: Number(inwardTotalQty || 0).toFixed(3),
       vehicleNo: record.vehicleNo || "",
       remarks: record.remarks || "",
+      receivedName: record.receivedName || "",
       items: (record.details || []).map((d) => ({
         fabric: fabrics.find((f) => f.id === d.fabricId)?.masterName || "",
         color: colors.find((c) => c.id === d.colorId)?.masterName || "",
@@ -594,6 +596,7 @@ const FabricReturn = () => {
       inwardNo: values.grnNo || "",
       recWeight: inwardQty || "",
       remarks: values.remarks || "",
+      receivedName: values.receivedName || "",
       items: details.map((d) => ({
         fabric: fabrics.find((f) => f.id === d.fabricId)?.masterName || "",
         color: colors.find((c) => c.id === d.colorId)?.masterName || "",

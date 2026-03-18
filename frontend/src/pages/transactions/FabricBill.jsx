@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   Form,
@@ -26,6 +26,7 @@ import {
   EyeOutlined,
   PrinterOutlined,
 } from "@ant-design/icons";
+import { useReactToPrint } from 'react-to-print';
 import dayjs from "dayjs";
 import {
   getNextBillNo,
@@ -42,8 +43,10 @@ import { getPartyProcessRates } from "../../api/partyProcessRate";
 import { getPartyScreenRateByParty } from "../../api/partyScreenRate";
 import { getProcesses } from "../../api/process";
 import { getSettings } from "../../api/settings";
+import { getEinvoiceStatus } from "../../api/billEinvoice";
 import { useMenuPermissions } from "../../hooks/useMenuPermissions";
 import { useSelector } from 'react-redux';
+import FabricBillPrint from '../../components/prints/FabricBillPrint';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -79,6 +82,11 @@ const FabricBill = () => {
   const [processes, setProcesses] = useState([]);
   const [concernData, setConcernData] = useState(null);
   const [settings, setSettings] = useState(null);
+  const printRef = useRef();
+  const [printData, setPrintData] = useState(null);
+  const [printPartyData, setPrintPartyData] = useState(null);
+  const [printInvoiceToData, setPrintInvoiceToData] = useState(null);
+  const [printEinvoiceData, setPrintEinvoiceData] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -759,6 +767,44 @@ const FabricBill = () => {
     }, 100);
   };
 
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+  });
+
+  const handlePrintBill = async (record) => {
+    try {
+      // Get party data
+      const party = parties.find(p => p.id === record.partyId);
+      const invoiceToParty = parties.find(p => p.id === record.invoiceTo);
+      
+      // Get E-invoice data if bill is approved
+      let einvoiceData = null;
+      if (record.isApproval === 1) {
+        try {
+          einvoiceData = await getEinvoiceStatus(record.id);
+        } catch (error) {
+          console.log('No E-invoice data found');
+        }
+      }
+      
+      // Set print data
+      setPrintData(record);
+      setPrintPartyData(party);
+      setPrintInvoiceToData(invoiceToParty || party);
+      setPrintEinvoiceData(einvoiceData);
+      
+      // Trigger print after data is set
+      setTimeout(() => {
+        if (printRef.current) {
+          handlePrint();
+        }
+      }, 100);
+      
+    } catch (error) {
+      message.error('Failed to prepare print data');
+      console.error('Print error:', error);
+    }
+  };
   const autoLoadTaxes = (partyId) => {
     const totalAmount = form.getFieldValue("totalAmount") || 0;
     const screenAmount = form.getFieldValue("screenAmount") || 0;
@@ -1114,7 +1160,7 @@ const FabricBill = () => {
             type="link"
             size="small"
             icon={<PrinterOutlined />}
-            onClick={() => message.info('Print functionality')}
+            onClick={() => handlePrintBill(r)}
             style={{ color: r.isApproval === 1 ? "#722ed1" : "#d9d9d9" }}
             disabled={r.isApproval !== 1}
           />
@@ -1674,6 +1720,29 @@ const FabricBill = () => {
           not "Re-Process(Free)" type are shown.
         </div>
       </Modal>
+      
+      {/* Hidden Print Component */}
+      <div style={{ 
+        position: 'absolute', 
+        left: '-9999px', 
+        top: '-9999px', 
+        visibility: 'hidden',
+        opacity: 0,
+        height: 0,
+        overflow: 'hidden'
+      }}>
+        {printData && (
+          <FabricBillPrint
+            ref={printRef}
+            data={printData}
+            concernData={concernData}
+            partyData={printPartyData}
+            invoiceToData={printInvoiceToData}
+            einvoiceData={printEinvoiceData}
+            gstMasters={gstMasters}
+          />
+        )}
+      </div>
     </Card>
   );
 };

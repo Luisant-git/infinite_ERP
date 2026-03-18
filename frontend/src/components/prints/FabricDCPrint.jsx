@@ -181,8 +181,7 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
         <table className="details-table" style={{ borderTop: 'none' }}>
           <tbody>
             <tr className="total-row">
-              <td style={{ width: '30%', border: 'none', borderLeft: '1px solid #000' }}>&nbsp;</td>
-              <td style={{ width: '15%', border: 'none' }}>&nbsp;</td>
+              <td colSpan={2} style={{ width: '45%', border: 'none', borderLeft: '1px solid #000', textAlign: 'left', paddingLeft: '4px', fontWeight: 'normal', fontSize: '9px' }}>Remarks : {data.remarks || ''}</td>
               <td style={{ width: '10%', textAlign: 'center', borderLeft: '1px solid #000', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>Total</td>
               <td style={{ width: '10%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.rolls) || 0), 0)}</td>
               <td style={{ width: '12%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000', borderRight: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0)}</td>
@@ -201,7 +200,10 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
 
         <div className="footer-section">
           <div className="footer-col">
-            <div><strong>Received By</strong></div>
+            <div>
+              {data.receivedName && <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>{data.receivedName}</div>}
+              <strong>Received By</strong>
+            </div>
           </div>
           <div className="footer-col">
             <div><div style={{ fontWeight: 'bold', marginBottom: '2px' }}>{data.vehicleNo || ''}</div><strong>Vehicle No</strong></div>

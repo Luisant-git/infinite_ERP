@@ -145,6 +145,8 @@ model Concern {
   bank          String?  @db.VarChar(30)
   ifscCode      String?  @db.VarChar(12)
   branch        String?  @db.VarChar(30)
+  logo          String?  @db.VarChar(255)
+  msmeNo        String?  @db.VarChar(50)
   active        Int      @default(1)
   isDeleted     Boolean  @default(false)
   deletedAt     DateTime?

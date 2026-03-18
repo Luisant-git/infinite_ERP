@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Table, Typography, Button, Checkbox, message, Space, Modal } from 'antd';
 import { EyeOutlined, PrinterOutlined } from '@ant-design/icons';
+import { useReactToPrint } from 'react-to-print';
 import dayjs from 'dayjs';
 import { getFabricBills, updateFabricBill } from '../../api/fabricBill';
 import { getParties } from '../../api/party';
 import { getConcerns } from '../../api/concern';
+import { getGstMasters } from '../../api/gstMaster';
+import { getEinvoiceStatus } from '../../api/billEinvoice';
 import { useSelector } from 'react-redux';
+import FabricBillPrint from '../../components/prints/FabricBillPrint';
 
 const { Title } = Typography;
 
@@ -14,13 +18,22 @@ const BillApproval = () => {
   const [bills, setBills] = useState([]);
   const [parties, setParties] = useState([]);
   const [concerns, setConcerns] = useState([]);
+  const [gstMasters, setGstMasters] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const { IsMD } = useSelector(state => state.auth);
+  const printRef = useRef();
+  const [printData, setPrintData] = useState(null);
+  const [printPartyData, setPrintPartyData] = useState(null);
+  const [printInvoiceToData, setPrintInvoiceToData] = useState(null);
+  const [printEinvoiceData, setPrintEinvoiceData] = useState(null);
+  const [concernData, setConcernData] = useState(null);
 
   useEffect(() => {
     loadBills();
     loadParties();
     loadConcerns();
+    loadGstMasters();
+    loadConcernData();
   }, []);
 
   const loadParties = async () => {
@@ -38,6 +51,28 @@ const BillApproval = () => {
       setConcerns(response.data || []);
     } catch (error) {
       console.error('Error loading concerns:', error);
+    }
+  };
+
+  const loadGstMasters = async () => {
+    try {
+      const response = await getGstMasters('', 1, 100);
+      setGstMasters(response.data?.filter((g) => g.isActive === 1) || []);
+    } catch (error) {
+      console.error('Error loading GST masters:', error);
+    }
+  };
+
+  const loadConcernData = async () => {
+    try {
+      const concernId = localStorage.getItem('selectedCompanyId');
+      if (concernId) {
+        const response = await getConcerns('', 1, 1000);
+        const concern = response.data?.find(c => c.id === parseInt(concernId));
+        setConcernData(concern || null);
+      }
+    } catch (error) {
+      console.error('Error loading concern data:', error);
     }
   };
 
@@ -114,8 +149,43 @@ const BillApproval = () => {
     });
   };
 
-  const handlePrint = (record) => {
-    message.info('Print functionality to be implemented');
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+  });
+
+  const handlePrintBill = async (record) => {
+    try {
+      // Get party data
+      const party = parties.find(p => p.id === record.partyId);
+      const invoiceToParty = parties.find(p => p.id === record.invoiceTo);
+      
+      // Get E-invoice data if bill is approved
+      let einvoiceData = null;
+      if (record.isApproval === 1) {
+        try {
+          einvoiceData = await getEinvoiceStatus(record.id);
+        } catch (error) {
+          console.log('No E-invoice data found');
+        }
+      }
+      
+      // Set print data
+      setPrintData(record);
+      setPrintPartyData(party);
+      setPrintInvoiceToData(invoiceToParty || party);
+      setPrintEinvoiceData(einvoiceData);
+      
+      // Trigger print after data is set
+      setTimeout(() => {
+        if (printRef.current) {
+          handlePrint();
+        }
+      }, 100);
+      
+    } catch (error) {
+      message.error('Failed to prepare print data');
+      console.error('Print error:', error);
+    }
   };
 
   const getConcernName = (bill) => {
@@ -245,7 +315,8 @@ const BillApproval = () => {
             type="link"
             size="small"
             icon={<PrinterOutlined />}
-            onClick={() => handlePrint(record)}
+            onClick={() => handlePrintBill(record)}
+            style={{ color: "#722ed1" }}
           />
           <Button 
             type="primary" 
@@ -298,6 +369,29 @@ const BillApproval = () => {
           showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
         }}
       />
+      
+      {/* Hidden Print Component */}
+      <div style={{ 
+        position: 'absolute', 
+        left: '-9999px', 
+        top: '-9999px', 
+        visibility: 'hidden',
+        opacity: 0,
+        height: 0,
+        overflow: 'hidden'
+      }}>
+        {printData && (
+          <FabricBillPrint
+            ref={printRef}
+            data={printData}
+            concernData={concernData}
+            partyData={printPartyData}
+            invoiceToData={printInvoiceToData}
+            einvoiceData={printEinvoiceData}
+            gstMasters={gstMasters}
+          />
+        )}
+      </div>
     </Card>
   );
 };

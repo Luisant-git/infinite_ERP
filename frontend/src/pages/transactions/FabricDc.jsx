@@ -310,6 +310,7 @@ const FabricDc = () => {
       process: processText,
       vehicleNo: record.vehicleNo || "",
       remarks: record.remarks || "-",
+      receivedName: record.receivedName || "",
       concernName: concernData?.partyName,
       concernAddr1: concernData?.address1,
       concernAddr2: concernData?.address2,
@@ -609,6 +610,7 @@ const FabricDc = () => {
           process: selectedProcesses.map((p) => p.processName).join(", "),
           vehicleNo: values.vehicleNo || "",
           remarks: values.remarks || "-",
+          receivedName: values.receivedName || "",
           concernName: concernData?.partyName,
           concernAddr1: concernData?.address1,
           concernAddr2: concernData?.address2,
@@ -642,6 +644,7 @@ const FabricDc = () => {
 
   const handlePrintRecord = (record) => {
     const party = allParties.find((p) => p.id === record.deliveryTo);
+    const dyeParty = allParties.find((p) => p.id === record.dyeParty);
 
     // Extract processes based on enableItemWiseProcess setting
     let processText = "";
@@ -678,8 +681,7 @@ const FabricDc = () => {
       mobileNo: party?.mobileNo || "",
       mailId: party?.email || "",
       gstNo: party?.gstNo || "",
-      dyeParty:
-        allParties.find((p) => p.id === record.dyeParty)?.partyName || "-",
+      dyeParty: dyeParty?.partyName || "-",
       dyeDcNo: record.dyeingDcNo || "",
       pdcNo: record.pdcNo || "",
       orderNo: record.orderNo || "",
@@ -700,6 +702,7 @@ const FabricDc = () => {
       process: processText,
       vehicleNo: record.vehicleNo || "",
       remarks: record.remarks || "-",
+      receivedName: record.receivedName || "",
       concernName: concernData?.partyName,
       concernAddr1: concernData?.address1,
       concernAddr2: concernData?.address2,

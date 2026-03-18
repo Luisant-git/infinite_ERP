@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, Checkbox, Button, Row, Col, Typography, Select, Space, Table, Modal, InputNumber, Tabs, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined, EyeOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Checkbox, Button, Row, Col, Typography, Select, Space, Table, Modal, InputNumber, Tabs, message, Upload } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined, EyeOutlined, UploadOutlined } from '@ant-design/icons';
 import { getConcerns, createConcern, updateConcern, deleteConcern } from '../../api/concern';
+import { uploadImage } from '../../api/upload';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 
 const { Title } = Typography;
@@ -18,6 +19,8 @@ const ConcernMaster = () => {
   const [concerns, setConcerns] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const { canAdd, canEdit, canDelete } = useMenuPermissions();
+  const [logoUrl, setLogoUrl] = useState('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
     loadConcerns();
@@ -126,6 +129,13 @@ const ConcernMaster = () => {
               <p><strong>Bank:</strong> {record.bank || 'N/A'}</p>
               <p><strong>IFSC Code:</strong> {record.ifscCode || 'N/A'}</p>
               <p><strong>Branch:</strong> {record.branch || 'N/A'}</p>
+              <p><strong>MSME No:</strong> {record.msmeNo || 'N/A'}</p>
+              {record.logo && (
+                <p>
+                  <strong>Logo:</strong><br/>
+                  <img src={record.logo} alt="Logo" style={{ maxWidth: '150px', maxHeight: '80px', objectFit: 'contain', marginTop: '8px' }} />
+                </p>
+              )}
               <p><strong>Status:</strong> {record.active === 1 ? 'Active' : 'Inactive'}</p>
             </Col>
           </Row>
@@ -153,6 +163,7 @@ const ConcernMaster = () => {
 
   const handleEdit = (record) => {
     setEditingConcern(record);
+    setLogoUrl(record.logo || '');
     form.setFieldsValue(record);
     setIsModalVisible(true);
   };
@@ -178,6 +189,26 @@ const ConcernMaster = () => {
     setIsModalVisible(false);
     form.resetFields();
     setEditingConcern(null);
+    setLogoUrl('');
+  };
+
+  const handleLogoUpload = async (file) => {
+    try {
+      setUploadingLogo(true);
+      const data = await uploadImage(file);
+      const uploadedUrl = data.url || data.filePath || data.imageUrl;
+      
+      setLogoUrl(uploadedUrl);
+      form.setFieldsValue({ logo: uploadedUrl });
+      message.success('Logo uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      message.error('Failed to upload logo');
+    } finally {
+      setUploadingLogo(false);
+    }
+
+    return false; // Prevent default upload behavior
   };
 
   const districts = [
@@ -520,6 +551,48 @@ const ConcernMaster = () => {
                     name="creditDays"
                   >
                     <InputNumber placeholder="Enter credit days" min={0} style={{ width: '100%' }} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="MSME No"
+                    name="msmeNo"
+                  >
+                    <Input placeholder="Enter MSME number" maxLength={50} autoComplete="off" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Logo"
+                    name="logo"
+                  >
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      <Upload
+                        beforeUpload={handleLogoUpload}
+                        showUploadList={false}
+                        accept="image/*"
+                      >
+                        <Button icon={<UploadOutlined />} loading={uploadingLogo}>
+                          {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
+                        </Button>
+                      </Upload>
+                      {logoUrl && (
+                        <div style={{ marginTop: 8 }}>
+                          <img 
+                            src={logoUrl} 
+                            alt="Logo Preview" 
+                            style={{ 
+                              maxWidth: '200px', 
+                              maxHeight: '100px', 
+                              objectFit: 'contain',
+                              border: '1px solid #d9d9d9',
+                              borderRadius: '4px',
+                              padding: '4px'
+                            }} 
+                          />
+                        </div>
+                      )}
+                    </Space>
                   </Form.Item>
                 </Col>
                 <Col span={12}>
