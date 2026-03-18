@@ -12,12 +12,14 @@ import {
   Row,
   Col,
   Statistic,
+  Switch,
 } from "antd";
 import {
   SearchOutlined,
   FileExcelOutlined,
   PrinterOutlined,
   CaretRightOutlined,
+  FilterOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { getInwardSummaryForMD } from "../../api/inwardSummary";
@@ -31,12 +33,14 @@ const InwardSummaryMD = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState({ concerns: [], grandTotals: {} });
+  const [allData, setAllData] = useState({ concerns: [], grandTotals: {} }); // Store all data
   const [dateRange, setDateRange] = useState([
     dayjs().startOf("month"),
     dayjs().endOf("month"),
   ]);
   const [activeKeys, setActiveKeys] = useState([]);
   const [selectedConcernId, setSelectedConcernId] = useState(null);
+  const [exceptBalanceZero, setExceptBalanceZero] = useState(true); // Default enabled
 
   useEffect(() => {
     // If navigated here with a selected concern, apply it
@@ -65,7 +69,50 @@ const InwardSummaryMD = () => {
       };
 
       const response = await getInwardSummaryForMD(params);
-      setData(response);
+      setAllData(response);
+      
+      // Filter data based on exceptBalanceZero toggle
+      const filteredResponse = {
+        concerns: response.concerns.map(concern => {
+          const filteredData = exceptBalanceZero
+            ? concern.data.filter(item => Number(item.balanceKgs) !== 0)
+            : concern.data;
+          
+          // Recalculate totals for this concern
+          const totals = filteredData.reduce(
+            (acc, item) => ({
+              inwardKgs: acc.inwardKgs + Number(item.inwardKgs || 0),
+              processKgs: acc.processKgs + Number(item.processKgs || 0),
+              dcKgs: acc.dcKgs + Number(item.dcKgs || 0),
+              returnKgs: acc.returnKgs + Number(item.returnKgs || 0),
+              balanceKgs: acc.balanceKgs + Number(item.balanceKgs || 0),
+              distinctInwardCount: new Set(filteredData.map(d => d.inwardNo)).size,
+            }),
+            { inwardKgs: 0, processKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0, distinctInwardCount: 0 }
+          );
+          
+          return {
+            ...concern,
+            data: filteredData,
+            totals,
+          };
+        }),
+        grandTotals: {},
+      };
+      
+      // Recalculate grand totals
+      filteredResponse.grandTotals = filteredResponse.concerns.reduce(
+        (acc, concern) => ({
+          inwardKgs: acc.inwardKgs + concern.totals.inwardKgs,
+          processKgs: acc.processKgs + concern.totals.processKgs,
+          dcKgs: acc.dcKgs + concern.totals.dcKgs,
+          returnKgs: acc.returnKgs + concern.totals.returnKgs,
+          balanceKgs: acc.balanceKgs + concern.totals.balanceKgs,
+        }),
+        { inwardKgs: 0, processKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 }
+      );
+      
+      setData(filteredResponse);
 
       // Auto-expand relevant concern (either selected or first available)
       if (selectedConcernId) {
@@ -87,6 +134,53 @@ const InwardSummaryMD = () => {
       return;
     }
     loadData();
+  };
+
+  const handleToggleBalanceZero = (checked) => {
+    setExceptBalanceZero(checked);
+    
+    // Filter data based on toggle
+    const filteredResponse = {
+      concerns: allData.concerns.map(concern => {
+        const filteredData = checked
+          ? concern.data.filter(item => Number(item.balanceKgs) !== 0)
+          : concern.data;
+        
+        // Recalculate totals for this concern
+        const totals = filteredData.reduce(
+          (acc, item) => ({
+            inwardKgs: acc.inwardKgs + Number(item.inwardKgs || 0),
+            processKgs: acc.processKgs + Number(item.processKgs || 0),
+            dcKgs: acc.dcKgs + Number(item.dcKgs || 0),
+            returnKgs: acc.returnKgs + Number(item.returnKgs || 0),
+            balanceKgs: acc.balanceKgs + Number(item.balanceKgs || 0),
+            distinctInwardCount: new Set(filteredData.map(d => d.inwardNo)).size,
+          }),
+          { inwardKgs: 0, processKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0, distinctInwardCount: 0 }
+        );
+        
+        return {
+          ...concern,
+          data: filteredData,
+          totals,
+        };
+      }),
+      grandTotals: {},
+    };
+    
+    // Recalculate grand totals
+    filteredResponse.grandTotals = filteredResponse.concerns.reduce(
+      (acc, concern) => ({
+        inwardKgs: acc.inwardKgs + concern.totals.inwardKgs,
+        processKgs: acc.processKgs + concern.totals.processKgs,
+        dcKgs: acc.dcKgs + concern.totals.dcKgs,
+        returnKgs: acc.returnKgs + concern.totals.returnKgs,
+        balanceKgs: acc.balanceKgs + concern.totals.balanceKgs,
+      }),
+      { inwardKgs: 0, processKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 }
+    );
+    
+    setData(filteredResponse);
   };
 
   const handleExportAll = () => {
@@ -407,6 +501,15 @@ const InwardSummaryMD = () => {
           >
             Search
           </Button>
+          <Space>
+            <span style={{ fontSize: "14px", fontWeight: 500 }}>Except Balance Zero:</span>
+            <Switch
+              checked={exceptBalanceZero}
+              onChange={handleToggleBalanceZero}
+              checkedChildren="ON"
+              unCheckedChildren="OFF"
+            />
+          </Space>
           <Button
             icon={<FileExcelOutlined />}
             onClick={handleExportAll}

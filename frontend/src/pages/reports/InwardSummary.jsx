@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Card, DatePicker, Button, Typography, Space, message } from "antd";
+import { Card, DatePicker, Button, Typography, Space, message, Switch } from "antd";
 import {
   SearchOutlined,
   FileExcelOutlined,
   PrinterOutlined,
+  FilterOutlined,
 } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
@@ -27,6 +28,7 @@ const InwardSummary = () => {
   // Regular user view
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
+  const [allData, setAllData] = useState([]); // Store all data
   const [totals, setTotals] = useState({
     inwardKgs: 0,
     processKgs: 0,
@@ -43,6 +45,7 @@ const InwardSummary = () => {
     pageSize: 50,
     total: 0,
   });
+  const [exceptBalanceZero, setExceptBalanceZero] = useState(true); // Default enabled
 
   useEffect(() => {
     if (location?.state?.fromDate && location?.state?.toDate) {
@@ -74,19 +77,32 @@ const InwardSummary = () => {
       };
 
       const response = await getInwardSummary(params);
-      setData(response.data || []);
-      setTotals(
-        response.totals || {
-          inwardKgs: 0,
-          processKgs: 0,
-          dcKgs: 0,
-          returnKgs: 0,
-          balanceKgs: 0,
-        },
+      const fetchedData = response.data || [];
+      setAllData(fetchedData);
+      
+      // Filter data based on exceptBalanceZero toggle
+      const filteredData = exceptBalanceZero 
+        ? fetchedData.filter(item => Number(item.balanceKgs) !== 0)
+        : fetchedData;
+      
+      setData(filteredData);
+      
+      // Recalculate totals based on filtered data
+      const calculatedTotals = filteredData.reduce(
+        (acc, item) => ({
+          inwardKgs: acc.inwardKgs + Number(item.inwardKgs || 0),
+          processKgs: acc.processKgs + Number(item.processKgs || 0),
+          dcKgs: acc.dcKgs + Number(item.dcKgs || 0),
+          returnKgs: acc.returnKgs + Number(item.returnKgs || 0),
+          balanceKgs: acc.balanceKgs + Number(item.balanceKgs || 0),
+        }),
+        { inwardKgs: 0, processKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 }
       );
+      
+      setTotals(calculatedTotals);
       setPagination((prev) => ({
         ...prev,
-        total: response.pagination?.total || 0,
+        total: filteredData.length,
       }));
     } catch (error) {
       message.error("Failed to load inward summary data");
@@ -103,6 +119,35 @@ const InwardSummary = () => {
     }
     setPagination((prev) => ({ ...prev, current: 1 }));
     loadData();
+  };
+
+  const handleToggleBalanceZero = (checked) => {
+    setExceptBalanceZero(checked);
+    
+    // Filter data based on toggle
+    const filteredData = checked 
+      ? allData.filter(item => Number(item.balanceKgs) !== 0)
+      : allData;
+    
+    setData(filteredData);
+    
+    // Recalculate totals based on filtered data
+    const calculatedTotals = filteredData.reduce(
+      (acc, item) => ({
+        inwardKgs: acc.inwardKgs + Number(item.inwardKgs || 0),
+        processKgs: acc.processKgs + Number(item.processKgs || 0),
+        dcKgs: acc.dcKgs + Number(item.dcKgs || 0),
+        returnKgs: acc.returnKgs + Number(item.returnKgs || 0),
+        balanceKgs: acc.balanceKgs + Number(item.balanceKgs || 0),
+      }),
+      { inwardKgs: 0, processKgs: 0, dcKgs: 0, returnKgs: 0, balanceKgs: 0 }
+    );
+    
+    setTotals(calculatedTotals);
+    setPagination((prev) => ({
+      ...prev,
+      total: filteredData.length,
+    }));
   };
 
   const handleExport = () => {
@@ -389,6 +434,15 @@ const InwardSummary = () => {
           >
             Search
           </Button>
+          <Space>
+            <span style={{ fontSize: "14px", fontWeight: 500 }}>Except Balance Zero:</span>
+            <Switch
+              checked={exceptBalanceZero}
+              onChange={handleToggleBalanceZero}
+              checkedChildren="ON"
+              unCheckedChildren="OFF"
+            />
+          </Space>
           <Button
             icon={<FileExcelOutlined />}
             onClick={handleExport}
