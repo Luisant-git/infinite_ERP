@@ -1833,17 +1833,17 @@ const FabricReturn = () => {
             </Col>
             <Col span={3}>
               <div style={{ marginBottom: 6 }}>
-                <label style={{ fontSize: "12px" }}>Total Rolls</label>
-                <Input value={totalRolls} disabled style={{ height: "32px" }} />
+                <label style={{ fontSize: "12px", fontWeight: 700 }}>Total Rolls</label>
+                <Input value={totalRolls} disabled style={{ height: "32px", fontWeight: 700, backgroundColor: "#f4f3f2", color: "#000" }} />
               </div>
             </Col>
             <Col span={3}>
               <div style={{ marginBottom: 6 }}>
-                <label style={{ fontSize: "12px" }}>Total Qty</label>
+                <label style={{ fontSize: "12px", fontWeight: 700 }}>Total Qty</label>
                 <Input
                   value={totalQty.toFixed(3)}
                   disabled
-                  style={{ height: "32px" }}
+                  style={{ height: "32px", fontWeight: 700, backgroundColor: "#f4f3f2", color: "#000" }}
                 />
               </div>
             </Col>
