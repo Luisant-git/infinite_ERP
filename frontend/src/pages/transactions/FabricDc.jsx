@@ -1321,22 +1321,48 @@ const FabricDc = () => {
                 : [];
 
               return (
-                <Select
-                  mode="multiple"
-                  disabled={isViewMode}
-                  value={val || []}
-                  onChange={(v) =>
-                    handleDetailChange(record.key, "processes", v)
-                  }
-                  style={{ width: "100%" }}
-                  placeholder="Select processes"
-                >
-                  {allProcesses.map((p, idx) => (
-                    <Option key={idx} value={p}>
-                      {p}
-                    </Option>
-                  ))}
-                </Select>
+                <div style={{
+                  maxHeight: '45px',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  paddingRight: '4px',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#888 #f1f1f1'
+                }}>
+                  <style>{`
+                    div::-webkit-scrollbar {
+                      width: 6px;
+                    }
+                    div::-webkit-scrollbar-track {
+                      background: #f1f1f1;
+                      border-radius: 3px;
+                    }
+                    div::-webkit-scrollbar-thumb {
+                      background: #888;
+                      border-radius: 3px;
+                    }
+                    div::-webkit-scrollbar-thumb:hover {
+                      background: #555;
+                    }
+                  `}</style>
+                  <Select
+                    mode="multiple"
+                    disabled={isViewMode}
+                    value={val || []}
+                    onChange={(v) =>
+                      handleDetailChange(record.key, "processes", v)
+                    }
+                    style={{ width: "100%" }}
+                    placeholder="Select processes"
+                    maxTagCount={999}
+                  >
+                    {allProcesses.map((p, idx) => (
+                      <Option key={idx} value={p}>
+                        {p}
+                      </Option>
+                    ))}
+                  </Select>
+                </div>
               );
             },
           },

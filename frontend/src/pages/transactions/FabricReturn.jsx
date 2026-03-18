@@ -1102,22 +1102,24 @@ const FabricReturn = () => {
                 : [];
 
               return (
-                <Select
-                  mode="multiple"
-                  disabled={isViewMode}
-                  value={val || []}
-                  onChange={(v) =>
-                    handleDetailChange(record.key, "processes", v)
-                  }
-                  style={{ width: "100%" }}
-                  placeholder="Select processes"
-                >
-                  {allProcesses.map((p, idx) => (
-                    <Option key={idx} value={p}>
-                      {p}
-                    </Option>
-                  ))}
-                </Select>
+                <div style={{ maxHeight: "45px", overflowY: "auto" }}>
+                  <Select
+                    mode="multiple"
+                    disabled={isViewMode}
+                    value={val || []}
+                    onChange={(v) =>
+                      handleDetailChange(record.key, "processes", v)
+                    }
+                    style={{ width: "100%" }}
+                    placeholder="Select processes"
+                  >
+                    {allProcesses.map((p, idx) => (
+                      <Option key={idx} value={p}>
+                        {p}
+                      </Option>
+                    ))}
+                  </Select>
+                </div>
               );
             },
           },

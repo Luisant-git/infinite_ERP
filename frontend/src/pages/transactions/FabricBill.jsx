@@ -1002,7 +1002,7 @@ const FabricBill = () => {
       width: 200,
       render: (val) => {
         const processText = val && Array.isArray(val) ? val.join(', ') : '';
-        return <span>{processText}</span>;
+        return <div style={{ maxHeight: "45px", overflowY: "auto" }}><span>{processText}</span></div>;
       },
     },
     {

@@ -663,15 +663,41 @@ const FabricInward = () => {
       dataIndex: 'processes',
       width: 200,
       render: (val, record) => (
-        <Select
-          mode="multiple"
-          value={val || []}
-          onChange={(v) => handleDetailChange(record.key, 'processes', v)}
-          style={{ width: '100%' }}
-          placeholder="Select processes"
-        >
-          {processes.map(p => <Option key={p.id} value={p.processName}>{p.processName}</Option>)}
-        </Select>
+        <div style={{
+          maxHeight: '45px',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          paddingRight: '4px',
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#888 #f1f1f1'
+        }}>
+          <style>{`
+            div::-webkit-scrollbar {
+              width: 6px;
+            }
+            div::-webkit-scrollbar-track {
+              background: #f1f1f1;
+              border-radius: 3px;
+            }
+            div::-webkit-scrollbar-thumb {
+              background: #888;
+              border-radius: 3px;
+            }
+            div::-webkit-scrollbar-thumb:hover {
+              background: #555;
+            }
+          `}</style>
+          <Select
+            mode="multiple"
+            value={val || []}
+            onChange={(v) => handleDetailChange(record.key, 'processes', v)}
+            style={{ width: '100%' }}
+            placeholder="Select processes"
+            maxTagCount={999}
+          >
+            {processes.map(p => <Option key={p.id} value={p.processName}>{p.processName}</Option>)}
+          </Select>
+        </div>
       )
     }] : []),
     {
@@ -862,6 +888,31 @@ const FabricInward = () => {
         }
         .compact-table .ant-input-number-input {
           height: 22px !important;
+        }
+        /* Process column scrollable */
+        .process-cell-container {
+          max-height: 60px;
+          overflow-y: auto;
+          overflow-x: hidden;
+          padding-right: 4px;
+        }
+        .process-cell-container::-webkit-scrollbar {
+          width: 4px;
+        }
+        .process-cell-container::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 2px;
+        }
+        .process-cell-container::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 2px;
+        }
+        .process-cell-container::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+        .process-cell-container {
+          scrollbar-width: thin;
+          scrollbar-color: #888 #f1f1f1;
         }
         @media (max-width: 768px) {
           .page-header { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
