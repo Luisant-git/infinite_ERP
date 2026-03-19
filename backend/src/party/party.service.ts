@@ -13,13 +13,13 @@ export class PartyService {
       isDeleted: false,
       ...(search && {
         OR: [
-          { partyName: { contains: search, mode: Prisma.QueryMode.insensitive } },
-          { partyCode: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          { partyName: { contains: search } },
+          { partyCode: { contains: search } },
           { mobileNo: { contains: search } },
-          { gstNo: { contains: search, mode: Prisma.QueryMode.insensitive } },
-          { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
-          { district: { contains: search, mode: Prisma.QueryMode.insensitive } },
-          { state: { contains: search, mode: Prisma.QueryMode.insensitive } }
+          { gstNo: { contains: search } },
+          { email: { contains: search } },
+          { district: { contains: search } },
+          { state: { contains: search } }
         ]
       })
     };

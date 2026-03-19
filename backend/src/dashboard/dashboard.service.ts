@@ -31,8 +31,7 @@ export class DashboardService {
             some: {
               partyType: {
                 partyTypeName: {
-                  equals: 'Customer',
-                  mode: 'insensitive'
+                  equals: 'Customer'
                 }
               }
             }

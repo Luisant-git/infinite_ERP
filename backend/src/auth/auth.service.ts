@@ -101,11 +101,14 @@ export class AuthService {
     };
     const token = this.jwtService.sign(payload);
 
+    // Parse concernIds
+    const concernIds: number[] = user.concernIds ? JSON.parse(user.concernIds) : [];
+
     // Auto-select for users with exactly one concern (not MD or admin)
-    if (user.concernIds.length === 1 && !user.adminUser && user.IsMD === 0) {
+    if (concernIds.length === 1 && !user.adminUser && user.IsMD === 0) {
       const tenant = await this.prisma.tenant.findFirst({
         where: { 
-          concernId: { in: user.concernIds },
+          concernId: { in: concernIds },
           concern: { isDeleted: false }
         },
         include: { concern: true }
@@ -130,7 +133,7 @@ export class AuthService {
     // For MD, admin, or users with multiple concerns, return available tenants
     const availableTenants = await this.prisma.tenant.findMany({
       where: {
-        ...(user.adminUser || user.IsMD === 1 ? {} : user.concernIds.length === 0 ? {} : { concernId: { in: user.concernIds } }),
+        ...(user.adminUser || user.IsMD === 1 ? {} : concernIds.length === 0 ? {} : { concernId: { in: concernIds } }),
         concern: { isDeleted: false }
       },
       include: { concern: true }
@@ -195,7 +198,7 @@ export class AuthService {
     const where = {
       isDeleted: false,
       ...(search && {
-        username: { contains: search, mode: 'insensitive' as const }
+        username: { contains: search }
       })
     };
 

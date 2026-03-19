@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlserver"
   url      = env("DATABASE_URL")
 }
 
@@ -17,7 +17,7 @@ model User {
   isDeleted  Boolean  @default(false)
   deletedAt  DateTime?
   deletedBy  Int?
-  concernIds Int[]    @default([])
+  concernIds String?  @default("[]")
   canAdd     Boolean  @default(false)
   canEdit    Boolean  @default(false)
   canDelete  Boolean  @default(false)
@@ -377,7 +377,7 @@ model FabricInwardHeader {
   isClosed        Int      @default(0)
   
   tenant    Tenant                 @relation(fields: [tenantId], references: [id])
-  concern   Concern?               @relation(fields: [concernId], references: [id])
+  concern   Concern?               @relation(fields: [concernId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   details   FabricInwardDetail[]
   processes FabricInwardProcess[]
   
@@ -405,10 +405,10 @@ model FabricInwardDetail {
   
   header FabricInwardHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
   design Design?               @relation(fields: [designId], references: [id])
-  fabric Master?               @relation("FabricMaster", fields: [fabricId], references: [id])
-  color  Master?               @relation("ColorMaster", fields: [colorId], references: [id])
-  dia    Master?               @relation("DiaMaster", fields: [diaId], references: [id])
-  uom    Master?               @relation("UOMMaster", fields: [uomId], references: [id])
+  fabric Master?               @relation("FabricMaster", fields: [fabricId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  color  Master?               @relation("ColorMaster", fields: [colorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  dia    Master?               @relation("DiaMaster", fields: [diaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  uom    Master?               @relation("UOMMaster", fields: [uomId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   
   @@map("fabric_inward_details")
 }
@@ -451,7 +451,7 @@ model RateQuotationHeader {
   attachFile      String?  @db.VarChar(100)
   
   tenant  Tenant                   @relation(fields: [tenantId], references: [id])
-  concern Concern?                 @relation(fields: [concernId], references: [id])
+  concern Concern?                 @relation(fields: [concernId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   party   Party?                   @relation(fields: [partyId], references: [id])
   details RateQuotationDetail[]
   
@@ -511,7 +511,7 @@ model FabricDcHeader {
   receivedName    String?  @db.VarChar(50)
   
   tenant    Tenant            @relation(fields: [tenantId], references: [id])
-  concern   Concern?          @relation(fields: [concernId], references: [id])
+  concern   Concern?          @relation(fields: [concernId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   details   FabricDcDetail[]
   processes FabricDcProcess[]
   billDetails FabricBillDetail[]
@@ -546,13 +546,13 @@ model FabricDcDetail {
   deleteFlg       Int      @default(0)
   
   header     FabricDcHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
-  fabric     Master?        @relation("DcFabricMaster", fields: [fabricId], references: [id])
-  color      Master?        @relation("DcColorMaster", fields: [colorId], references: [id])
-  dia        Master?        @relation("DcDiaMaster", fields: [diaId], references: [id])
-  inwFabric  Master?        @relation("DcInwFabricMaster", fields: [inwFabricId], references: [id])
-  inwColor   Master?        @relation("DcInwColorMaster", fields: [inwColorId], references: [id])
-  inwDia     Master?        @relation("DcInwDiaMaster", fields: [inwDiaId], references: [id])
-  uom        Master?        @relation("DcUOMMaster", fields: [uomId], references: [id])
+  fabric     Master?        @relation("DcFabricMaster", fields: [fabricId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  color      Master?        @relation("DcColorMaster", fields: [colorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  dia        Master?        @relation("DcDiaMaster", fields: [diaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  inwFabric  Master?        @relation("DcInwFabricMaster", fields: [inwFabricId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  inwColor   Master?        @relation("DcInwColorMaster", fields: [inwColorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  inwDia     Master?        @relation("DcInwDiaMaster", fields: [inwDiaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  uom        Master?        @relation("DcUOMMaster", fields: [uomId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   
   @@map("fabric_dc_details")
 }
@@ -603,7 +603,7 @@ model FabricReturnHeader {
   receivedName    String?  @db.VarChar(50)
   
   tenant    Tenant                @relation(fields: [tenantId], references: [id])
-  concern   Concern?              @relation(fields: [concernId], references: [id])
+  concern   Concern?              @relation(fields: [concernId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   details   FabricReturnDetail[]
   processes FabricReturnProcess[]
   
@@ -631,10 +631,10 @@ model FabricReturnDetail {
   deleteFlg       Int      @default(0)
   
   header FabricReturnHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
-  fabric Master?            @relation("ReturnFabricMaster", fields: [fabricId], references: [id])
-  color  Master?            @relation("ReturnColorMaster", fields: [colorId], references: [id])
-  dia    Master?            @relation("ReturnDiaMaster", fields: [diaId], references: [id])
-  uom    Master?            @relation("ReturnUOMMaster", fields: [uomId], references: [id])
+  fabric Master?            @relation("ReturnFabricMaster", fields: [fabricId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  color  Master?            @relation("ReturnColorMaster", fields: [colorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  dia    Master?            @relation("ReturnDiaMaster", fields: [diaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  uom    Master?            @relation("ReturnUOMMaster", fields: [uomId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   
   @@map("fabric_return_details")
 }
@@ -700,9 +700,9 @@ model FabricBillHeader {
   isApproval      Int      @default(0)
   
   tenant    Tenant              @relation(fields: [tenantId], references: [id])
-  concern   Concern?            @relation(fields: [concernId], references: [id])
-  party     Party?              @relation("BillParty", fields: [partyId], references: [id])
-  invoiceParty Party?           @relation("BillInvoiceTo", fields: [invoiceTo], references: [id])
+  concern   Concern?            @relation(fields: [concernId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  party     Party?              @relation("BillParty", fields: [partyId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  invoiceParty Party?           @relation("BillInvoiceTo", fields: [invoiceTo], references: [id], onUpdate: NoAction, onDelete: NoAction)
   details   FabricBillDetail[]
   taxes     FabricBillTax[]
   einvoice  BillEinvoice?
@@ -737,11 +737,11 @@ model FabricBillDetail {
   deleteFlg   Int      @default(0)
   
   header FabricBillHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
-  fabric Master?          @relation("BillFabricMaster", fields: [fabricId], references: [id])
-  color  Master?          @relation("BillColorMaster", fields: [colorId], references: [id])
-  dia    Master?          @relation("BillDiaMaster", fields: [diaId], references: [id])
-  uom    Master?          @relation("BillUOMMaster", fields: [uomId], references: [id])
-  dc     FabricDcHeader?  @relation(fields: [dcId], references: [id])
+  fabric Master?          @relation("BillFabricMaster", fields: [fabricId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  color  Master?          @relation("BillColorMaster", fields: [colorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  dia    Master?          @relation("BillDiaMaster", fields: [diaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  uom    Master?          @relation("BillUOMMaster", fields: [uomId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  dc     FabricDcHeader?  @relation(fields: [dcId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   
   @@map("fabric_bill_details")
 }

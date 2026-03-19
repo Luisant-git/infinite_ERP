@@ -31,7 +31,7 @@ export class MasterService {
     const existing = await this.prisma.master.findFirst({
       where: { 
         masterType,
-        masterName: { equals: trimmedName, mode: 'insensitive' },
+        masterName: { equals: trimmedName },
         isDeleted: false
       }
     });
@@ -50,7 +50,7 @@ export class MasterService {
       const existing = await this.prisma.master.findFirst({
         where: { 
           masterType: master.masterType,
-          masterName: { equals: trimmedName, mode: 'insensitive' },
+          masterName: { equals: trimmedName },
           isDeleted: false,
           NOT: { id }
         }

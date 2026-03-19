@@ -154,9 +154,9 @@ export class InwardSummaryService {
         where.OR ? { OR: where.OR } : {},
         {
           OR: [
-            { grnNo: { contains: search, mode: 'insensitive' } },
-            { pdcNo: { contains: search, mode: 'insensitive' } },
-            { orderNo: { contains: search, mode: 'insensitive' } },
+            { grnNo: { contains: search } },
+            { pdcNo: { contains: search } },
+            { orderNo: { contains: search } },
           ],
         },
       ];
@@ -217,7 +217,7 @@ export class InwardSummaryService {
             const dcDataForInward = await this.prisma.fabricDcHeader.findMany({
               where: {
                 deleteFlg: 0,
-                inwardNo: { equals: inward.grnNo, mode: 'insensitive' },
+                inwardNo: { equals: inward.grnNo },
               },
               include: {
                 details: {
@@ -259,7 +259,7 @@ export class InwardSummaryService {
                 where: {
                   deleteFlg: 0,
                   header: {
-                    inwardNo: { equals: inward.grnNo, mode: 'insensitive' },
+                    inwardNo: { equals: inward.grnNo },
                     deleteFlg: 0,
                   },
                 },
@@ -438,9 +438,9 @@ export class InwardSummaryService {
     // Search filter
     if (search) {
       where.OR = [
-        { grnNo: { contains: search, mode: 'insensitive' } },
-        { pdcNo: { contains: search, mode: 'insensitive' } },
-        { orderNo: { contains: search, mode: 'insensitive' } },
+        { grnNo: { contains: search } },
+        { pdcNo: { contains: search } },
+        { orderNo: { contains: search } },
       ];
     }
 
@@ -497,7 +497,7 @@ export class InwardSummaryService {
             const dcDataForInward = await this.prisma.fabricDcHeader.findMany({
               where: {
                 deleteFlg: 0,
-                inwardNo: { equals: inward.grnNo, mode: 'insensitive' },
+                inwardNo: { equals: inward.grnNo },
               },
               include: {
                 details: {
@@ -539,7 +539,7 @@ export class InwardSummaryService {
                 where: {
                   deleteFlg: 0,
                   header: {
-                    inwardNo: { equals: inward.grnNo, mode: 'insensitive' },
+                    inwardNo: { equals: inward.grnNo },
                     deleteFlg: 0,
                   },
                 },
