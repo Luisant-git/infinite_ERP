@@ -480,17 +480,19 @@ const InwardSummaryMD = () => {
           justifyContent: "space-between",
           alignItems: "center",
           marginBottom: 16,
+          flexWrap: "wrap",
+          gap: 16,
         }}
       >
         <Title level={3} style={{ margin: 0 }}>
           Inward Summary Report
         </Title>
-        <Space>
+        <Space wrap>
           <RangePicker
             value={dateRange}
             onChange={setDateRange}
             format="DD-MM-YYYY"
-            style={{ width: 280 }}
+            style={{ width: "100%", maxWidth: 280 }}
             size="small"
           />
           <Button
@@ -592,9 +594,11 @@ const InwardSummaryMD = () => {
                     justifyContent: "space-between",
                     alignItems: "center",
                     width: "100%",
+                    flexWrap: "wrap",
+                    gap: "8px",
                   }}
                 >
-                  <span style={{ fontWeight: 600, fontSize: "14px" }}>
+                  <span style={{ fontWeight: 600, fontSize: "14px", minWidth: "120px" }}>
                     {concern.concernName}
                   </span>
                   <div
@@ -602,6 +606,7 @@ const InwardSummaryMD = () => {
                       display: "flex",
                       gap: "12px",
                       marginRight: "20px",
+                      flexWrap: "wrap",
                     }}
                   >
                     <div

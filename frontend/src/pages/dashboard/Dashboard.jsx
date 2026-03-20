@@ -220,53 +220,57 @@ const Dashboard = () => {
       <Row style={{ marginTop: 30 }} gutter={16}>
         <Col xs={24} lg={12}>
           <div className="inward-summary-card">
-            <Row
-              justify="space-between"
-              align="middle"
-              style={{ marginBottom: 16 }}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 16,
+                marginBottom: 16,
+              }}
             >
-              <Col>
-                <Title level={4} style={{ marginBottom: 0 }}>
-                  Inward Summary
-                </Title>
-              </Col>
-              <Col>
-                <Space size="middle">
-                  <Select
-                    allowClear
-                    placeholder="Select Concern"
-                    style={{ width: 180 }}
-                    value={selectedConcernId}
-                    onChange={(value) => setSelectedConcernId(value)}
-                  >
-                    {concerns.map((c) => (
-                      <Option key={c.concernId} value={c.concernId}>
-                        {c.concernName}
-                      </Option>
-                    ))}
-                  </Select>
-                  <MonthPicker
-                    value={month}
-                    onChange={(value) => value && setMonth(value)}
-                    format="MMM YYYY"
-                    allowClear={false}
-                  />
-                </Space>
-              </Col>
-            </Row>
+              <Title level={4} style={{ margin: 0 }}>
+                Inward Summary
+              </Title>
+              <Space size="middle" wrap style={{ display: "flex", flex: 1, justifyContent: "flex-end" }}>
+                <Select
+                  allowClear
+                  placeholder="Select Concern"
+                  style={{ width: "100%", minWidth: 140, maxWidth: 180 }}
+                  value={selectedConcernId}
+                  onChange={(value) => setSelectedConcernId(value)}
+                >
+                  {concerns.map((c) => (
+                    <Option key={c.concernId} value={c.concernId}>
+                      {c.concernName}
+                    </Option>
+                  ))}
+                </Select>
+                <MonthPicker
+                  value={month}
+                  onChange={(value) => value && setMonth(value)}
+                  format="MMM YYYY"
+                  allowClear={false}
+                  style={{ width: "100%", maxWidth: 140 }}
+                />
+              </Space>
+            </div>
 
             <Spin spinning={mdLoading} tip="Loading...">
-              <table className="inward-summary-table">
-                <thead>
-                  <tr>
-                    <th>Concern</th>
-                    <th>No of Lots</th>
-                    <th className="text-right">Pending Kgs</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>{renderSummaryRows()}</tbody>
-              </table>
+              <div style={{ overflowX: "auto", width: "100%" }}>
+                <table className="inward-summary-table" style={{ minWidth: 500 }}>
+                  <thead>
+                    <tr>
+                      <th>Concern</th>
+                      <th>No of Lots</th>
+                      <th className="text-right">Pending Kgs</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>{renderSummaryRows()}</tbody>
+                </table>
+              </div>
             </Spin>
           </div>
         </Col>
