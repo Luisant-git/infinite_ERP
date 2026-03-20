@@ -922,7 +922,7 @@ const FabricBillPrint = forwardRef(
                   border: "1px solid black",
                   borderTop: "none",
                   padding: "15px",
-                  width: "25%",
+                  width: "20%",
                   textAlign: "center",
                   verticalAlign: "bottom",
                   fontSize: "10px",
@@ -935,7 +935,7 @@ const FabricBillPrint = forwardRef(
                   border: "1px solid black",
                   borderTop: "none",
                   padding: "15px",
-                  width: "25%",
+                  width: "20%",
                   textAlign: "center",
                   verticalAlign: "bottom",
                   fontSize: "10px",
@@ -948,7 +948,7 @@ const FabricBillPrint = forwardRef(
                   border: "1px solid black",
                   borderTop: "none",
                   padding: "15px",
-                  width: "25%",
+                  width: "20%",
                   textAlign: "center",
                   verticalAlign: "bottom",
                   fontSize: "10px",
@@ -961,13 +961,13 @@ const FabricBillPrint = forwardRef(
                   border: "1px solid black",
                   borderTop: "none",
                   padding: "15px",
-                  width: "25%",
+                  width: "40%",
                   textAlign: "center",
                   verticalAlign: "bottom",
                   fontSize: "10px",
                 }}
               >
-                <div style={{ textAlign: "right", marginBottom: "25px" }}>
+                <div style={{ textAlign: "right", marginBottom: "25px", whiteSpace: "nowrap" }}>
                   <strong>For {concernData?.partyName || ""}</strong>
                 </div>
                 <strong>Authorised Signature</strong>
