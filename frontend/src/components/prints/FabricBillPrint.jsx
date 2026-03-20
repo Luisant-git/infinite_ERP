@@ -775,121 +775,121 @@ const FabricBillPrint = forwardRef(
               </tr>
               <tr>
                 <td
-                  colSpan="4"
+                  colSpan="3"
                   style={{
                     border: "1px solid black",
                     padding: "8px",
                     verticalAlign: "top",
                   }}
                 >
-                <div
-                  style={{
-                    fontSize: "10px",
-                    fontWeight: "bold",
-                    marginBottom: "5px",
-                  }}
-                >
-                  Bank Details :
-                </div>
-                <table
-                  style={{
-                    fontSize: "9px",
-                    lineHeight: "1.3",
-                    width: "100%",
-                    borderCollapse: "collapse",
-                  }}
-                >
-                  <tr>
-                    <td style={{ fontWeight: "bold", width: "25%" }}>Name</td>
-                    <td style={{ width: "5px" }}> :</td>
-                    <td>{concernData?.partyName || ""}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: "bold" }}>Bank</td>
-                    <td style={{ width: "5px" }}> :</td>
-                    <td>{concernData?.bank || ""}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: "bold" }}>A/C No</td>
-                    <td style={{ width: "5px" }}> :</td>
-                    <td>{concernData?.accountNo || ""}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: "bold" }}>Branch</td>
-                    <td style={{ width: "5px" }}> :</td>
-                    <td>{concernData?.branch || ""}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: "bold" }}>IFSC</td>
-                    <td style={{ width: "5px" }}> :</td>
-                    <td>{concernData?.ifscCode || ""}</td>
-                  </tr>
-                </table>
-              </td>
-              <td
-                colSpan="4"
-                style={{
-                  border: "1px solid black",
-                  padding: "8px 0",
-                  verticalAlign: "top",
-                }}
-              >
-                <table
-                  style={{
-                    width: "100%",
-                    fontSize: "9px",
-                    borderCollapse: "collapse",
-                  }}
-                >
-                  {(Number(data?.noOfScreen || 0) > 0 || Number(data?.screenAmount || 0) > 0) && (
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: "bold",
+                      marginBottom: "5px",
+                    }}
+                  >
+                    Bank Details :
+                  </div>
+                  <table
+                    style={{
+                      fontSize: "9px",
+                      lineHeight: "1.3",
+                      width: "100%",
+                      borderCollapse: "collapse",
+                    }}
+                  >
                     <tr>
-                      <td style={{ width: "100%", paddingBottom: "5px", paddingLeft: "5px" }}>
-                        {Number(data?.noOfScreen || 0) > 0 ? `Nos: ${data.noOfScreen}` : ""}
-                      </td>
-                      <td style={{ textAlign: "right", whiteSpace: "nowrap", paddingBottom: "5px", paddingRight: "10px" }}>Screen Amount</td>
-                      <td style={{ width: "10px", textAlign: "center", paddingBottom: "5px" }}>:</td>
-                      <td style={{ width: "80px", textAlign: "left", paddingBottom: "5px", paddingRight: "5px", paddingLeft: "5px" }}>
-                        {Number(data?.screenAmount || 0).toFixed(2)}
-                      </td>
+                      <td style={{ fontWeight: "bold", width: "25%" }}>Name</td>
+                      <td style={{ width: "5px" }}> :</td>
+                      <td>{concernData?.partyName || ""}</td>
                     </tr>
-                  )}
-
-                  {data?.taxes?.map((tax, index) => {
-                    const taxName =
-                      gstMasters?.find((g) => g.id === tax.taxName)?.taxName ||
-                      tax.taxName;
-                    return (
-                      <tr key={index}>
-                        <td style={{ width: "100%", paddingBottom: "5px", paddingLeft: "5px" }}></td>
-                        <td style={{ textAlign: "right", whiteSpace: "nowrap", paddingBottom: "5px", paddingRight: "10px" }}>{taxName}</td>
+                    <tr>
+                      <td style={{ fontWeight: "bold" }}>Bank</td>
+                      <td style={{ width: "5px" }}> :</td>
+                      <td>{concernData?.bank || ""}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "bold" }}>A/C No</td>
+                      <td style={{ width: "5px" }}> :</td>
+                      <td>{concernData?.accountNo || ""}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "bold" }}>Branch</td>
+                      <td style={{ width: "5px" }}> :</td>
+                      <td>{concernData?.branch || ""}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "bold" }}>IFSC</td>
+                      <td style={{ width: "5px" }}> :</td>
+                      <td>{concernData?.ifscCode || ""}</td>
+                    </tr>
+                  </table>
+                </td>
+                <td
+                  colSpan="5"
+                  style={{
+                    border: "1px solid black",
+                    padding: "8px 0",
+                    verticalAlign: "top",
+                  }}
+                >
+                  <table
+                    style={{
+                      width: "100%",
+                      fontSize: "9px",
+                      borderCollapse: "collapse",
+                    }}
+                  >
+                    {(Number(data?.noOfScreen || 0) > 0 || Number(data?.screenAmount || 0) > 0) && (
+                      <tr>
+                        <td style={{ width: "100%", paddingBottom: "5px", paddingLeft: "5px" }}>
+                          {Number(data?.noOfScreen || 0) > 0 ? `Nos: ${data.noOfScreen}` : ""}
+                        </td>
+                        <td style={{ textAlign: "right", whiteSpace: "nowrap", paddingBottom: "5px", paddingRight: "5px" }}>Screen Amount</td>
                         <td style={{ width: "10px", textAlign: "center", paddingBottom: "5px" }}>:</td>
-                        <td style={{ width: "80px", textAlign: "left", paddingBottom: "5px", paddingRight: "5px", paddingLeft: "5px" }}>
-                          {Number(tax.taxAmount || 0).toFixed(2)}
+                        <td style={{ width: "130px", textAlign: "right", paddingBottom: "5px", paddingRight: "5px" }}>
+                          {Number(data?.screenAmount || 0).toFixed(2)}
                         </td>
                       </tr>
-                    );
-                  })}
-                  <tr>
-                     <td style={{ width: "100%", paddingBottom: "5px", paddingLeft: "5px" }}></td>
-                     <td style={{ textAlign: "right", whiteSpace: "nowrap", paddingBottom: "5px", paddingRight: "10px" }}>Round Off</td>
-                     <td style={{ width: "10px", textAlign: "center", paddingBottom: "5px" }}>:</td>
-                     <td style={{ width: "80px", textAlign: "left", paddingBottom: "5px", paddingRight: "5px", paddingLeft: "5px" }}>
-                      {Number(data?.roundOff || 0).toFixed(2)}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{ borderTop: "1px solid black", width: "100%", paddingLeft: "5px" }}></td>
-                    <td style={{ borderTop: "1px solid black", textAlign: "right", whiteSpace: "nowrap", paddingTop: "5px", paddingRight: "10px", fontWeight: "bold", fontSize: "11px" }}>
-                      Net Amount
-                    </td>
-                    <td style={{ borderTop: "1px solid black", width: "10px", textAlign: "center", paddingTop: "5px", fontWeight: "bold" }}>:</td>
-                    <td style={{ borderTop: "1px solid black", width: "80px", textAlign: "left", paddingTop: "5px", paddingRight: "5px", paddingLeft: "5px", fontWeight: "bold", fontSize: "11px" }}>
-                      {Number(data?.netAmount || 0).toFixed(2)}
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
+                    )}
+
+                    {data?.taxes?.map((tax, index) => {
+                      const taxName =
+                        gstMasters?.find((g) => g.id === tax.taxName)?.taxName ||
+                        tax.taxName;
+                      return (
+                        <tr key={index}>
+                          <td style={{ width: "100%", paddingBottom: "5px", paddingLeft: "5px" }}></td>
+                          <td style={{ textAlign: "right", whiteSpace: "nowrap", paddingBottom: "5px", paddingRight: "5px" }}>{taxName}</td>
+                          <td style={{ width: "10px", textAlign: "center", paddingBottom: "5px" }}>:</td>
+                          <td style={{ width: "130px", textAlign: "right", paddingBottom: "5px", paddingRight: "5px" }}>
+                            {Number(tax.taxAmount || 0).toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    <tr>
+                      <td style={{ width: "100%", paddingBottom: "5px", paddingLeft: "5px" }}></td>
+                      <td style={{ textAlign: "right", whiteSpace: "nowrap", paddingBottom: "5px", paddingRight: "5px" }}>Round Off</td>
+                      <td style={{ width: "10px", textAlign: "center", paddingBottom: "5px" }}>:</td>
+                      <td style={{ width: "130px", textAlign: "right", paddingBottom: "5px", paddingRight: "5px" }}>
+                        {Number(data?.roundOff || 0).toFixed(2)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ borderTop: "1px solid black", width: "100%", paddingLeft: "5px" }}></td>
+                      <td style={{ borderTop: "1px solid black", textAlign: "right", whiteSpace: "nowrap", paddingTop: "5px", paddingRight: "5px", fontWeight: "bold", fontSize: "11px" }}>
+                        Net Amount
+                      </td>
+                      <td style={{ borderTop: "1px solid black", width: "10px", textAlign: "center", paddingTop: "5px", fontWeight: "bold" }}>:</td>
+                      <td style={{ borderTop: "1px solid black", width: "130px", textAlign: "right", paddingTop: "5px", paddingRight: "5px", fontWeight: "bold", fontSize: "11px" }}>
+                        {Number(data?.netAmount || 0).toFixed(2)}
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
             </tfoot>
           </table>
 

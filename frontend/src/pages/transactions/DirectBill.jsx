@@ -1004,36 +1004,6 @@ const DirectBill = () => {
       ),
     },
     {
-      title: "Process",
-      dataIndex: "processes",
-      width: 200,
-      render: (v, r) => (
-        <Select
-          disabled={isViewMode}
-          mode="multiple"
-          value={v}
-          onChange={(val) => {
-            handleDetailChange(r.key, "processes", val);
-            const pText = val.join(', ');
-            handleDetailChange(r.key, "process", pText);
-            handleDetailChange(r.key, "processList", val.join(' / '));
-            
-            const autoRate = calculateProcessRate(val);
-            if (autoRate > 0) {
-              handleDetailChange(r.key, "rate", autoRate);
-            }
-          }}
-          style={{ width: "100%" }}
-          size="small"
-          maxTagCount="responsive"
-        >
-          {processes.map(p => (
-            <Option key={p.id} value={p.processName}>{p.processName}</Option>
-          ))}
-        </Select>
-      ),
-    },
-    {
       title: "Rolls",
       dataIndex: "rolls",
       width: 80,
@@ -1075,6 +1045,42 @@ const DirectBill = () => {
           precision={2}
           size="small"
         />
+      ),
+    },
+    {
+      title: "Amount",
+      dataIndex: "amount",
+      width: 100,
+      render: (v) => <span style={{ fontSize: '11px' }}>{Number(v || 0).toFixed(2)}</span>,
+    },
+    {
+      title: "Process",
+      dataIndex: "processes",
+      width: 200,
+      render: (v, r) => (
+        <Select
+          disabled={isViewMode}
+          mode="multiple"
+          value={v}
+          onChange={(val) => {
+            handleDetailChange(r.key, "processes", val);
+            const pText = val.join(', ');
+            handleDetailChange(r.key, "process", pText);
+            handleDetailChange(r.key, "processList", val.join(' / '));
+            
+            const autoRate = calculateProcessRate(val);
+            if (autoRate > 0) {
+              handleDetailChange(r.key, "rate", autoRate);
+            }
+          }}
+          style={{ width: "100%" }}
+          size="small"
+          maxTagCount="responsive"
+        >
+          {processes.map(p => (
+            <Option key={p.id} value={p.processName}>{p.processName}</Option>
+          ))}
+        </Select>
       ),
     },
     {
