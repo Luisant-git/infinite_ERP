@@ -311,12 +311,12 @@ const FabricBillPrint = forwardRef(
                   }}
                 >
                   <tr>
-                    <td style={{ fontWeight: "bold", width: "25%", paddingBottom: "10px" }}>Bill No</td>
+                    <td style={{ fontWeight: "bold", width: "40%", paddingBottom: "10px", whiteSpace: "nowrap" }}>Bill No</td>
                     <td style={{ width: "5px", paddingBottom: "10px" }}> :</td>
                     <td style={{ paddingBottom: "10px" }}>{data?.billNo || ""}</td>
                   </tr>
                   <tr>
-                    <td style={{ fontWeight: "bold", paddingBottom: "10px" }}>Bill Date</td>
+                    <td style={{ fontWeight: "bold", paddingBottom: "10px", whiteSpace: "nowrap" }}>Bill Date</td>
                     <td style={{ width: "5px", paddingBottom: "10px" }}> :</td>
                     <td style={{ paddingBottom: "10px" }}>
                       {data?.billDate
@@ -325,7 +325,7 @@ const FabricBillPrint = forwardRef(
                     </td>
                   </tr>
                   <tr>
-                    <td style={{ fontWeight: "bold" }}>HSN Code</td>
+                    <td style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>HSN Code</td>
                     <td style={{ width: "5px" }}> :</td>
                     <td>
                       {data?.hsnCode || ""}

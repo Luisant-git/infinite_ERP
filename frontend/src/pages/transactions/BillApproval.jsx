@@ -78,7 +78,7 @@ const BillApproval = () => {
 
   const loadBills = async () => {
     try {
-      const response = await getFabricBills('', 1, 1000);
+      const response = await getFabricBills('', 1, 1000, 'all');
       const allBills = response.data || [];
       const unapproved = allBills.filter(b => !b.isApproval || b.isApproval === 0);
       setBills(unapproved.length > 0 ? unapproved : allBills);

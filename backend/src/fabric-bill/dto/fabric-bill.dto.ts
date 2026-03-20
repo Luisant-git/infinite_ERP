@@ -99,6 +99,10 @@ export class CreateFabricBillDto {
 
   @IsOptional()
   @IsInt()
+  isDirectBill?: number;
+
+  @IsOptional()
+  @IsInt()
   partyId?: number;
 
   @IsOptional()

@@ -653,6 +653,7 @@ model FabricReturnProcess {
 model FabricBillHeader {
   id              Int      @id @default(autoincrement())
   tenantId        Int
+  isDirectBill    Int      @default(0)
   billNo          String   @db.VarChar(10)
   billDate        DateTime @default(now())
   partyId         Int?

@@ -5,11 +5,16 @@ export const getNextBillNo = async () => {
   return response.data;
 };
 
-export const getFabricBills = async (search = '', page = 1, limit = 100) => {
+export const getFabricBills = async (search = '', page = 1, limit = 100, isDirectBill = 0) => {
   const params = new URLSearchParams();
   if (search) params.append('search', search);
   params.append('page', page.toString());
   params.append('limit', limit.toString());
+  
+  // If 'all' is passed, we fetch everything (don't append the filter)
+  if (isDirectBill !== 'all' && isDirectBill !== null) {
+    params.append('isDirectBill', isDirectBill.toString());
+  }
   
   const response = await apiClient.get(`/fabric-bill?${params}`);
   return response.data;

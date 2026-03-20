@@ -18,8 +18,9 @@ export class FabricBillController {
     @Query('search') search?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('isDirectBill') isDirectBill?: string,
   ) {
-    return this.fabricBillService.findAll(Number(tenantId), search, Number(page) || 1, Number(limit) || 10);
+    return this.fabricBillService.findAll(Number(tenantId), search, Number(page) || 1, Number(limit) || 10, Number(isDirectBill));
   }
 
   @Get('available-dcs/:partyId')

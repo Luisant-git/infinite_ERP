@@ -45,10 +45,10 @@ export class FabricBillService {
     return { billNo: nextBillNo.substring(0, 10) }; // Truncate to 10 chars
   }
 
-  async findAll(tenantId: number, search?: string, page = 1, limit = 10) {
+  async findAll(tenantId: number, search?: string, page = 1, limit = 10, isDirectBill?: number) {
     const skip = (page - 1) * limit;
     
-    const where = {
+    const where: any = {
       tenantId,
       deleteFlg: 0,
       ...(search && {
@@ -57,6 +57,10 @@ export class FabricBillService {
         ],
       }),
     };
+
+    if (isDirectBill !== undefined && !isNaN(isDirectBill)) {
+      where.isDirectBill = isDirectBill;
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.fabricBillHeader.findMany({

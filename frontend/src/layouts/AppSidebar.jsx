@@ -171,6 +171,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           label: "Fabric Bill",
         },
         {
+          key: ROUTES.DIRECT_BILL,
+          icon: <FileTextOutlined />,
+          label: "Direct Bill",
+        },
+        {
           key: ROUTES.BILL_EINVOICE,
           icon: <FileProtectOutlined />,
           label: "Bill E-invoice",
