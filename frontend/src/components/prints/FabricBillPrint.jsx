@@ -111,7 +111,7 @@ const FabricBillPrint = forwardRef(
         <style>{`
         @media print {
           @page { 
-            margin: 10mm; 
+            margin: 10mm 10mm; 
             size: A4; 
           }
           body { 
@@ -121,10 +121,10 @@ const FabricBillPrint = forwardRef(
             display: none !important;
           }
         }
-        @page { size: A4; margin: 0mm; }
+        @page { size: A4; margin: 10mm 10mm; }
       `}</style>
 
-        <div style={{ padding: "20px", fontSize: "12px", lineHeight: "1.2" }}>
+        <div style={{ padding: "20px", fontSize: "12px", lineHeight: "1.2", minHeight: "calc(100vh - 40px)", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
           {/* Title Section - Always Visible */}
           <div
             style={{
@@ -144,85 +144,85 @@ const FabricBillPrint = forwardRef(
           {/* E-invoice Section - Only show if E-invoice is generated */}
           {hasEinvoice && (
 
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  border: "1px solid black",
-                  marginBottom: "10px",
-                }}
-              >
-                <tr>
-                  <td
-                    style={{
-                      border: "1px solid black",
-                      padding: "5px",
-                      width: "70%",
-                      fontSize: "10px",
-                      lineHeight: "1.4",
-                    }}
-                  >
-                    <div style={{ fontWeight: "bold", marginBottom: "3px" }}>
-                      e-Invoice Details :
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                border: "1px solid black",
+                marginBottom: "10px",
+              }}
+            >
+              <tr>
+                <td
+                  style={{
+                    border: "1px solid black",
+                    padding: "5px",
+                    width: "70%",
+                    fontSize: "10px",
+                    lineHeight: "1.4",
+                  }}
+                >
+                  <div style={{ fontWeight: "bold", marginBottom: "3px" }}>
+                    e-Invoice Details :
+                  </div>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <tr>
+                      <td style={{ fontWeight: "bold", width: "15%" }}>IRN No</td>
+                      <td style={{ width: "5px" }}> :</td>
+                      <td style={{ paddingLeft: "5px", wordBreak: "break-all" }}>
+                        {einvoiceData.irnNo}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "bold" }}>Ack. No</td>
+                      <td style={{ width: "5px" }}> :</td>
+                      <td style={{ paddingLeft: "5px" }}>
+                        {einvoiceData.ackNo}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "bold" }}>Ack Date</td>
+                      <td style={{ width: "5px" }}> :</td>
+                      <td style={{ paddingLeft: "5px" }}>
+                        {einvoiceData.ackDate
+                          ? dayjs(einvoiceData.ackDate).format(
+                            "DD/MM/YYYY HH:mm:ss",
+                          )
+                          : ""}
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+                <td
+                  style={{
+                    border: "1px solid black",
+                    padding: "5px",
+                    width: "30%",
+                    textAlign: "center",
+                    verticalAlign: "center",
+                  }}
+                >
+                  {einvoiceData.qrText && (
+                    <div
+                      style={{
+                        fontSize: "6px",
+                        wordBreak: "break-all",
+                        fontFamily: "monospace",
+                        backgroundColor: "#000",
+                        color: "#fff",
+                        padding: "5px",
+                        minHeight: "60px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
+                      }}
+                    >
+                      QR CODE
                     </div>
-                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                      <tr>
-                        <td style={{ fontWeight: "bold", width: "15%" }}>IRN No</td>
-                        <td style={{ width: "5px" }}> :</td>
-                        <td style={{ paddingLeft: "5px", wordBreak: "break-all" }}>
-                          {einvoiceData.irnNo}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style={{ fontWeight: "bold" }}>Ack. No</td>
-                        <td style={{ width: "5px" }}> :</td>
-                        <td style={{ paddingLeft: "5px" }}>
-                          {einvoiceData.ackNo}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style={{ fontWeight: "bold" }}>Ack Date</td>
-                        <td style={{ width: "5px" }}> :</td>
-                        <td style={{ paddingLeft: "5px" }}>
-                          {einvoiceData.ackDate
-                            ? dayjs(einvoiceData.ackDate).format(
-                                "DD/MM/YYYY HH:mm:ss",
-                              )
-                            : ""}
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                  <td
-                    style={{
-                      border: "1px solid black",
-                      padding: "5px",
-                      width: "30%",
-                      textAlign: "center",
-                      verticalAlign: "center",
-                    }}
-                  >
-                    {einvoiceData.qrText && (
-                      <div 
-                        style={{ 
-                          fontSize: "6px", 
-                          wordBreak: "break-all",
-                          fontFamily: "monospace",
-                          backgroundColor: "#000",
-                          color: "#fff",
-                          padding: "5px",
-                          minHeight: "60px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center"
-                        }}
-                      >
-                        QR CODE
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              </table>
+                  )}
+                </td>
+              </tr>
+            </table>
           )}
 
           {/* Header Section with Logo and Bill Details */}
@@ -494,6 +494,7 @@ const FabricBillPrint = forwardRef(
               borderCollapse: "collapse",
               border: "1px solid black",
               marginTop: "0",
+              flexGrow: 1, // Let the table expand to fill remaining page height
             }}
           >
             <thead>
@@ -698,6 +699,18 @@ const FabricBillPrint = forwardRef(
                   <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
                 </tr>
               ))}
+
+              {/* Filler row to push footer to bottom */}
+              <tr className="hide-on-print-unless-short" style={{ height: "100%" }}>
+                <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none" }}></td>
+                <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none" }}></td>
+                <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none" }}></td>
+                <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none" }}></td>
+                <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none" }}></td>
+                <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none" }}></td>
+                <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none" }}></td>
+                <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none" }}></td>
+              </tr>
             </tbody>
             <tfoot>
               <tr style={{ fontWeight: "bold" }}>
@@ -757,27 +770,15 @@ const FabricBillPrint = forwardRef(
                   {Number(data?.totalAmount || 0).toFixed(2)}
                 </td>
               </tr>
-            </tfoot>
-          </table>
-
-          {/* Totals Section */}
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              border: "1px solid black",
-              marginTop: "0",
-            }}
-          >
-            <tr>
-              <td
-                style={{
-                  border: "1px solid black",
-                  padding: "8px",
-                  width: "50%",
-                  verticalAlign: "top",
-                }}
-              >
+              <tr>
+                <td
+                  colSpan="4"
+                  style={{
+                    border: "1px solid black",
+                    padding: "8px",
+                    verticalAlign: "top",
+                  }}
+                >
                 <div
                   style={{
                     fontSize: "10px",
@@ -823,10 +824,10 @@ const FabricBillPrint = forwardRef(
                 </table>
               </td>
               <td
+                colSpan="4"
                 style={{
                   border: "1px solid black",
                   padding: "8px 0",
-                  width: "50%",
                   verticalAlign: "top",
                 }}
               >
@@ -839,12 +840,12 @@ const FabricBillPrint = forwardRef(
                 >
                   {(Number(data?.noOfScreen || 0) > 0 || Number(data?.screenAmount || 0) > 0) && (
                     <tr>
-                      <td style={{ width: "30%", paddingBottom: "5px", paddingLeft: "8px" }}>
+                      <td style={{ width: "100%", paddingBottom: "5px", paddingLeft: "5px" }}>
                         {Number(data?.noOfScreen || 0) > 0 ? `Nos: ${data.noOfScreen}` : ""}
                       </td>
-                      <td style={{ paddingBottom: "5px" }}>Screen Amount</td>
-                      <td style={{ width: "10px", paddingBottom: "5px" }}> :</td>
-                      <td style={{ textAlign: "left", paddingBottom: "5px", paddingRight: "8px" }}>
+                      <td style={{ textAlign: "right", whiteSpace: "nowrap", paddingBottom: "5px", paddingRight: "10px" }}>Screen Amount</td>
+                      <td style={{ width: "10px", textAlign: "center", paddingBottom: "5px" }}>:</td>
+                      <td style={{ width: "80px", textAlign: "left", paddingBottom: "5px", paddingRight: "5px", paddingLeft: "5px" }}>
                         {Number(data?.screenAmount || 0).toFixed(2)}
                       </td>
                     </tr>
@@ -856,36 +857,37 @@ const FabricBillPrint = forwardRef(
                       tax.taxName;
                     return (
                       <tr key={index}>
-                        <td style={{ paddingBottom: "5px", paddingLeft: "8px" }}></td>
-                        <td style={{ paddingBottom: "5px" }}>{taxName}</td>
-                        <td style={{ width: "10px", paddingBottom: "5px" }}> :</td>
-                        <td style={{ textAlign: "left", paddingBottom: "5px", paddingRight: "8px" }}>
+                        <td style={{ width: "100%", paddingBottom: "5px", paddingLeft: "5px" }}></td>
+                        <td style={{ textAlign: "right", whiteSpace: "nowrap", paddingBottom: "5px", paddingRight: "10px" }}>{taxName}</td>
+                        <td style={{ width: "10px", textAlign: "center", paddingBottom: "5px" }}>:</td>
+                        <td style={{ width: "80px", textAlign: "left", paddingBottom: "5px", paddingRight: "5px", paddingLeft: "5px" }}>
                           {Number(tax.taxAmount || 0).toFixed(2)}
                         </td>
                       </tr>
                     );
                   })}
                   <tr>
-                    <td style={{ paddingBottom: "5px", paddingLeft: "8px" }}></td>
-                    <td style={{ paddingBottom: "5px" }}>Round Off</td>
-                    <td style={{ width: "10px", paddingBottom: "5px" }}> :</td>
-                    <td style={{ textAlign: "left", paddingBottom: "5px", paddingRight: "8px" }}>
+                     <td style={{ width: "100%", paddingBottom: "5px", paddingLeft: "5px" }}></td>
+                     <td style={{ textAlign: "right", whiteSpace: "nowrap", paddingBottom: "5px", paddingRight: "10px" }}>Round Off</td>
+                     <td style={{ width: "10px", textAlign: "center", paddingBottom: "5px" }}>:</td>
+                     <td style={{ width: "80px", textAlign: "left", paddingBottom: "5px", paddingRight: "5px", paddingLeft: "5px" }}>
                       {Number(data?.roundOff || 0).toFixed(2)}
                     </td>
                   </tr>
                   <tr>
-                    <td style={{ borderTop: "1px solid black", paddingLeft: "8px" }}></td>
-                    <td style={{ borderTop: "1px solid black", paddingTop: "5px", fontWeight: "bold", fontSize: "11px" }}>
+                    <td style={{ borderTop: "1px solid black", width: "100%", paddingLeft: "5px" }}></td>
+                    <td style={{ borderTop: "1px solid black", textAlign: "right", whiteSpace: "nowrap", paddingTop: "5px", paddingRight: "10px", fontWeight: "bold", fontSize: "11px" }}>
                       Net Amount
                     </td>
-                    <td style={{ borderTop: "1px solid black", width: "10px", paddingTop: "5px", fontWeight: "bold" }}> :</td>
-                    <td style={{ borderTop: "1px solid black", textAlign: "left", paddingTop: "5px", paddingRight: "8px", fontWeight: "bold", fontSize: "11px" }}>
+                    <td style={{ borderTop: "1px solid black", width: "10px", textAlign: "center", paddingTop: "5px", fontWeight: "bold" }}>:</td>
+                    <td style={{ borderTop: "1px solid black", width: "80px", textAlign: "left", paddingTop: "5px", paddingRight: "5px", paddingLeft: "5px", fontWeight: "bold", fontSize: "11px" }}>
                       {Number(data?.netAmount || 0).toFixed(2)}
                     </td>
                   </tr>
                 </table>
               </td>
             </tr>
+            </tfoot>
           </table>
 
           {/* Amount in Words */}
