@@ -74,8 +74,32 @@ const Dashboard = () => {
       };
 
       const response = await getInwardSummaryForMD(params);
-      setMdSummary(response.concerns || []);
-      setConcerns(response.concerns || []);
+      const fetchedConcerns = response.concerns || [];
+      
+      const filteredConcerns = fetchedConcerns.map(concern => {
+        // Dashboard acts like "Except Balance Zero" is ON by default
+        const filteredData = concern.data.filter(item => Number(item.balanceKgs) !== 0);
+        
+        const totals = filteredData.reduce(
+          (acc, item) => ({
+            balanceKgs: acc.balanceKgs + Number(item.balanceKgs || 0),
+          }),
+          { balanceKgs: 0 }
+        );
+        totals.distinctInwardCount = new Set(filteredData.map(d => d.inwardNo)).size;
+        
+        return {
+          ...concern,
+          totals: {
+            ...concern.totals,
+            balanceKgs: totals.balanceKgs,
+            distinctInwardCount: totals.distinctInwardCount,
+          }
+        };
+      });
+
+      setMdSummary(filteredConcerns);
+      setConcerns(fetchedConcerns);
     } catch (error) {
       console.error("Error loading MD inward summary:", error);
     } finally {

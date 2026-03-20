@@ -125,22 +125,24 @@ const FabricBillPrint = forwardRef(
       `}</style>
 
         <div style={{ padding: "20px", fontSize: "12px", lineHeight: "1.2" }}>
+          {/* Title Section - Always Visible */}
+          <div
+            style={{
+              position: "relative",
+              textAlign: "center",
+              fontSize: "16px",
+              fontWeight: "bold",
+              marginBottom: "10px",
+            }}
+          >
+            GST INVOICE
+            <span style={{ position: "absolute", right: 0, bottom: 0, fontSize: "12px", fontWeight: "bold" }}>
+              (ORIGINAL)
+            </span>
+          </div>
+
           {/* E-invoice Section - Only show if E-invoice is generated */}
           {hasEinvoice && (
-            <>
-              <div
-                style={{
-                  textAlign: "center",
-                  fontSize: "16px",
-                  fontWeight: "bold",
-                  marginBottom: "10px",
-                }}
-              >
-                GST INVOICE{" "}
-                <span style={{ float: "right", fontSize: "12px" }}>
-                  (ORIGINAL)
-                </span>
-              </div>
 
               <table
                 style={{
@@ -221,7 +223,6 @@ const FabricBillPrint = forwardRef(
                   </td>
                 </tr>
               </table>
-            </>
           )}
 
           {/* Header Section with Logo and Bill Details */}
@@ -310,14 +311,14 @@ const FabricBillPrint = forwardRef(
                   }}
                 >
                   <tr>
-                    <td style={{ fontWeight: "bold", width: "25%" }}>Bill No</td>
-                    <td style={{ width: "5px" }}> :</td>
-                    <td>{data?.billNo || ""}</td>
+                    <td style={{ fontWeight: "bold", width: "25%", paddingBottom: "10px" }}>Bill No</td>
+                    <td style={{ width: "5px", paddingBottom: "10px" }}> :</td>
+                    <td style={{ paddingBottom: "10px" }}>{data?.billNo || ""}</td>
                   </tr>
                   <tr>
-                    <td style={{ fontWeight: "bold" }}>Bill Date</td>
-                    <td style={{ width: "5px" }}> :</td>
-                    <td>
+                    <td style={{ fontWeight: "bold", paddingBottom: "10px" }}>Bill Date</td>
+                    <td style={{ width: "5px", paddingBottom: "10px" }}> :</td>
+                    <td style={{ paddingBottom: "10px" }}>
                       {data?.billDate
                         ? dayjs(data.billDate).format("DD/MM/YYYY")
                         : ""}
@@ -681,6 +682,22 @@ const FabricBillPrint = forwardRef(
                   </td>
                 </tr>
               )) || []}
+
+              {/* Pad with empty rows to maintain minimum height */}
+              {Array.from({
+                length: Math.max(0, 12 - (data?.details?.length || 0)),
+              }).map((_, emptyIndex) => (
+                <tr key={`empty-${emptyIndex}`}>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
+                </tr>
+              ))}
             </tbody>
             <tfoot>
               <tr style={{ fontWeight: "bold" }}>
@@ -808,7 +825,7 @@ const FabricBillPrint = forwardRef(
               <td
                 style={{
                   border: "1px solid black",
-                  padding: "8px",
+                  padding: "8px 0",
                   width: "50%",
                   verticalAlign: "top",
                 }}
@@ -820,14 +837,18 @@ const FabricBillPrint = forwardRef(
                     borderCollapse: "collapse",
                   }}
                 >
-                  <tr>
-                    <td style={{ width: "30%"}}>Nos: {data.noOfScreen || 0}</td>
-                    <td >Screen Amount</td>
-                    <td style={{ width: "10px" }}> :</td>
-                    <td style={{ textAlign: "left"}}>
-                      {Number(data.screenAmount || 0).toFixed(2)}
-                    </td>
-                  </tr>
+                  {(Number(data?.noOfScreen || 0) > 0 || Number(data?.screenAmount || 0) > 0) && (
+                    <tr>
+                      <td style={{ width: "30%", paddingBottom: "5px", paddingLeft: "8px" }}>
+                        {Number(data?.noOfScreen || 0) > 0 ? `Nos: ${data.noOfScreen}` : ""}
+                      </td>
+                      <td style={{ paddingBottom: "5px" }}>Screen Amount</td>
+                      <td style={{ width: "10px", paddingBottom: "5px" }}> :</td>
+                      <td style={{ textAlign: "left", paddingBottom: "5px", paddingRight: "8px" }}>
+                        {Number(data?.screenAmount || 0).toFixed(2)}
+                      </td>
+                    </tr>
+                  )}
 
                   {data?.taxes?.map((tax, index) => {
                     const taxName =
@@ -835,30 +856,30 @@ const FabricBillPrint = forwardRef(
                       tax.taxName;
                     return (
                       <tr key={index}>
-                        <td></td>
-                        <td>{taxName}</td>
-                        <td style={{ width: "10px" }}> :</td>
-                        <td style={{ textAlign: "left"}}>
+                        <td style={{ paddingBottom: "5px", paddingLeft: "8px" }}></td>
+                        <td style={{ paddingBottom: "5px" }}>{taxName}</td>
+                        <td style={{ width: "10px", paddingBottom: "5px" }}> :</td>
+                        <td style={{ textAlign: "left", paddingBottom: "5px", paddingRight: "8px" }}>
                           {Number(tax.taxAmount || 0).toFixed(2)}
                         </td>
                       </tr>
                     );
                   })}
                   <tr>
-                    <td></td>
-                    <td>Round Off</td>
-                    <td style={{ width: "10px" }}> :</td>
-                    <td style={{ textAlign: "left" }}>
+                    <td style={{ paddingBottom: "5px", paddingLeft: "8px" }}></td>
+                    <td style={{ paddingBottom: "5px" }}>Round Off</td>
+                    <td style={{ width: "10px", paddingBottom: "5px" }}> :</td>
+                    <td style={{ textAlign: "left", paddingBottom: "5px", paddingRight: "8px" }}>
                       {Number(data?.roundOff || 0).toFixed(2)}
                     </td>
                   </tr>
-                  <tr style={{ borderTop: "1px solid black" }}>
-                    <td style={{ borderTop: "1px solid black" }}></td>
-                    <td style={{ paddingTop: "5px", fontWeight: "bold", fontSize: "11px" }}>
+                  <tr>
+                    <td style={{ borderTop: "1px solid black", paddingLeft: "8px" }}></td>
+                    <td style={{ borderTop: "1px solid black", paddingTop: "5px", fontWeight: "bold", fontSize: "11px" }}>
                       Net Amount
                     </td>
-                    <td style={{ width: "10px", paddingTop: "5px", fontWeight: "bold" }}> :</td>
-                    <td style={{ textAlign: "left", paddingTop: "5px", fontWeight: "bold", fontSize: "11px" }}>
+                    <td style={{ borderTop: "1px solid black", width: "10px", paddingTop: "5px", fontWeight: "bold" }}> :</td>
+                    <td style={{ borderTop: "1px solid black", textAlign: "left", paddingTop: "5px", paddingRight: "8px", fontWeight: "bold", fontSize: "11px" }}>
                       {Number(data?.netAmount || 0).toFixed(2)}
                     </td>
                   </tr>
