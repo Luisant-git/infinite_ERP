@@ -142,8 +142,8 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
               <th style={{ width: '15%' }}>Color</th>
               <th style={{ width: '10%' }}>Dia</th>
               <th style={{ width: '10%' }}>Rolls</th>
-              <th style={{ width: '12%' }}>Weight</th>
-              <th style={{ width: '23%' }}>Remarks</th>
+              <th style={{ width: '12%' }}>Dc Wt</th>
+              <th style={{ width: '23%' }}>Previous Dc List</th>
             </tr>
           </thead>
           <tbody>
@@ -161,7 +161,22 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
                 <td>{item.dia || '-'}</td>
                 <td>{item.rolls || ''}</td>
                 <td>{item.weight || ''}</td>
-                <td className="text-left">{item.remarks || ''}</td>
+                {index === 0 && (
+                  <td rowSpan={itemsPerPage} style={{ verticalAlign: 'top', padding: 0 }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px' }}>
+                      <tbody>
+                        {data.previousList?.map((prev, i) => (
+                          <tr key={i}>
+                            <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{prev.dcNo}</td>
+                            <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{dayjs(prev.dcDate).format('DD/MM/YY')}</td>
+                            <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{prev.totalRolls}</td>
+                            <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{Number(prev.totalQty).toFixed(3)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </td>
+                )}
               </tr>
               );
             })}
@@ -172,7 +187,22 @@ const FabricDCPrint = React.forwardRef(({ data }, ref) => {
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
-                <td>&nbsp;</td>
+                {page.items.length === 0 && index === 0 && (
+                  <td rowSpan={itemsPerPage} style={{ verticalAlign: 'top', padding: 0 }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px' }}>
+                      <tbody>
+                        {data.previousList?.map((prev, i) => (
+                          <tr key={i}>
+                            <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{prev.dcNo}</td>
+                            <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{dayjs(prev.dcDate).format('DD/MM/YY')}</td>
+                            <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{prev.totalRolls}</td>
+                            <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{Number(prev.totalQty).toFixed(3)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

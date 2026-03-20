@@ -342,6 +342,7 @@ const FabricBillPrint = forwardRef(
               width: "100%",
               borderCollapse: "collapse",
               border: "1px solid black",
+              borderTop: "none",
               marginTop: "0",
             }}
           >
@@ -349,6 +350,7 @@ const FabricBillPrint = forwardRef(
               <td
                 style={{
                   border: "1px solid black",
+                  borderTop: "none",
                   padding: "8px",
                   width: "50%",
                   verticalAlign: "top",
@@ -415,6 +417,7 @@ const FabricBillPrint = forwardRef(
               <td
                 style={{
                   border: "1px solid black",
+                  borderTop: "none",
                   padding: "8px",
                   width: "50%",
                   verticalAlign: "top",
@@ -909,6 +912,7 @@ const FabricBillPrint = forwardRef(
               width: "100%",
               borderCollapse: "collapse",
               border: "1px solid black",
+              borderTop: "none",
               marginTop: "0",
             }}
           >
@@ -916,6 +920,7 @@ const FabricBillPrint = forwardRef(
               <td
                 style={{
                   border: "1px solid black",
+                  borderTop: "none",
                   padding: "15px",
                   width: "25%",
                   textAlign: "center",
@@ -928,6 +933,7 @@ const FabricBillPrint = forwardRef(
               <td
                 style={{
                   border: "1px solid black",
+                  borderTop: "none",
                   padding: "15px",
                   width: "25%",
                   textAlign: "center",
@@ -940,6 +946,7 @@ const FabricBillPrint = forwardRef(
               <td
                 style={{
                   border: "1px solid black",
+                  borderTop: "none",
                   padding: "15px",
                   width: "25%",
                   textAlign: "center",
@@ -952,6 +959,7 @@ const FabricBillPrint = forwardRef(
               <td
                 style={{
                   border: "1px solid black",
+                  borderTop: "none",
                   padding: "15px",
                   width: "25%",
                   textAlign: "center",

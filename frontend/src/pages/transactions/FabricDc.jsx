@@ -85,6 +85,50 @@ const FabricDc = () => {
   const [enableItemWiseProcess, setEnableItemWiseProcess] = useState(false);
   const [concernData, setConcernData] = useState(null);
 
+  const getPreviousList = async (inwardNo, currentDcId) => {
+    if (!inwardNo) return [];
+    try {
+      const [dcResponse, returnResponse] = await Promise.all([
+        getFabricDcs("", 1, 1000),
+        import("../../api/fabricReturn").then((m) =>
+          m.getFabricReturns("", 1, 1000)
+        ),
+      ]);
+
+      const allDcs = dcResponse.data || [];
+      const allReturns = returnResponse.data || [];
+
+      const existingDcs = allDcs.filter(
+        (dc) => dc.inwardNo === inwardNo && dc.id !== currentDcId
+      );
+      const existingReturns = allReturns.filter(
+        (ret) => ret.inwardNo === inwardNo
+      );
+
+      const previousList = [
+        ...existingDcs.map((dc) => ({
+          type: "DC",
+          dcNo: dc.dcNo,
+          dcDate: dc.dcDate,
+          totalRolls: dc.totalRolls || dc.details?.reduce((s,d) => s + (Number(d.rolls) || 0), 0),
+          totalQty: dc.totalQty || dc.details?.reduce((s,d) => s + (Number(d.dcWeight) || 0), 0),
+        })),
+        ...existingReturns.map((ret) => ({
+          type: "Return",
+          dcNo: ret.dcNo,
+          dcDate: ret.dcDate,
+          totalRolls: ret.totalRolls || ret.details?.reduce((s,d) => s + (Number(d.rolls) || 0), 0),
+          totalQty: ret.totalQty || ret.details?.reduce((s,d) => s + (Number(d.weight) || 0), 0),
+        }))
+      ].sort((a,b) => new Date(a.dcDate) - new Date(b.dcDate));
+
+      return previousList;
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  };
+
   useEffect(() => {
     loadData();
     loadMasters();
@@ -577,6 +621,7 @@ const FabricDc = () => {
 
       if (shouldPrint) {
         const party = allParties.find((p) => p.id === values.deliveryTo);
+        const previousList = await getPreviousList(values.grnNo, savedRecord?.id);
 
         setPrintData({
           dcNo: values.dcNo,
@@ -622,6 +667,7 @@ const FabricDc = () => {
           concernMailId: concernData?.email,
           concernGstNo: concernData?.gstNo,
           enableItemWiseProcess: enableItemWiseProcess,
+          previousList: previousList,
         });
 
         setTimeout(() => {
@@ -642,9 +688,10 @@ const FabricDc = () => {
     contentRef: printRef,
   });
 
-  const handlePrintRecord = (record) => {
+  const handlePrintRecord = async (record) => {
     const party = allParties.find((p) => p.id === record.deliveryTo);
     const dyeParty = allParties.find((p) => p.id === record.dyeParty);
+    const previousList = await getPreviousList(record.inwardNo, record.id);
 
     // Extract processes based on enableItemWiseProcess setting
     let processText = "";
@@ -714,6 +761,7 @@ const FabricDc = () => {
       concernMailId: concernData?.email,
       concernGstNo: concernData?.gstNo,
       enableItemWiseProcess: enableItemWiseProcess,
+      previousList: previousList,
     });
 
     setTimeout(() => handlePrint(), 100);
