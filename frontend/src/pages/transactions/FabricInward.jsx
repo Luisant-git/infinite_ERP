@@ -449,6 +449,9 @@ const FabricInward = () => {
       console.error('Error saving:', error);
       if (error.errorFields) {
         message.error('Please fill all required fields');
+      } else if (error.response?.data?.message) {
+        const errMsg = error.response.data.message;
+        message.error(Array.isArray(errMsg) ? errMsg[0] : errMsg);
       } else {
         message.error('Failed to save');
       }

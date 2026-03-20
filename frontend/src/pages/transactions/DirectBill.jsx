@@ -726,7 +726,12 @@ const DirectBill = () => {
       setIsFormVisible(false);
       loadData();
     } catch (error) {
-      message.error("Failed to save");
+      if (error.response?.data?.message) {
+        const errMsg = error.response.data.message;
+        message.error(Array.isArray(errMsg) ? errMsg[0] : errMsg);
+      } else {
+        message.error("Failed to save");
+      }
     } finally {
       setLoading(false);
     }

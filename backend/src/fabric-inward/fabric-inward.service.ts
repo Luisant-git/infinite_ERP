@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFabricInwardDto } from './dto/create-fabric-inward.dto';
 
@@ -154,7 +154,7 @@ export class FabricInwardService {
     });
 
     if (existing) {
-      throw new Error('GRN number already exists for this tenant');
+      throw new ConflictException('GRN number already exists for this tenant');
     }
 
     const totalQty = createDto.details?.reduce((sum, d) => sum + (Number(d.weight) || 0), 0) || 0;
