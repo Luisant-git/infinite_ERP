@@ -62,4 +62,15 @@ export class FabricInwardController {
   ) {
     return this.service.delete(parseInt(id), username || 'system', parseInt(tenantId));
   }
+
+  @Put(':id/toggle-close')
+  @ApiOperation({ summary: 'Toggle close status of fabric inward' })
+  async toggleClose(
+    @Param('id') id: string,
+    @Body('isClosed') isClosed: number,
+    @Headers('username') username: string,
+    @Headers('tenant-id') tenantId: string
+  ) {
+    return this.service.toggleClose(parseInt(id), parseInt(tenantId), isClosed, username || 'system');
+  }
 }

@@ -166,6 +166,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           label: "Fabric Return",
         },
         {
+          key: ROUTES.INWARD_CLOSER,
+          icon: <CloseOutlined />,
+          label: "Inward Closer",
+        },
+        {
           key: ROUTES.FABRIC_BILL,
           icon: <FileTextOutlined />,
           label: "Fabric Bill",

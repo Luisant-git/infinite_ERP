@@ -30,6 +30,11 @@ export const deleteFabricInward = async (id) => {
   return response.data;
 };
 
+export const toggleInwardClose = async (id, isClosed) => {
+  const response = await api.put(`/fabric-inward/${id}/toggle-close`, { isClosed });
+  return response.data;
+};
+
 export const getMastersByType = async (type, activeOnly = false) => {
   const params = activeOnly ? { activeOnly: 'true' } : {};
   const response = await api.get(`/master/${type}`, { params });

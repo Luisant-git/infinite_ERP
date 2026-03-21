@@ -310,4 +310,15 @@ export class FabricInwardService {
       }
     });
   }
+
+  async toggleClose(id: number, tenantId: number, isClosed: number, username: string) {
+    return this.prisma.fabricInwardHeader.update({
+      where: { id, tenantId },
+      data: {
+        isClosed,
+        modifiedBy: username,
+        modifiedDate: new Date()
+      }
+    });
+  }
 }

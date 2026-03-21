@@ -27,6 +27,7 @@ import FabricDc from './pages/transactions/FabricDc';
 import FabricReturn from './pages/transactions/FabricReturn';
 import FabricBill from './pages/transactions/FabricBill';
 import DirectBill from './pages/transactions/DirectBill';
+import InwardCloser from './pages/transactions/InwardCloser';
 import BillEinvoice from './pages/transactions/BillEinvoice';
 import EinvoiceSettings from './pages/transactions/EinvoiceSettings';
 import RateQuotation from './pages/transactions/RateQuotation';
@@ -72,6 +73,7 @@ function App() {
                     <Route path={ROUTES.FABRIC_INWARD} element={<FabricInward />} />
                     <Route path={ROUTES.FABRIC_DC} element={<FabricDc />} />
                     <Route path={ROUTES.FABRIC_RETURN} element={<FabricReturn />} />
+                    <Route path={ROUTES.INWARD_CLOSER} element={<InwardCloser />} />
                     <Route path={ROUTES.FABRIC_BILL} element={<FabricBill />} />
                     <Route path={ROUTES.DIRECT_BILL} element={<DirectBill />} />
                     <Route path={ROUTES.BILL_EINVOICE} element={<BillEinvoice />} />
