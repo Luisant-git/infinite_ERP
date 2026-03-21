@@ -106,14 +106,28 @@ const UserMaster = () => {
       setEditingUser(userData);
       setIsAdminUser(userData.adminUser);
       setIsMDUser(userData.IsMD === 1);
-      setSelectedConcern(userData.concernIds || []);
+      
+      // Parse concernIds which is stored as a JSON string in the database
+      let parsedConcernIds = [];
+      if (userData.concernIds) {
+        try {
+          parsedConcernIds = typeof userData.concernIds === 'string' 
+            ? JSON.parse(userData.concernIds) 
+            : userData.concernIds;
+        } catch (e) {
+          console.error("Error parsing concernIds:", e);
+          parsedConcernIds = [];
+        }
+      }
+
+      setSelectedConcern(parsedConcernIds);
       form.setFieldsValue({
         username: userData.username,
         password: '********',
         adminUser: userData.adminUser,
         IsMD: userData.IsMD === 1,
         isActive: userData.isActive,
-        concernIds: userData.concernIds || [],
+        concernIds: parsedConcernIds,
         canAdd: userData.canAdd,
         canEdit: userData.canEdit,
         canDelete: userData.canDelete
