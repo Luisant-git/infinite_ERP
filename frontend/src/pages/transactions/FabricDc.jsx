@@ -83,6 +83,7 @@ const FabricDc = () => {
   const [inwardDetails, setInwardDetails] = useState([]);
   const [printData, setPrintData] = useState(null);
   const [enableItemWiseProcess, setEnableItemWiseProcess] = useState(false);
+  const [excessPercentage, setExcessPercentage] = useState(0);
   const [concernData, setConcernData] = useState(null);
 
   const getPreviousList = async (inwardNo, currentDcId) => {
@@ -141,6 +142,7 @@ const FabricDc = () => {
     try {
       const settings = await getSettings();
       setEnableItemWiseProcess(settings.enableItemWiseProcess || false);
+      setExcessPercentage(Number(settings.excessPercentage) || 0);
     } catch (error) {
       console.error("Error loading settings:", error);
     }
@@ -556,12 +558,27 @@ const FabricDc = () => {
         return;
       }
 
-      setLoading(true);
-
       const totalQty = details.reduce(
         (sum, d) => sum + (Number(d.dcWeight) || 0),
         0,
       );
+
+      // Excess validation logic
+      if (excessPercentage > 0 && inwardQty > 0) {
+        const alreadyDelivered = Number(inwardQty) - Number(pendingInward);
+        const maxAllowed = Number(inwardQty) * (1 + excessPercentage / 100);
+        const currentPossible = maxAllowed - alreadyDelivered;
+        
+        if (Number(totalQty.toFixed(3)) > Number(currentPossible.toFixed(3))) {
+          message.error(
+            `Cannot Save! Access limit reached. \n Inward Weight: ${inwardQty}, Already Delivered: ${alreadyDelivered.toFixed(3)}, Current DC Possible: ${currentPossible.toFixed(3)}`
+          );
+          return;
+        }
+      }
+
+      setLoading(true);
+
       const totalRolls = details.reduce((sum, d) => sum + (d.rolls || 0), 0);
 
       const { dyeingPartyName, dyeParty, ...submitValues } = values;

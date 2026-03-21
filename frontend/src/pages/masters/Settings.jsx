@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Switch, Button, message, Space, Input } from 'antd';
+import { Card, Form, Switch, Button, message, Space, Input, InputNumber } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
 import { getSettings, updateSettings } from '../../api/settings';
 
@@ -16,7 +16,8 @@ const Settings = () => {
       const data = await getSettings();
       form.setFieldsValue({
         enableItemWiseProcess: data.enableItemWiseProcess,
-        defaultHsnCode: data.defaultHsnCode || ''
+        defaultHsnCode: data.defaultHsnCode || '',
+        excessPercentage: data.excessPercentage || 0
       });
     } catch (error) {
       message.error('Failed to load settings');
@@ -61,6 +62,19 @@ const Settings = () => {
             placeholder="Enter HSN Code (e.g., 5208)"
             maxLength={20}
             autoComplete="off"
+          />
+        </Form.Item>
+        <Form.Item 
+          label="Excess % Fixing" 
+          name="excessPercentage"
+          tooltip="Limit for excess weight allowed in Delivery Challan / Return"
+        >
+          <InputNumber 
+            addonAfter="%" 
+            min={0} 
+            max={100} 
+            step={0.1} 
+            style={{ width: '100%' }}
           />
         </Form.Item>
 
