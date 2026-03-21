@@ -43,5 +43,7 @@ export const ROUTES = {
   DC_CLOSE: '/transactions/dc-close',
   REPORTS: '/reports',
   INWARD_SUMMARY: '/reports/overall-summary/inward-summary',
+  UN_DC_LIST: '/reports/un-dc-list',
+  UN_BILL_LIST: '/reports/un-bill-list',
   SETTINGS: '/settings'
 };

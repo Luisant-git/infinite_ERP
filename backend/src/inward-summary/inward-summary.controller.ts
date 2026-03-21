@@ -16,6 +16,16 @@ export class InwardSummaryController {
     return this.inwardSummaryService.testConcerns();
   }
 
+  @Get('un-dc')
+  async getUnDcList(@Query() query: InwardSummaryQueryDto) {
+    return this.inwardSummaryService.getUnDcList(query);
+  }
+
+  @Get('un-bill')
+  async getUnBillList(@Query() query: InwardSummaryQueryDto) {
+    return this.inwardSummaryService.getUnBillList(query);
+  }
+
   @Get('md-view')
   async getInwardSummaryForMD(@Query() query: InwardSummaryQueryDto) {
     return this.inwardSummaryService.getInwardSummaryForMD(query);

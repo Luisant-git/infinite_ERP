@@ -243,6 +243,16 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           icon: <FileTextOutlined />,
           label: "Inward Summary",
         },
+        {
+          key: ROUTES.UN_DC_LIST,
+          icon: <FileTextOutlined />,
+          label: "Un-DC List",
+        },
+        {
+          key: ROUTES.UN_BILL_LIST,
+          icon: <FileTextOutlined />,
+          label: "Un-Bill List",
+        },
       ],
     },
     ...(canSettings()

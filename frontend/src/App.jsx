@@ -34,6 +34,8 @@ import RateQuotation from './pages/transactions/RateQuotation';
 import RateQuotationApproval from './pages/transactions/RateQuotationApproval';
 import BillApproval from './pages/transactions/BillApproval';
 import InwardSummary from './pages/reports/InwardSummary';
+import UnDcList from './pages/reports/UnDcList';
+import UnBillList from './pages/reports/UnBillList';
 import { ROUTES } from './constants/permissions';
 import './App.css';
 import './styles/mobile.css';
@@ -85,6 +87,8 @@ function App() {
                     <Route path={ROUTES.DC_CLOSE} element={<div>DC Close</div>} />
                     <Route path={ROUTES.REPORTS} element={<div>Reports</div>} />
                     <Route path={ROUTES.INWARD_SUMMARY} element={<InwardSummary />} />
+                    <Route path={ROUTES.UN_DC_LIST} element={<UnDcList />} />
+                    <Route path={ROUTES.UN_BILL_LIST} element={<UnBillList />} />
                     <Route path={ROUTES.SETTINGS} element={<Settings />} />
                   </Routes>
                 </AppLayout>

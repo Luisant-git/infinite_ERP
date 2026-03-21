@@ -632,4 +632,117 @@ export class InwardSummaryService {
       },
     };
   }
+
+  async getUnDcList(query: InwardSummaryQueryDto) {
+    const summary = await this.getInwardSummary({ ...query, page: 1, limit: 10000 });
+    const data = summary.data.filter((item) => Number(item.balanceKgs) > 0);
+    return {
+      data,
+      totals: this.calculateTotals(data),
+    };
+  }
+
+  async getUnBillList(query: InwardSummaryQueryDto) {
+    const { fromDate, toDate, tenantId, search } = query;
+
+    const where: any = {
+      deleteFlg: 0,
+      isNoNeedBill: 0,
+    };
+
+    if (tenantId) where.tenantId = Number(tenantId);
+    if (fromDate && toDate) {
+      where.dcDate = {
+        gte: new Date(fromDate),
+        lte: new Date(toDate),
+      };
+    }
+
+    if (search) {
+      where.OR = [
+        { dcNo: { contains: search } },
+        { inwardNo: { contains: search } },
+        { pdcNo: { contains: search } },
+      ];
+    }
+
+    const [dcs, parties] = await Promise.all([
+      this.prisma.fabricDcHeader.findMany({
+        where,
+        orderBy: { dcDate: "desc" },
+        include: {
+          details: {
+            where: { deleteFlg: 0 },
+            include: {
+              fabric: { select: { masterName: true } },
+              dia: { select: { masterName: true } },
+              color: { select: { masterName: true } },
+              uom: { select: { masterName: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.party.findMany({
+        select: { id: true, partyName: true },
+      }),
+    ]);
+
+    // Check if DC is used in Bill
+    const dcsWithBillStatus = await Promise.all(
+      dcs.map(async (dc) => {
+        const consumedWeights = await this.prisma.fabricBillDetail.aggregate({
+          where: {
+            dcId: dc.id,
+            deleteFlg: 0,
+            header: { deleteFlg: 0 },
+          },
+          _sum: {
+            weight: true,
+          },
+        });
+        const totalBilledWeight = Number(consumedWeights._sum.weight || 0);
+        const totalDcWeight = Number(dc.totalQty || 0);
+
+        return {
+          ...dc,
+          isFullyBilled: totalBilledWeight >= totalDcWeight && totalDcWeight > 0,
+        };
+      }),
+    );
+
+    const partyMap = new Map(parties.map((p) => [p.id, p.partyName]));
+
+    const flattenedData = dcsWithBillStatus
+      .filter((dc) => !dc.isFullyBilled)
+      .flatMap((dc) =>
+        dc.details.map((detail) => ({
+          id: detail.id,
+          dcNo: dc.dcNo,
+          dcDate: dc.dcDate,
+          inwardNo: dc.inwardNo,
+          partyName: partyMap.get(dc.partyId as number) || "",
+          pdcNo: dc.pdcNo || "",
+          fabric: detail.fabric?.masterName || "",
+          dia: detail.dia?.masterName || "",
+          color: detail.color?.masterName || "",
+          gsm: detail.gsm || "",
+          processWeight: Number(detail.processWeight || 0),
+          dcWeight: Number(detail.dcWeight || 0),
+          rolls: Number(detail.rolls || 0),
+          uom: detail.uom?.masterName || "",
+        })),
+      );
+
+    return {
+      data: flattenedData,
+      totals: {
+        processWeight: flattenedData.reduce(
+          (acc, item) => acc + item.processWeight,
+          0,
+        ),
+        dcWeight: flattenedData.reduce((acc, item) => acc + item.dcWeight, 0),
+        rolls: flattenedData.reduce((acc, item) => acc + item.rolls, 0),
+      },
+    };
+  }
 }
