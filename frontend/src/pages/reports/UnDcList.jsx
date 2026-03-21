@@ -41,6 +41,7 @@ const UnDcList = () => {
       dataIndex: "inwardKgs", 
       width: 100, 
       align: "right", 
+      searchable: true,
       render: (val) => Number(val).toFixed(3) 
     },
     { 
@@ -48,6 +49,7 @@ const UnDcList = () => {
       dataIndex: "dcKgs", 
       width: 100, 
       align: "right", 
+      searchable: true,
       render: (val) => Number(val).toFixed(3) 
     },
     { 
@@ -55,6 +57,7 @@ const UnDcList = () => {
       dataIndex: "balanceKgs", 
       width: 100, 
       align: "right", 
+      searchable: true,
       render: (val) => Number(val).toFixed(3) 
     },
     { title: "UOM", dataIndex: "uom", width: 100, searchable: true },

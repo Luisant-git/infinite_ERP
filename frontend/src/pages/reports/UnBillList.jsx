@@ -36,19 +36,21 @@ const UnBillList = () => {
     { title: "Fabric", dataIndex: "fabric", width: 120, searchable: true },
     { title: "Dia", dataIndex: "dia", width: 80, searchable: true },
     { title: "Color", dataIndex: "color", width: 100, searchable: true },
-    { title: "GSM", dataIndex: "gsm", width: 80 },
+    { title: "GSM", dataIndex: "gsm", width: 80, searchable: true },
     { 
       title: "DC Weight", 
       dataIndex: "dcWeight", 
       width: 100, 
       align: "right", 
+      searchable: true,
       render: (val) => Number(val).toFixed(3) 
     },
     { 
       title: "Rolls", 
       dataIndex: "rolls", 
       width: 80, 
-      align: "right"
+      align: "right",
+      searchable: true
     },
     { title: "UOM", dataIndex: "uom", width: 80, searchable: true },
   ];
