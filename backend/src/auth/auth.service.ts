@@ -133,7 +133,7 @@ export class AuthService {
     // For MD, admin, or users with multiple concerns, return available tenants
     const availableTenants = await this.prisma.tenant.findMany({
       where: {
-        ...(user.adminUser || user.IsMD === 1 ? {} : concernIds.length === 0 ? {} : { concernId: { in: concernIds } }),
+        ...(user.adminUser || user.IsMD === 1 ? {} : { concernId: { in: concernIds } }),
         concern: { isDeleted: false }
       },
       include: { concern: true }
