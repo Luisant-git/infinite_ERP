@@ -104,7 +104,9 @@ export class CollectionService {
       const amt = Number(c.amount || 0);
       const chg = Number(c.returnCharges || 0);
       if (c.chequeReturn) {
-        totalReturns += (amt + chg);
+        // Amount is not added to totalReturns because it was never subtracted from balance (it's excluded from totalCollections)
+        // Only the penalty (Return Charges) should be added to the debt.
+        totalReturns += chg;
       } else {
         totalCollections += amt;
       }
