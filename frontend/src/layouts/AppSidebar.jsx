@@ -14,6 +14,7 @@ import {
   DatabaseOutlined,
   FileProtectOutlined,
   CloudUploadOutlined,
+  AccountBookOutlined,
 } from "@ant-design/icons";
 import { LuSettings2 } from "react-icons/lu";
 import { usePermissions } from "../hooks/usePermissions";
@@ -233,6 +234,18 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           },
         ]
       : []),
+    {
+      key: "accounts",
+      icon: <AccountBookOutlined />,
+      label: "Accounts",
+      children: [
+        {
+          key: ROUTES.PARTY_OPENING,
+          icon: <FileTextOutlined />,
+          label: "Party Opening",
+        },
+      ],
+    },
     {
       key: "reports",
       icon: <BarChartOutlined />,

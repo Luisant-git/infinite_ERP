@@ -28,7 +28,9 @@ apiClient.interceptors.request.use((config) => {
   }
   
   // Only add tenant-id for endpoints that need it
-  const needsTenant = !noTenantEndpoints.some(endpoint => config.url?.startsWith(endpoint));
+  const needsTenant = !noTenantEndpoints.some(endpoint => 
+    config.url === endpoint || config.url?.startsWith(endpoint + '/')
+  );
   if (tenantId && needsTenant) {
     config.headers['tenant-id'] = tenantId;
   }

@@ -18,6 +18,7 @@ export const ROUTES = {
   USER_MASTER: '/masters/users',
   CONCERN_MASTER: '/masters/concerns',
   PARTY_MASTER: '/masters/parties',
+  PARTY_OPENING: '/accounts/party-opening',
   PARTY_APPROVAL: '/masters/party-approval',
   PARTY_TYPE_MASTER: '/masters/party-types',
   PROCESS_MASTER: '/masters/processes',

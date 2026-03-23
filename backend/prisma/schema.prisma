@@ -47,6 +47,7 @@ model Tenant {
   fabricBills FabricBillHeader[]
   settings Settings?
   einvoiceSettings EinvoiceSettings?
+  partyOpenings PartyOpening[]
   
   @@unique([concernId, financialYear])
   @@map("tenants")
@@ -105,6 +106,7 @@ model Party {
   fabricBills FabricBillHeader[] @relation("BillParty")
   fabricBillInvoices FabricBillHeader[] @relation("BillInvoiceTo")
   screenRate PartyScreenRate?
+  partyOpenings PartyOpening[]
   
   @@map("parties")
 }
@@ -308,6 +310,25 @@ model GstMaster {
   updatedAt     DateTime @updatedAt
   
   @@map("gst_masters")
+}
+
+model PartyOpening {
+  id            Int      @id @default(autoincrement())
+  tenantId      Int
+  partyId       Int
+  billNo        String?  @db.VarChar(50)
+  billDate      DateTime @default(now())
+  debitAmount   Decimal  @default(0) @db.Decimal(12, 2)
+  creditAmount  Decimal  @default(0) @db.Decimal(12, 2)
+  remarks       String?  @db.VarChar(255)
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  party         Party    @relation(fields: [partyId], references: [id])
+
+  @@map("party_openings")
 }
 
 model Master {
