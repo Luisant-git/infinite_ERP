@@ -23,9 +23,10 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { SettingsModule } from './settings/settings.module';
 import { InwardSummaryModule } from './inward-summary/inward-summary.module';
 import { PartyOpeningModule } from './party-opening/party-opening.module';
+import { CollectionModule } from './collection/collection.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule, PartyScreenRateModule, MasterModule, FabricInwardModule, RateQuotationModule, FabricDcModule, FabricReturnModule, GstMasterModule, FabricBillModule, BillEinvoiceModule, DashboardModule, SettingsModule, InwardSummaryModule, PartyOpeningModule],
+  imports: [PrismaModule, AuthModule, PartyModule, ConcernModule, PartyTypeModule, DesignModule, UploadModule, ProcessModule, PartyProcessRateModule, PartyScreenRateModule, MasterModule, FabricInwardModule, RateQuotationModule, FabricDcModule, FabricReturnModule, GstMasterModule, FabricBillModule, BillEinvoiceModule, DashboardModule, SettingsModule, InwardSummaryModule, PartyOpeningModule, CollectionModule],
   controllers: [AppController],
   providers: [AppService],
 })

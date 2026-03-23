@@ -48,6 +48,7 @@ model Tenant {
   settings Settings?
   einvoiceSettings EinvoiceSettings?
   partyOpenings PartyOpening[]
+  collections   Collection[]
   
   @@unique([concernId, financialYear])
   @@map("tenants")
@@ -107,6 +108,7 @@ model Party {
   fabricBillInvoices FabricBillHeader[] @relation("BillInvoiceTo")
   screenRate PartyScreenRate?
   partyOpenings PartyOpening[]
+  collections   Collection[]
   
   @@map("parties")
 }
@@ -838,4 +840,31 @@ model BillEinvoice {
   bill FabricBillHeader @relation(fields: [billId], references: [id])
   
   @@map("bill_einvoices")
+}
+model Collection {
+  id            Int       @id @default(autoincrement())
+  tenantId      Int
+  refNo         String    @db.VarChar(50)
+  refDate       DateTime  @default(now())
+  partyId       Int
+  amount        Decimal   @db.Decimal(12, 2)
+  remarks       String?   @db.VarChar(255)
+  mode          String    @db.VarChar(20) // CASH, CHEQUE, TDS, NEFT/RTGS, CREDIT, DEBIT
+  
+  // Bank Details (Optional based on mode)
+  bankName      String?   @db.VarChar(100)
+  ourBankName   String?   @db.VarChar(100)
+  chequeNo      String?   @db.VarChar(50)
+  chequeDate    DateTime?
+  chequeReturn  Boolean   @default(false)
+  returnCharges Decimal   @default(0) @db.Decimal(12, 2)
+  
+  isDeleted     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  tenant        Tenant    @relation(fields: [tenantId], references: [id])
+  party         Party     @relation(fields: [partyId], references: [id])
+
+  @@map("collections")
 }

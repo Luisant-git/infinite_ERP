@@ -12,6 +12,7 @@ import UserMaster from './pages/masters/UserMaster';
 import ConcernMaster from './pages/masters/ConcernMaster';
 import PartyMaster from './pages/masters/PartyMaster';
 import PartyOpening from './pages/accounts/PartyOpening';
+import Collection from './pages/accounts/Collection';
 import PartyApproval from './pages/masters/PartyApproval';
 import PartyTypeMaster from './pages/masters/PartyTypeMaster';
 import ProcessMaster from './pages/masters/ProcessMaster';
@@ -64,6 +65,7 @@ function App() {
                     <Route path={ROUTES.CONCERN_MASTER} element={<ConcernMaster />} />
                     <Route path={ROUTES.PARTY_MASTER} element={<PartyMaster />} />
                     <Route path={ROUTES.PARTY_OPENING} element={<PartyOpening />} />
+                    <Route path={ROUTES.COLLECTION} element={<Collection />} />
                     <Route path={ROUTES.PARTY_APPROVAL} element={<MDRoute><PartyApproval /></MDRoute>} />
                     <Route path={ROUTES.PARTY_TYPE_MASTER} element={<PartyTypeMaster />} />
                     <Route path={ROUTES.PROCESS_MASTER} element={<ProcessMaster />} />

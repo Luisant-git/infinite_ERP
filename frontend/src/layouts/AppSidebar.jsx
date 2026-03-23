@@ -244,6 +244,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           icon: <FileTextOutlined />,
           label: "Party Opening",
         },
+        {
+          key: ROUTES.COLLECTION,
+          icon: <AccountBookOutlined />,
+          label: "Collection",
+        },
       ],
     },
     {

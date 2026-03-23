@@ -20,6 +20,7 @@ const MasterData = () => {
   const [dias, setDias] = useState([]);
   const [uoms, setUoms] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [banks, setBanks] = useState([]);
 
   useEffect(() => {
     loadAllMasters();
@@ -27,18 +28,20 @@ const MasterData = () => {
 
   const loadAllMasters = async () => {
     try {
-      const [fabricsRes, colorsRes, diasRes, uomsRes, employeesRes] = await Promise.all([
+      const [fabricsRes, colorsRes, diasRes, uomsRes, employeesRes, banksRes] = await Promise.all([
         getMastersByType('Fabric'),
         getMastersByType('Color'),
         getMastersByType('Dia'),
         getMastersByType('UOM'),
-        getMastersByType('Employee')
+        getMastersByType('Employee'),
+        getMastersByType('Bank')
       ]);
       setFabrics(fabricsRes || []);
       setColors(colorsRes || []);
       setDias(diasRes || []);
       setUoms(uomsRes || []);
       setEmployees(employeesRes || []);
+      setBanks(banksRes || []);
     } catch (error) {
       console.error('Error loading masters:', error);
     }
@@ -87,7 +90,8 @@ const MasterData = () => {
       const currentData = currentType === 'Fabric' ? fabrics : 
                           currentType === 'Color' ? colors : 
                           currentType === 'Dia' ? dias : 
-                          currentType === 'UOM' ? uoms : employees;
+                          currentType === 'UOM' ? uoms : 
+                          currentType === 'Bank' ? banks : employees;
 
       const duplicate = currentData.find(m => 
         m.masterName.trim().toLowerCase() === trimmedName.toLowerCase() && 
@@ -210,6 +214,12 @@ const MasterData = () => {
             Add Employee
           </Button>
           <Table columns={columns('Employee')} dataSource={employees} rowKey="id" size="small" className="compact-table" />
+        </TabPane>
+        <TabPane tab="Bank" key="Bank">
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd('Bank')} style={{ marginBottom: 16 }} disabled={!canAdd('master_data')}>
+            Add Bank
+          </Button>
+          <Table columns={columns('Bank')} dataSource={banks} rowKey="id" size="small" className="compact-table" />
         </TabPane>
       </Tabs>
 
