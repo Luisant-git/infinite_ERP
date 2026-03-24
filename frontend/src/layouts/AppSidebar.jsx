@@ -249,6 +249,11 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           icon: <AccountBookOutlined />,
           label: "Collection",
         },
+        {
+          key: ROUTES.PARTY_LEDGER,
+          icon: <BarChartOutlined />,
+          label: "Party Ledger",
+        },
       ],
     },
     {
