@@ -98,6 +98,9 @@ export class CreateFabricBillDto {
   billNo: string;
 
   @IsOptional()
+  billDate?: Date;
+
+  @IsOptional()
   @IsInt()
   isDirectBill?: number;
 

@@ -1,6 +1,7 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFabricInwardDto } from './dto/create-fabric-inward.dto';
+import { validateTransactionDate } from '../utils/fin-year.util';
 
 @Injectable()
 export class FabricInwardService {
@@ -163,8 +164,19 @@ export class FabricInwardService {
     // Get tenant info to populate yearId and concernId
     const tenant = await this.prisma.tenant.findUnique({
       where: { id: tenantId },
-      select: { concernId: true }
+      select: { 
+        concernId: true,
+        financialYear: true,
+        startMonth: true,
+        startDay: true,
+        endMonth: true,
+        endDay: true
+      }
     });
+
+    if (tenant) {
+      validateTransactionDate(createDto.grnDate || new Date(), tenant.financialYear, tenant.startMonth, tenant.startDay, tenant.endMonth, tenant.endDay);
+    }
 
     return this.prisma.fabricInwardHeader.create({
       data: {
@@ -231,8 +243,19 @@ export class FabricInwardService {
     // Get tenant info to populate yearId and concernId
     const tenant = await this.prisma.tenant.findUnique({
       where: { id: tenantId },
-      select: { concernId: true }
+      select: { 
+        concernId: true,
+        financialYear: true,
+        startMonth: true,
+        startDay: true,
+        endMonth: true,
+        endDay: true
+      }
     });
+
+    if (tenant) {
+      validateTransactionDate(updateDto.grnDate || new Date(), tenant.financialYear, tenant.startMonth, tenant.startDay, tenant.endMonth, tenant.endDay);
+    }
 
     await this.prisma.fabricInwardDetail.updateMany({
       where: { headerId: id },

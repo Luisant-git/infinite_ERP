@@ -40,6 +40,8 @@ import { getMastersByType } from "../../api/fabricInward";
 import { getSettings } from "../../api/settings";
 import { getConcerns } from "../../api/concern";
 import { useMenuPermissions } from "../../hooks/useMenuPermissions";
+import { useSelector } from "react-redux";
+import { getFYRange } from "../../utils/helpers";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -80,6 +82,13 @@ const FabricReturn = () => {
   const [enableItemWiseProcess, setEnableItemWiseProcess] = useState(false);
   const [excessPercentage, setExcessPercentage] = useState(0);
   const [concernData, setConcernData] = useState(null);
+  const { selectedYear } = useSelector((state) => state.auth);
+
+  const fyRange = getFYRange(selectedYear, concernData);
+  const disabledDate = (current) => {
+    if (!fyRange || !current) return false;
+    return current < dayjs(fyRange.startDate).startOf('day') || current > dayjs(fyRange.endDate).endOf('day');
+  };
 
   useEffect(() => {
     loadData();
@@ -498,7 +507,9 @@ const FabricReturn = () => {
       setIsFormVisible(false);
       loadData();
     } catch (error) {
-      message.error("Failed to save");
+      console.error("Save error:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Failed to save";
+      message.error(errorMsg);
     } finally {
       setLoading(false);
     }

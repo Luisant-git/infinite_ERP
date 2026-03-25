@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { validateTransactionDate } from '../utils/fin-year.util';
+
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
 
@@ -42,6 +44,24 @@ export class CollectionService {
   }
 
   async create(createDto: CreateCollectionDto, tenantId: number) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { 
+        financialYear: true,
+        startMonth: true,
+        startDay: true,
+        endMonth: true,
+        endDay: true
+      }
+    });
+
+    if (tenant) {
+      validateTransactionDate(createDto.refDate || new Date(), tenant.financialYear, tenant.startMonth, tenant.startDay, tenant.endMonth, tenant.endDay);
+      if (createDto.chequeDate) {
+        validateTransactionDate(createDto.chequeDate, tenant.financialYear, tenant.startMonth, tenant.startDay, tenant.endMonth, tenant.endDay);
+      }
+    }
+
     return this.prisma.collection.create({
       data: {
         ...createDto,
@@ -59,6 +79,24 @@ export class CollectionService {
   }
 
   async update(id: number, updateDto: UpdateCollectionDto, tenantId: number) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { 
+        financialYear: true,
+        startMonth: true,
+        startDay: true,
+        endMonth: true,
+        endDay: true
+      }
+    });
+
+    if (tenant) {
+      validateTransactionDate(updateDto.refDate || new Date(), tenant.financialYear, tenant.startMonth, tenant.startDay, tenant.endMonth, tenant.endDay);
+      if (updateDto.chequeDate) {
+        validateTransactionDate(updateDto.chequeDate, tenant.financialYear, tenant.startMonth, tenant.startDay, tenant.endMonth, tenant.endDay);
+      }
+    }
+
     return this.prisma.collection.update({
       where: {
         id,

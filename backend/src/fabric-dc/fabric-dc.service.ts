@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { validateTransactionDate } from '../utils/fin-year.util';
+
 
 @Injectable()
 export class FabricDcService {
@@ -97,6 +99,21 @@ export class FabricDcService {
     const dcNoMatch = data.dcNo.match(/(\d+)$/);
     const sortOrder = dcNoMatch ? parseInt(dcNoMatch[1]) : 1;
     
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { 
+        financialYear: true,
+        startMonth: true,
+        startDay: true,
+        endMonth: true,
+        endDay: true
+      }
+    });
+
+    if (tenant) {
+      validateTransactionDate(data.dcDate || new Date(), tenant.financialYear, tenant.startMonth, tenant.startDay, tenant.endMonth, tenant.endDay);
+    }
+
     // Check for duplicate dcNo in fabric DC within the same tenant
     const existingDc = await this.prisma.fabricDcHeader.findFirst({
       where: {
@@ -172,7 +189,22 @@ export class FabricDcService {
     });
   }
 
-  async update(id: number, data: any) {
+  async update(id: number, data: any, tenantId: number) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { 
+        financialYear: true,
+        startMonth: true,
+        startDay: true,
+        endMonth: true,
+        endDay: true
+      }
+    });
+
+    if (tenant) {
+      validateTransactionDate(data.dcDate || new Date(), tenant.financialYear, tenant.startMonth, tenant.startDay, tenant.endMonth, tenant.endDay);
+    }
+
     await this.prisma.fabricDcDetail.deleteMany({
       where: { headerId: id }
     });

@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFabricBillDto, UpdateFabricBillDto } from './dto/fabric-bill.dto';
+import { validateTransactionDate } from '../utils/fin-year.util';
+
 
 @Injectable()
 export class FabricBillService {
@@ -152,6 +154,21 @@ export class FabricBillService {
   async create(tenantId: number, concernId: number, username: string, createDto: CreateFabricBillDto) {
     const { details, taxes, ...headerData } = createDto;
 
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { 
+        financialYear: true,
+        startMonth: true,
+        startDay: true,
+        endMonth: true,
+        endDay: true
+      }
+    });
+
+    if (tenant) {
+      validateTransactionDate(headerData.billDate || new Date(), tenant.financialYear, tenant.startMonth, tenant.startDay, tenant.endMonth, tenant.endDay);
+    }
+
     return this.prisma.fabricBillHeader.create({
       data: {
         ...headerData,
@@ -168,10 +185,25 @@ export class FabricBillService {
     });
   }
 
-  async update(id: number, username: string, updateDto: UpdateFabricBillDto) {
+  async update(id: number, username: string, updateDto: UpdateFabricBillDto, tenantId: number) {
     await this.findOne(id);
 
     const { details, taxes, ...headerData } = updateDto;
+
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { 
+        financialYear: true,
+        startMonth: true,
+        startDay: true,
+        endMonth: true,
+        endDay: true
+      }
+    });
+
+    if (tenant) {
+      validateTransactionDate(headerData.billDate || new Date(), tenant.financialYear, tenant.startMonth, tenant.startDay, tenant.endMonth, tenant.endDay);
+    }
 
     // Remove fields that shouldn't be updated
     const {

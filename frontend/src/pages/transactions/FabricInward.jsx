@@ -16,6 +16,7 @@ import { getConcerns } from '../../api/concern';
 import FabricInwardPrint from '../../components/prints/FabricInwardPrint';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
 import { useSelector } from 'react-redux';
+import { getFYRange } from '../../utils/helpers';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -49,6 +50,12 @@ const FabricInward = () => {
   const [isViewMode, setIsViewMode] = useState(false);
   const [enableItemWiseProcess, setEnableItemWiseProcess] = useState(false);
   const [concernData, setConcernData] = useState(null);
+
+  const fyRange = getFYRange(selectedYear, concernData);
+  const disabledDate = (current) => {
+    if (!fyRange || !current) return false;
+    return current < dayjs(fyRange.startDate).startOf('day') || current > dayjs(fyRange.endDate).endOf('day');
+  };
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,

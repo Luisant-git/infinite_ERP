@@ -56,9 +56,10 @@ export class FabricBillController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Headers('username') username: string,
+    @Headers('tenant-id') tenantId: string,
     @Body() updateDto: UpdateFabricBillDto,
   ) {
-    return this.fabricBillService.update(id, username, updateDto);
+    return this.fabricBillService.update(id, username, updateDto, Number(tenantId));
   }
 
   @Delete(':id')

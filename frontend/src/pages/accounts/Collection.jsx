@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { getFYRange } from '../../utils/helpers';
 import { Card, Form, Input, Button, Space, Table, Modal, DatePicker, Typography, Select, InputNumber, Checkbox, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -20,6 +22,32 @@ const Collection = () => {
   const [banks, setBanks] = useState([]);
   const [currentMode, setCurrentMode] = useState('CASH');
   const { canAdd, canEdit, canDelete } = useMenuPermissions();
+  const { selectedYear } = useSelector((state) => state.auth);
+  const [concernData, setConcernData] = useState(null);
+
+  useEffect(() => {
+    loadConcernData();
+  }, []);
+
+  const loadConcernData = async () => {
+    try {
+      const { getConcerns } = await import('../../api/concern');
+      const concernId = localStorage.getItem('selectedCompanyId');
+      if (concernId) {
+        const response = await getConcerns('', 1, 1000);
+        const concern = response.data?.find(c => c.id === parseInt(concernId));
+        setConcernData(concern || null);
+      }
+    } catch (error) {
+      console.error('Error loading concern data:', error);
+    }
+  };
+
+  const fyRange = getFYRange(selectedYear, concernData);
+  const disabledDate = (current) => {
+    if (!fyRange || !current) return false;
+    return current < dayjs(fyRange.startDate).startOf('day') || current > dayjs(fyRange.endDate).endOf('day');
+  };
 
   useEffect(() => {
     loadData();

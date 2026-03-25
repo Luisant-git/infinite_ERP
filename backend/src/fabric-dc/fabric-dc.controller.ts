@@ -54,10 +54,11 @@ export class FabricDcController {
   async update(
     @Param('id') id: string,
     @Headers('authorization') authorization: string,
+    @Headers('tenant-id') tenantId: string,
     @Body() data: any
   ) {
     const user = this.getUserFromToken(authorization);
-    return this.fabricDcService.update(parseInt(id), { ...data, modifiedBy: user.username });
+    return this.fabricDcService.update(parseInt(id), { ...data, modifiedBy: user.username }, parseInt(tenantId));
   }
 
   @Delete(':id')

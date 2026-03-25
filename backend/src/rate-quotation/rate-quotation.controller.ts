@@ -54,11 +54,12 @@ export class RateQuotationController {
   @Put(':id')
   async update(
     @Param('id') id: string,
+    @Headers('tenant-id') tenantId: string,
     @Headers('authorization') authorization: string,
     @Body() data: any
   ) {
     const user = this.getUserFromToken(authorization);
-    return this.rateQuotationService.update(parseInt(id), { ...data, modifiedBy: user.username });
+    return this.rateQuotationService.update(parseInt(id), { ...data, modifiedBy: user.username }, parseInt(tenantId));
   }
 
   @Delete(':id')

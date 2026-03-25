@@ -1,5 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { validateTransactionDate } from '../utils/fin-year.util';
+
 
 @Injectable()
 export class RateQuotationService {
@@ -102,6 +104,21 @@ export class RateQuotationService {
     if (existing) {
       throw new BadRequestException('Quotation number already exists for this tenant');
     }
+
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { 
+        financialYear: true,
+        startMonth: true,
+        startDay: true,
+        endMonth: true,
+        endDay: true
+      }
+    });
+
+    if (tenant) {
+      validateTransactionDate(headerData.quotDate || new Date(), tenant.financialYear, tenant.startMonth, tenant.startDay, tenant.endMonth, tenant.endDay);
+    }
     
     return this.prisma.rateQuotationHeader.create({
       data: {
@@ -122,12 +139,27 @@ export class RateQuotationService {
     });
   }
 
-  async update(id: number, data: any) {
-    const { details, id: _, party, concern, createdDate, modifiedDate, deletedDate, sortOrder, tenantId, concernId, ...headerData } = data;
+  async update(id: number, data: any, tenantId: number) {
+    const { details, id: _, party, concern, createdDate, modifiedDate, deletedDate, sortOrder, tenantId: _2, concernId, ...headerData } = data;
     
     // Validate concernId is provided
     if (!concernId) {
       throw new BadRequestException('Concern ID is required. Please login again to continue.');
+    }
+
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { 
+        financialYear: true,
+        startMonth: true,
+        startDay: true,
+        endMonth: true,
+        endDay: true
+      }
+    });
+
+    if (tenant) {
+      validateTransactionDate(headerData.quotDate || new Date(), tenant.financialYear, tenant.startMonth, tenant.startDay, tenant.endMonth, tenant.endDay);
     }
     
     await this.prisma.rateQuotationDetail.deleteMany({

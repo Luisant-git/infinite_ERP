@@ -43,6 +43,7 @@ import { getConcerns } from "../../api/concern";
 import { useMenuPermissions } from "../../hooks/useMenuPermissions";
 import { useSelector } from "react-redux";
 import FabricDCPrint from "../../components/prints/FabricDCPrint";
+import { getFYRange } from "../../utils/helpers";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -85,6 +86,12 @@ const FabricDc = () => {
   const [enableItemWiseProcess, setEnableItemWiseProcess] = useState(false);
   const [excessPercentage, setExcessPercentage] = useState(0);
   const [concernData, setConcernData] = useState(null);
+
+  const fyRange = getFYRange(selectedYear, concernData);
+  const disabledDate = (current) => {
+    if (!fyRange || !current) return false;
+    return current < dayjs(fyRange.startDate).startOf('day') || current > dayjs(fyRange.endDate).endOf('day');
+  };
 
   const getPreviousList = async (inwardNo, currentDcId) => {
     if (!inwardNo) return [];

@@ -46,6 +46,7 @@ import { getSettings } from "../../api/settings";
 import { getEinvoiceStatus } from "../../api/billEinvoice";
 import { useMenuPermissions } from "../../hooks/useMenuPermissions";
 import { useSelector } from 'react-redux';
+import { getFYRange } from "../../utils/helpers";
 import FabricBillPrint from '../../components/prints/FabricBillPrint';
 
 const { Title } = Typography;
@@ -81,6 +82,13 @@ const FabricBill = () => {
   const [partyProcessRates, setPartyProcessRates] = useState([]);
   const [processes, setProcesses] = useState([]);
   const [concernData, setConcernData] = useState(null);
+  const { selectedYear } = useSelector((state) => state.auth);
+
+  const fyRange = getFYRange(selectedYear, concernData);
+  const disabledDate = (current) => {
+    if (!fyRange || !current) return false;
+    return current < dayjs(fyRange.startDate).startOf('day') || current > dayjs(fyRange.endDate).endOf('day');
+  };
   const [settings, setSettings] = useState(null);
   const printRef = useRef();
   const [printData, setPrintData] = useState(null);
@@ -708,7 +716,12 @@ const FabricBill = () => {
       setIsFormVisible(false);
       loadData();
     } catch (error) {
-      message.error("Failed to save");
+      if (error.response?.data?.message) {
+        const errMsg = error.response.data.message;
+        message.error(Array.isArray(errMsg) ? errMsg[0] : errMsg);
+      } else {
+        message.error("Failed to save");
+      }
     } finally {
       setLoading(false);
     }
