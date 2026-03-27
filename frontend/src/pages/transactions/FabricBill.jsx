@@ -1203,9 +1203,9 @@ const FabricBill = () => {
           height: auto !important;
         }
         .compact-table .ant-table-tbody > tr > td {
-          padding: 2px 4px !important;
+          padding: 0px 2px !important;
           font-size: 11px !important;
-          line-height: 1.2 !important;
+          line-height: 1 !important;
         }
         .compact-table .ant-table-tbody > tr {
           height: auto !important;
@@ -1215,12 +1215,29 @@ const FabricBill = () => {
         .compact-table .ant-select-selector,
         .compact-table .ant-picker {
           font-size: 11px !important;
-          min-height: 24px !important;
-          height: 24px !important;
+          min-height: 20px !important;
+          height: 20px !important;
         }
         .compact-table .ant-input-number-input,
         .compact-table .ant-picker-input > input {
-          height: 22px !important;
+          height: 18px !important;
+        }
+        .ant-form-item-label > label {
+          font-size: 11px !important;
+          height: 18px !important;
+          line-height: 1 !important;
+        }
+        .ant-form-item {
+          margin-bottom: 2px !important;
+        }
+        .ant-input-number-disabled, .ant-input-disabled {
+          color: rgba(0, 0, 0, 0.85) !important;
+          background-color: #ffffff !important;
+          cursor: default !important;
+          font-weight: 600 !important;
+        }
+        .ant-input-number-disabled .ant-input-number-input, .ant-input-disabled .ant-input {
+          color: rgba(0, 0, 0, 0.85) !important;
         }
         @media (max-width: 768px) {
           .page-header { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
@@ -1280,24 +1297,24 @@ const FabricBill = () => {
                 label="Bill No"
                 name="billNo"
                 rules={[{ required: true }]}
-                style={{ marginBottom: 6 }}
+                style={{ marginBottom: 2 }}
               >
                 <Input
                   disabled={isViewMode || (editingId ? true : !isAdmin)}
-                  style={{ height: "32px" }}
-                  size="middle"
+                  style={{ height: "24px" }}
+                  size="small"
                   autoComplete="off"
                 />
               </Form.Item>
               <Form.Item
                 label="HSN Code"
                 name="hsnCode"
-                style={{ marginBottom: 6 }}
+                style={{ marginBottom: 2 }}
               >
                 <Input
                   disabled={isViewMode}
-                  style={{ height: "32px" }}
-                  size="middle"
+                  style={{ height: "24px" }}
+                  size="small"
                   autoComplete="off"
                 />
               </Form.Item>
@@ -1307,24 +1324,24 @@ const FabricBill = () => {
                 label="Bill Date"
                 name="billDate"
                 rules={[{ required: true }]}
-                style={{ marginBottom: 6 }}
+                style={{ marginBottom: 2 }}
               >
                 <DatePicker
                   disabled={isViewMode}
-                  style={{ width: "100%", height: "32px" }}
+                  style={{ width: "100%", height: "24px" }}
                   format="DD-MM-YYYY"
-                  size="middle"
+                  size="small"
                 />
               </Form.Item>
               <Form.Item
                 label="Credit Days"
                 name="creditDays"
-                style={{ marginBottom: 6 }}
+                style={{ marginBottom: 2 }}
               >
                 <InputNumber
                   disabled={isViewMode}
-                  style={{ width: "100%", height: "32px" }}
-                  size="middle"
+                  style={{ width: "100%", height: "24px" }}
+                  size="small"
                   autoComplete="off"
                 />
               </Form.Item>
@@ -1333,7 +1350,7 @@ const FabricBill = () => {
               <Form.Item
                 label="Party"
                 name="partyId"
-                style={{ marginBottom: 6 }}
+                style={{ marginBottom: 2 }}
               >
                 <Select
                   disabled={isViewMode}
@@ -1341,8 +1358,8 @@ const FabricBill = () => {
                   filterOption={(input, option) =>
                     option.children.toLowerCase().includes(input.toLowerCase())
                   }
-                  style={{ height: "32px" }}
-                  size="middle"
+                  style={{ height: "24px" }}
+                  size="small"
                   onChange={handlePartyChange}
                 >
                   {parties.map((p) => (
@@ -1355,7 +1372,7 @@ const FabricBill = () => {
               <Form.Item
                 label="Invoice To"
                 name="invoiceTo"
-                style={{ marginBottom: 6 }}
+                style={{ marginBottom: 2 }}
               >
                 <Select
                   disabled={isViewMode}
@@ -1363,8 +1380,8 @@ const FabricBill = () => {
                   filterOption={(input, option) =>
                     option.children.toLowerCase().includes(input.toLowerCase())
                   }
-                  style={{ height: "32px" }}
-                  size="middle"
+                  style={{ height: "24px" }}
+                  size="small"
                 >
                   {parties.map((p) => (
                     <Option key={p.id} value={p.id}>
@@ -1378,25 +1395,25 @@ const FabricBill = () => {
               <Form.Item
                 label="E-way No"
                 name="ewayNo"
-                style={{ marginBottom: 6 }}
+                style={{ marginBottom: 2 }}
               >
                 <Input
                   disabled={isViewMode}
-                  style={{ height: "32px" }}
-                  size="middle"
+                  style={{ height: "24px" }}
+                  size="small"
                   autoComplete="off"
                 />
               </Form.Item>
             </Col>
           </Row>
 
-          <div style={{ marginTop: 4 }}>
+          <div style={{ marginTop: 0 }}>
             <div
               className="section-header"
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                marginBottom: 4,
+                marginBottom: 0,
               }}
             >
               <Title level={5} style={{ margin: 0, fontSize: "14px" }}>
@@ -1423,14 +1440,14 @@ const FabricBill = () => {
               columns={detailColumns}
               dataSource={details}
               pagination={false}
-              scroll={{ x: 2000, y: 100 }}
+              scroll={{ x: 2000, y: 200 }}
               size="small"
               bordered
               className="compact-table"
             />
           </div>
 
-          <Row gutter={8} style={{ marginTop: 8 }}>
+          <Row gutter={8} style={{ marginTop: 0 }}>
             <Col span={12}>
               <div style={{ marginTop: 4 }}>
                 <div
@@ -1459,7 +1476,7 @@ const FabricBill = () => {
                   <Form.Item
                     label="Total Rolls"
                     name="totalRolls"
-                    style={{ marginBottom: 6 }}
+                    style={{ marginBottom: 2 }}
                   >
                     <InputNumber
                       disabled
@@ -1470,13 +1487,13 @@ const FabricBill = () => {
                 </Col>
                 <Col span={8}>
                   <Form.Item
-                    label="Bill Quantity"
+                    label={<span style={{ fontWeight: 'bold' }}>Bill Quantity</span>}
                     name="totalQty"
-                    style={{ marginBottom: 6 }}
+                    style={{ marginBottom: 2 }}
                   >
                     <InputNumber
                       disabled
-                      style={{ width: "100%" }}
+                      style={{ width: "100%", fontWeight: 'bold', color: '#1890ff' }}
                       precision={3}
                       autoComplete="off"
                     />
@@ -1484,13 +1501,13 @@ const FabricBill = () => {
                 </Col>
                 <Col span={8}>
                   <Form.Item
-                    label="Total Amount"
+                    label={<span style={{ fontWeight: 'bold' }}>Total Amount</span>}
                     name="totalAmount"
-                    style={{ marginBottom: 6 }}
+                    style={{ marginBottom: 2 }}
                   >
                     <InputNumber
                       disabled
-                      style={{ width: "100%" }}
+                      style={{ width: "100%", fontWeight: 'bold', color: '#1890ff' }}
                       precision={2}
                       autoComplete="off"
                     />
@@ -1500,7 +1517,7 @@ const FabricBill = () => {
                   <Form.Item
                     label="No of Screen"
                     name="noOfScreen"
-                    style={{ marginBottom: 6 }}
+                    style={{ marginBottom: 2 }}
                   >
                     <InputNumber
                       disabled={isViewMode}
@@ -1514,7 +1531,7 @@ const FabricBill = () => {
                   <Form.Item
                     label="Screen Rate"
                     name="screenRate"
-                    style={{ marginBottom: 6 }}
+                    style={{ marginBottom: 2 }}
                   >
                     <InputNumber
                       disabled={isViewMode || !isAdmin}
@@ -1527,13 +1544,13 @@ const FabricBill = () => {
                 </Col>
                 <Col span={8}>
                   <Form.Item
-                    label="GST Amount"
+                    label={<span style={{ fontWeight: 'bold' }}>GST Amount</span>}
                     name="gstAmount"
-                    style={{ marginBottom: 6 }}
+                    style={{ marginBottom: 2 }}
                   >
                     <InputNumber
                       disabled
-                      style={{ width: "100%" }}
+                      style={{ width: "100%", fontWeight: 'bold', color: '#722ed1' }}
                       precision={2}
                       autoComplete="off"
                     />
@@ -1543,7 +1560,7 @@ const FabricBill = () => {
                   <Form.Item
                     label="Screen Amount"
                     name="screenAmount"
-                    style={{ marginBottom: 6 }}
+                    style={{ marginBottom: 2 }}
                   >
                     <InputNumber
                       disabled
@@ -1557,7 +1574,7 @@ const FabricBill = () => {
                   <Form.Item
                     label="Round Off"
                     name="roundOff"
-                    style={{ marginBottom: 6 }}
+                    style={{ marginBottom: 2 }}
                   >
                     <InputNumber
                       disabled
@@ -1569,13 +1586,20 @@ const FabricBill = () => {
                 </Col>
                 <Col span={8} offset={16}>
                   <Form.Item
-                    label="Net Amount"
+                    label={<span style={{ fontWeight: 'bold', fontSize: '14px' }}>Net Amount</span>}
                     name="netAmount"
-                    style={{ marginBottom: 6 }}
+                    style={{ marginBottom: 2 }}
                   >
                     <InputNumber
                       disabled
-                      style={{ width: "100%" }}
+                      style={{ 
+                        width: "100%", 
+                        fontWeight: '800', 
+                        fontSize: '16px', 
+                        color: '#52c41a',
+                        backgroundColor: '#f6ffed',
+                        border: '1px solid #b7eb8f'
+                      }}
                       precision={2}
                       autoComplete="off"
                     />
