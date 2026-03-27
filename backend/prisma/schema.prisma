@@ -792,6 +792,7 @@ model Settings {
   id                      Int      @id @default(autoincrement())
   tenantId                Int      @unique
   enableItemWiseProcess   Boolean  @default(false)
+  enableProcessWeightBill Boolean  @default(false)
   defaultHsnCode          String?  @db.VarChar(20)
   excessPercentage        Decimal  @default(0) @db.Decimal(5, 2)
   createdAt               DateTime @default(now())

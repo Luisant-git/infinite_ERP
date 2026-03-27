@@ -6,6 +6,10 @@ export class UpdateSettingsDto {
   enableItemWiseProcess: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  enableProcessWeightBill?: boolean;
+
+  @IsOptional()
   @IsString()
   defaultHsnCode?: string;
 

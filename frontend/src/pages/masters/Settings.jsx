@@ -16,6 +16,7 @@ const Settings = () => {
       const data = await getSettings();
       form.setFieldsValue({
         enableItemWiseProcess: data.enableItemWiseProcess,
+        enableProcessWeightBill: data.enableProcessWeightBill,
         defaultHsnCode: data.defaultHsnCode || '',
         excessPercentage: data.excessPercentage || 0
       });
@@ -49,6 +50,15 @@ const Settings = () => {
           name="enableItemWiseProcess" 
           valuePropName="checked"
           tooltip="When enabled, processes can be managed at item level"
+        >
+          <Switch />
+        </Form.Item>
+
+        <Form.Item 
+          label="Bill Generation For Process Weight Option" 
+          name="enableProcessWeightBill" 
+          valuePropName="checked"
+          tooltip="When enabled, the process weight will be used for bill generation calculations"
         >
           <Switch />
         </Form.Item>

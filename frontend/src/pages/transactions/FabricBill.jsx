@@ -358,6 +358,10 @@ const FabricBill = () => {
           }
         }
 
+        const weightToUse = settings?.enableProcessWeightBill
+          ? detail.processWeight || 0
+          : detail.dcWeight || 0;
+
         return {
           key: Date.now() + Math.random(),
           inwardNo: dc.inwardNo,
@@ -373,11 +377,11 @@ const FabricBill = () => {
           designNo: detail.designNo,
           designName: detail.designName,
           noOfColor: detail.noOfColor,
-          weight: detail.dcWeight || 0,
+          weight: weightToUse,
           rolls: detail.rolls || 0,
           uomId: detail.uomId,
           rate: calculateProcessRate(processArray),
-          amount: (detail.dcWeight || 0) * calculateProcessRate(processArray),
+          amount: weightToUse * calculateProcessRate(processArray),
           processes: processArray,
           originalProcesses: processArray,
           process: processText,
@@ -1704,10 +1708,15 @@ const FabricBill = () => {
               width: 120,
             },
             {
-              title: "Total Qty",
+              title: settings?.enableProcessWeightBill ? "Total Process Weight" : "Total Qty",
               dataIndex: "totalQty",
               width: 100,
-              render: (qty) => Number(qty || 0).toFixed(3),
+              render: (qty, record) => {
+                const value = settings?.enableProcessWeightBill 
+                  ? record.details?.reduce((sum, d) => sum + Number(d.processWeight || 0), 0)
+                  : qty;
+                return Number(value || 0).toFixed(3);
+              },
             },
             {
               title: "Total Rolls",
