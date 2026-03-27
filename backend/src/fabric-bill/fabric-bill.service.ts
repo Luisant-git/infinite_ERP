@@ -272,6 +272,16 @@ export class FabricBillService {
   async remove(id: number, username: string) {
     await this.findOne(id);
 
+    await this.prisma.fabricBillDetail.updateMany({
+      where: { headerId: id },
+      data: { deleteFlg: 1 },
+    });
+
+    await this.prisma.fabricBillTax.updateMany({
+      where: { headerId: id },
+      data: { deleteFlg: 1 },
+    });
+
     return this.prisma.fabricBillHeader.update({
       where: { id },
       data: {

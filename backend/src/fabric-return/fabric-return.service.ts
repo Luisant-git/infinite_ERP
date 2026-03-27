@@ -81,7 +81,10 @@ export class FabricReturnService {
               { inwardNo: returnRecord.inwardNo, deleteFlg: 0 },
               { dcNo: returnRecord.dcNo, deleteFlg: 0 }
             ],
-            deleteFlg: 0  // Only count non-deleted Bills
+            deleteFlg: 0, // Only count non-deleted Bills
+            header: {
+              deleteFlg: 0
+            }
           }
         });
 

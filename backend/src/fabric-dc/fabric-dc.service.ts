@@ -77,7 +77,10 @@ export class FabricDcService {
         const isUsedInBill = await this.prisma.fabricBillDetail.findFirst({
           where: { 
             dcId: dc.id, 
-            deleteFlg: 0  // Only count non-deleted Bills
+            deleteFlg: 0, // Only count non-deleted Bills
+            header: {
+              deleteFlg: 0
+            }
           }
         });
 
