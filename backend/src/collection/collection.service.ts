@@ -8,6 +8,27 @@ import { UpdateCollectionDto } from './dto/update-collection.dto';
 @Injectable()
 export class CollectionService {
   constructor(private prisma: PrismaService) {}
+  
+  async getNextRefNo(tenantId: number) {
+    const lastCollection = await this.prisma.collection.findFirst({
+      where: { tenantId },
+      orderBy: { id: 'desc' }
+    });
+
+    if (!lastCollection) {
+      return { refNo: '1' };
+    }
+
+    const lastRefNo = lastCollection.refNo;
+    const lastNumber = parseInt(lastRefNo);
+    
+    if (!isNaN(lastNumber)) {
+      return { refNo: (lastNumber + 1).toString() };
+    }
+
+    // Fallback if existing refNo was non-numeric
+    return { refNo: '1' };
+  }
 
   async findAll(tenantId: number) {
     return this.prisma.collection.findMany({

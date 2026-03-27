@@ -16,6 +16,12 @@ export class CollectionController {
     return this.service.findAll(parseInt(tenantId));
   }
 
+  @Get('next-ref-no')
+  @ApiOperation({ summary: 'Get next collection reference number' })
+  async getNextRefNo(@Headers('tenant-id') tenantId: string) {
+    return this.service.getNextRefNo(parseInt(tenantId));
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create new collection' })
   async create(

@@ -24,3 +24,8 @@ export const getPartyBalance = async (partyId) => {
   const response = await apiClient.get(`/collection/party-balance/${partyId}`);
   return response.data;
 };
+
+export const getNextRefNo = async () => {
+  const response = await apiClient.get('/collection/next-ref-no');
+  return response.data;
+};

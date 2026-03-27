@@ -4,7 +4,7 @@ import { getFYRange } from '../../utils/helpers';
 import { Card, Form, Input, Button, Space, Table, Modal, DatePicker, Typography, Select, InputNumber, Checkbox, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { getCollections, createCollection, updateCollection, deleteCollection, getPartyBalance } from '../../api/collection';
+import { getCollections, createCollection, updateCollection, deleteCollection, getPartyBalance, getNextRefNo } from '../../api/collection';
 import { getParties } from '../../api/party';
 import { getMastersByType } from '../../api/fabricInward';
 import { useMenuPermissions } from '../../hooks/useMenuPermissions';
@@ -269,6 +269,18 @@ const Collection = () => {
           border-bottom: 1px solid #f0f0f0;
           padding-bottom: 4px;
         }
+        .ant-form-item {
+          margin-bottom: 16px; /* Default Ant Design margin */
+        }
+        .ant-input-number-disabled, .ant-input-disabled {
+          color: rgba(0, 0, 0, 0.85) !important;
+          background-color: #ffffff !important;
+          cursor: default !important;
+          font-weight: 600 !important;
+        }
+        .ant-input-number-disabled .ant-input-number-input, .ant-input-disabled .ant-input {
+          color: rgba(0, 0, 0, 0.85) !important;
+        }
       `}</style>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -276,11 +288,17 @@ const Collection = () => {
         <Button 
           type="primary" 
           icon={<PlusOutlined />} 
-          onClick={() => {
+          onClick={async () => {
             setEditingRecord(null);
             setCurrentMode('CASH');
             form.resetFields();
-            form.setFieldsValue({ refDate: dayjs(), mode: 'CASH', amount: 0 });
+            try {
+              const { refNo } = await getNextRefNo();
+              form.setFieldsValue({ refNo, refDate: dayjs(), mode: 'CASH', amount: 0 });
+            } catch (error) {
+              console.error('Error fetching next ref no:', error);
+              form.setFieldsValue({ refDate: dayjs(), mode: 'CASH', amount: 0 });
+            }
             setIsModalVisible(true);
           }}
           disabled={!canAdd()}
@@ -319,7 +337,7 @@ const Collection = () => {
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
             <Form.Item label="Ref No" name="refNo" rules={[{ required: true }]}>
-              <Input />
+              <Input disabled={!editingRecord} placeholder="Auto-generated" style={{ height: '32px' }} />
             </Form.Item>
             <Form.Item label="Ref Date" name="refDate" rules={[{ required: true }]}>
               <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" showTime={{ format: 'hh:mm A' }} />
@@ -351,8 +369,21 @@ const Collection = () => {
             <Form.Item label="Amount" name="amount" rules={[{ required: true }]}>
               <InputNumber style={{ width: '100%' }} precision={2} />
             </Form.Item>
-            <Form.Item label="Balance Amount" name="balanceAmount">
-              <InputNumber style={{ width: '100%' }} precision={2} disabled placeholder="Calculated/Ref Only" />
+            <Form.Item 
+              label={<span style={{ fontWeight: 'bold' }}>Balance Amount</span>} 
+              name="balanceAmount"
+            >
+              <InputNumber 
+                style={{ 
+                  width: '100%', 
+                  fontWeight: 'bold', 
+                  color: 'rgba(0, 0, 0, 0.85)', 
+                  backgroundColor: '#ffffff'
+                }} 
+                precision={2} 
+                disabled 
+                placeholder="Calculated/Ref Only" 
+              />
             </Form.Item>
           </div>
 
