@@ -291,21 +291,7 @@ export class InwardSummaryService {
               }
             });
 
-            // If no match found and there's a total, assign it once
-            if (returnKgs === 0) {
-              const totalReturnKgsForInward = returnDetailsForInward.reduce(
-                (sum, rd) => sum + Number(rd.weight || 0),
-                0,
-              );
 
-              if (totalReturnKgsForInward > 0) {
-                const inwardKey = inward.grnNo || '';
-                if (!inwardReturnTotalAssigned.has(inwardKey)) {
-                  inwardReturnTotalAssigned.add(inwardKey);
-                  returnKgs = totalReturnKgsForInward;
-                }
-              }
-            }
 
             const inwardKgs = Number(detail.weight || 0);
             const balanceKgs = inwardKgs - processKgs - returnKgs;
@@ -582,21 +568,7 @@ export class InwardSummaryService {
               }
             });
 
-            // If no match found and there's a total, assign it once
-            if (returnKgs === 0) {
-              const totalReturnKgsForInward = returnDetailsForInward.reduce(
-                (sum, rd) => sum + Number(rd.weight || 0),
-                0,
-              );
 
-              if (totalReturnKgsForInward > 0) {
-                const inwardKey = inward.grnNo || '';
-                if (!inwardReturnTotalAssigned.has(inwardKey)) {
-                  inwardReturnTotalAssigned.add(inwardKey);
-                  returnKgs = totalReturnKgsForInward;
-                }
-              }
-            }
 
             const inwardKgs = Number(detail.weight || 0);
             const balanceKgs = inwardKgs - processKgs - returnKgs;
