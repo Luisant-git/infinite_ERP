@@ -124,19 +124,19 @@ const FabricBillPrint = forwardRef(
         @page { size: A4; margin: 10mm 10mm; }
       `}</style>
 
-        <div style={{ padding: "20px", fontSize: "12px", lineHeight: "1.2", minHeight: "calc(100vh - 40px)", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
+        <div style={{ padding: "20px", fontSize: "14px", lineHeight: "1.2", minHeight: "calc(100vh - 40px)", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
           {/* Title Section - Always Visible */}
           <div
             style={{
               position: "relative",
               textAlign: "center",
-              fontSize: "16px",
+              fontSize: "18px",
               fontWeight: "bold",
               marginBottom: "10px",
             }}
           >
             GST INVOICE
-            <span style={{ position: "absolute", right: 0, bottom: 0, fontSize: "12px", fontWeight: "bold" }}>
+            <span style={{ position: "absolute", right: 0, bottom: 0, fontSize: "14px", fontWeight: "bold" }}>
               (ORIGINAL)
             </span>
           </div>
@@ -158,7 +158,7 @@ const FabricBillPrint = forwardRef(
                     border: "1px solid black",
                     padding: "5px",
                     width: "70%",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     lineHeight: "1.4",
                   }}
                 >
@@ -205,7 +205,7 @@ const FabricBillPrint = forwardRef(
                   {einvoiceData.qrText && (
                     <div
                       style={{
-                        fontSize: "6px",
+                        fontSize: "8px",
                         wordBreak: "break-all",
                         fontFamily: "monospace",
                         backgroundColor: "#000",
@@ -261,10 +261,10 @@ const FabricBillPrint = forwardRef(
                   )}
 
                   {/* Concern Details */}
-                  <div style={{ fontSize: "10px", lineHeight: "1.3", flex: 1 }}>
+                  <div style={{ fontSize: "12px", lineHeight: "1.3", flex: 1 }}>
                     <div
                       style={{
-                        fontSize: "14px",
+                        fontSize: "16px",
                         fontWeight: "bold",
                         marginBottom: "3px",
                         textTransform: "uppercase",
@@ -272,7 +272,7 @@ const FabricBillPrint = forwardRef(
                     >
                       {concernData?.partyName || "COMPANY NAME"}
                     </div>
-                    <div style={{ fontSize: "9px", marginBottom: "2px" }}>
+                    <div style={{ fontSize: "11px", marginBottom: "2px" }}>
                       {[concernData?.address1, concernData?.address2]
                         .filter(Boolean)
                         .join(", ")}
@@ -283,13 +283,13 @@ const FabricBillPrint = forwardRef(
                         </>
                       )}
                     </div>
-                    <div style={{ fontSize: "9px", marginBottom: "2px" }}>
+                    <div style={{ fontSize: "11px", marginBottom: "2px" }}>
                       Phone No :{concernData?.phoneNo || ""},{concernData?.mobileNo || ""}
                     </div>
-                    <div style={{ fontSize: "9px", marginBottom: "2px" }}>
+                    <div style={{ fontSize: "11px", marginBottom: "2px" }}>
                       <strong>GST No.: {concernData?.gstNo || ""}</strong>
                     </div>
-                    <div style={{ fontSize: "9px" }}>
+                    <div style={{ fontSize: "11px" }}>
                       <strong>MSME No :{concernData?.msmeNo || ""}</strong>
                     </div>
                   </div>
@@ -305,7 +305,7 @@ const FabricBillPrint = forwardRef(
               >
                 <table
                   style={{
-                    fontSize: "10px",
+                    fontSize: "12px",
                     width: "100%",
                     borderCollapse: "collapse",
                   }}
@@ -358,14 +358,14 @@ const FabricBillPrint = forwardRef(
               >
                 <div
                   style={{
-                    fontSize: "10px",
+                    fontSize: "12px",
                     fontWeight: "bold",
                     marginBottom: "3px",
                   }}
                 >
                   To
                 </div>
-                <div style={{ fontSize: "10px", lineHeight: "1.4" }}>
+                <div style={{ fontSize: "12px", lineHeight: "1.4" }}>
                   <strong>{partyData?.partyName}</strong>
                   <br />
                   {partyData?.address1 && partyData?.address2 && (
@@ -425,14 +425,14 @@ const FabricBillPrint = forwardRef(
               >
                 <div
                   style={{
-                    fontSize: "10px",
+                    fontSize: "12px",
                     fontWeight: "bold",
                     marginBottom: "3px",
                   }}
                 >
                   Invoice To
                 </div>
-                <div style={{ fontSize: "10px", lineHeight: "1.4" }}>
+                <div style={{ fontSize: "12px", lineHeight: "1.4" }}>
                   <strong>{invoiceToData?.partyName}</strong>
                   <br />
                   {invoiceToData?.address1 && invoiceToData?.address2 && (
@@ -506,7 +506,7 @@ const FabricBillPrint = forwardRef(
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     fontWeight: "bold",
                   }}
                 >
@@ -516,7 +516,7 @@ const FabricBillPrint = forwardRef(
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     fontWeight: "bold",
                   }}
                 >
@@ -526,7 +526,7 @@ const FabricBillPrint = forwardRef(
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     fontWeight: "bold",
                   }}
                 >
@@ -536,7 +536,7 @@ const FabricBillPrint = forwardRef(
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     fontWeight: "bold",
                   }}
                 >
@@ -546,7 +546,7 @@ const FabricBillPrint = forwardRef(
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     fontWeight: "bold",
                   }}
                 >
@@ -556,7 +556,7 @@ const FabricBillPrint = forwardRef(
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     fontWeight: "bold",
                   }}
                 >
@@ -566,7 +566,7 @@ const FabricBillPrint = forwardRef(
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     fontWeight: "bold",
                   }}
                 >
@@ -576,7 +576,7 @@ const FabricBillPrint = forwardRef(
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     fontWeight: "bold",
                   }}
                 >
@@ -593,7 +593,7 @@ const FabricBillPrint = forwardRef(
                       borderTop: "none",
                       borderBottom: "none",
                       padding: "4px",
-                      fontSize: "9px",
+                      fontSize: "11px",
                       textAlign: "center",
                     }}
                   >
@@ -607,7 +607,7 @@ const FabricBillPrint = forwardRef(
                       borderTop: "none",
                       borderBottom: "none",
                       padding: "4px",
-                      fontSize: "9px",
+                      fontSize: "11px",
                       textAlign: "center",
                     }}
                   >
@@ -619,7 +619,7 @@ const FabricBillPrint = forwardRef(
                       borderTop: "none",
                       borderBottom: "none",
                       padding: "4px",
-                      fontSize: "9px",
+                      fontSize: "11px",
                       textAlign: "center",
                     }}
                   >
@@ -631,7 +631,7 @@ const FabricBillPrint = forwardRef(
                       borderTop: "none",
                       borderBottom: "none",
                       padding: "4px",
-                      fontSize: "9px",
+                      fontSize: "11px",
                     }}
                   >
                     {detail.process || detail.processList || "Fabric Delivery"}
@@ -642,7 +642,7 @@ const FabricBillPrint = forwardRef(
                       borderTop: "none",
                       borderBottom: "none",
                       padding: "4px",
-                      fontSize: "9px",
+                      fontSize: "11px",
                       textAlign: "center",
                     }}
                   >
@@ -654,7 +654,7 @@ const FabricBillPrint = forwardRef(
                       borderTop: "none",
                       borderBottom: "none",
                       padding: "4px",
-                      fontSize: "9px",
+                      fontSize: "11px",
                       textAlign: "right",
                     }}
                   >
@@ -666,7 +666,7 @@ const FabricBillPrint = forwardRef(
                       borderTop: "none",
                       borderBottom: "none",
                       padding: "4px",
-                      fontSize: "9px",
+                      fontSize: "11px",
                       textAlign: "right",
                     }}
                   >
@@ -678,7 +678,7 @@ const FabricBillPrint = forwardRef(
                       borderTop: "none",
                       borderBottom: "none",
                       padding: "4px",
-                      fontSize: "9px",
+                      fontSize: "11px",
                       textAlign: "right",
                     }}
                   >
@@ -692,14 +692,14 @@ const FabricBillPrint = forwardRef(
                 length: Math.max(0, 12 - (data?.details?.length || 0)),
               }).map((_, emptyIndex) => (
                 <tr key={`empty-${emptyIndex}`}>
-                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
-                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
-                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
-                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
-                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
-                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
-                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
-                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "9px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "11px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "11px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "11px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "11px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "11px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "11px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "11px" }}>&nbsp;</td>
+                  <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "11px" }}>&nbsp;</td>
                 </tr>
               ))}
 
@@ -722,7 +722,7 @@ const FabricBillPrint = forwardRef(
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     textAlign: "center",
                     fontWeight: "bold",
                   }}
@@ -733,7 +733,7 @@ const FabricBillPrint = forwardRef(
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     textAlign: "center",
                     fontWeight: "bold",
                   }}
@@ -747,7 +747,7 @@ const FabricBillPrint = forwardRef(
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     textAlign: "right",
                     fontWeight: "bold",
                   }}
@@ -758,14 +758,14 @@ const FabricBillPrint = forwardRef(
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                   }}
                 ></td>
                 <td
                   style={{
                     border: "1px solid black",
                     padding: "5px",
-                    fontSize: "10px",
+                    fontSize: "12px",
                     textAlign: "right",
                     fontWeight: "bold",
                   }}
@@ -784,7 +784,7 @@ const FabricBillPrint = forwardRef(
                 >
                   <div
                     style={{
-                      fontSize: "10px",
+                      fontSize: "12px",
                       fontWeight: "bold",
                       marginBottom: "5px",
                     }}
@@ -793,7 +793,7 @@ const FabricBillPrint = forwardRef(
                   </div>
                   <table
                     style={{
-                      fontSize: "9px",
+                      fontSize: "11px",
                       lineHeight: "1.3",
                       width: "100%",
                       borderCollapse: "collapse",
@@ -837,7 +837,7 @@ const FabricBillPrint = forwardRef(
                   <table
                     style={{
                       width: "100%",
-                      fontSize: "9px",
+                      fontSize: "11px",
                       borderCollapse: "collapse",
                     }}
                   >
@@ -879,11 +879,11 @@ const FabricBillPrint = forwardRef(
                     </tr>
                     <tr>
                       <td style={{ borderTop: "1px solid black", width: "100%", paddingLeft: "5px" }}></td>
-                      <td style={{ borderTop: "1px solid black", textAlign: "right", whiteSpace: "nowrap", paddingTop: "5px", paddingRight: "5px", fontWeight: "bold", fontSize: "11px" }}>
+                      <td style={{ borderTop: "1px solid black", textAlign: "right", whiteSpace: "nowrap", paddingTop: "5px", paddingRight: "5px", fontWeight: "bold", fontSize: "13px" }}>
                         Net Amount
                       </td>
                       <td style={{ borderTop: "1px solid black", width: "10px", textAlign: "center", paddingTop: "5px", fontWeight: "bold" }}>:</td>
-                      <td style={{ borderTop: "1px solid black", width: "130px", textAlign: "right", paddingTop: "5px", paddingRight: "5px", fontWeight: "bold", fontSize: "11px" }}>
+                      <td style={{ borderTop: "1px solid black", width: "130px", textAlign: "right", paddingTop: "5px", paddingRight: "5px", fontWeight: "bold", fontSize: "13px" }}>
                         {Number(data?.netAmount || 0).toFixed(2)}
                       </td>
                     </tr>
@@ -899,7 +899,7 @@ const FabricBillPrint = forwardRef(
               border: "1px solid black",
               borderTop: "0",
               padding: "8px",
-              fontSize: "10px",
+              fontSize: "12px",
               fontWeight: "bold",
             }}
           >
@@ -925,7 +925,7 @@ const FabricBillPrint = forwardRef(
                   width: "20%",
                   textAlign: "center",
                   verticalAlign: "bottom",
-                  fontSize: "10px",
+                  fontSize: "12px",
                 }}
               >
                 <strong>Received By</strong>
@@ -938,7 +938,7 @@ const FabricBillPrint = forwardRef(
                   width: "20%",
                   textAlign: "center",
                   verticalAlign: "bottom",
-                  fontSize: "10px",
+                  fontSize: "12px",
                 }}
               >
                 <strong>Prepared By</strong>
@@ -951,7 +951,7 @@ const FabricBillPrint = forwardRef(
                   width: "20%",
                   textAlign: "center",
                   verticalAlign: "bottom",
-                  fontSize: "10px",
+                  fontSize: "12px",
                 }}
               >
                 <strong>Check By</strong>
@@ -964,7 +964,7 @@ const FabricBillPrint = forwardRef(
                   width: "40%",
                   textAlign: "center",
                   verticalAlign: "bottom",
-                  fontSize: "10px",
+                  fontSize: "12px",
                 }}
               >
                 <div style={{ textAlign: "right", marginBottom: "25px", whiteSpace: "nowrap" }}>
