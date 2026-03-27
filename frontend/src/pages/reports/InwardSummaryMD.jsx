@@ -41,6 +41,7 @@ const InwardSummaryMD = () => {
   const [activeKeys, setActiveKeys] = useState([]);
   const [selectedConcernId, setSelectedConcernId] = useState(null);
   const [exceptBalanceZero, setExceptBalanceZero] = useState(true); // Default enabled
+  const [isPrinting, setIsPrinting] = useState(false);
 
   useEffect(() => {
     // If navigated here with a selected concern, apply it
@@ -294,182 +295,17 @@ const InwardSummaryMD = () => {
   };
 
   const handlePrintAll = () => {
-    const printWindow = window.open("", "", "height=600,width=800");
+    if (!data.concerns || data.concerns.length === 0) return;
 
-    let tablesHtml = "";
-    data.concerns.forEach((concern) => {
-      tablesHtml += `
-        <div style="page-break-before: always; margin-bottom: 30px;">
-          <h3 style="margin-bottom: 15px; color: #1890ff;">${concern.concernName}</h3>
-          <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 15px;">
-            <thead>
-              <tr style="background-color: #4472c4; color: white;">
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">S.No</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Inward No</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Inward Date</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Party Name</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">PDC No</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Order No</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Fabric</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Dia</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Color</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">Inward Kgs</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">Process Kgs</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">DC Kgs</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">Return Kgs</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">Balance Kgs</th>
-                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">UOM</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${concern.data
-                .map(
-                  (item, index) => `
-                <tr style="${index % 2 === 0 ? "background-color: #f9f9f9;" : ""}">
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${index + 1}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.inwardNo}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${dayjs(item.inwardDate).format("DD-MM-YYYY")}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.partyName || ""}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.pdcNo}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.orderNo}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.fabric}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.dia}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.color}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px; text-align: right;">${Number(item.inwardKgs).toFixed(3)}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px; text-align: right;">${Number(item.processKgs || 0).toFixed(3)}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px; text-align: right;">${Number(item.dcKgs).toFixed(3)}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px; text-align: right;">${Number(item.returnKgs).toFixed(3)}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px; text-align: right;">${Number(item.balanceKgs).toFixed(3)}</td>
-                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.uom}</td>
-                </tr>
-              `,
-                )
-                .join("")}
-            </tbody>
-            <tfoot>
-              <tr style="background-color: #f0f0f0; font-weight: bold;">
-                <td colspan="9" style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Total</td>
-                <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.inwardKgs.toFixed(3)}</td>
-                <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.processKgs.toFixed(3)}</td>
-                <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.dcKgs.toFixed(3)}</td>
-                <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.returnKgs.toFixed(3)}</td>
-                <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.balanceKgs.toFixed(3)}</td>
-                <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;"></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      `;
-    });
-
-    const printContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Inward Summary Report - All Concerns</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              margin: 20px;
-            }
-            h2 {
-              text-align: center;
-              margin-bottom: 10px;
-            }
-            .date-range {
-              text-align: center;
-              margin-bottom: 20px;
-              font-size: 14px;
-            }
-            .grand-totals {
-              margin-top: 20px;
-              padding: 15px;
-              background-color: #e6f7ff;
-              border: 2px solid #1890ff;
-              border-radius: 5px;
-            }
-            .grand-totals h3 {
-              margin: 0 0 10px 0;
-              color: #1890ff;
-            }
-            .totals-grid {
-              display: grid;
-              grid-template-columns: repeat(5, 1fr);
-              gap: 15px;
-            }
-            .total-item {
-              text-align: center;
-            }
-            .total-label {
-              font-size: 12px;
-              color: #666;
-              margin-bottom: 5px;
-            }
-            .total-value {
-              font-size: 16px;
-              font-weight: bold;
-              color: #1890ff;
-            }
-            @media print {
-              body { 
-                margin: 10px;
-              }
-              .grand-totals {
-                page-break-inside: avoid;
-              }
-            }
-            @page {
-              size: A4 landscape;
-              margin: 10mm;
-            }
-          </style>
-        </head>
-        <body>
-          <h2>Inward Summary Report - All Concerns</h2>
-          <div class="date-range">
-            Period: ${dateRange[0].format("DD-MM-YYYY")} to ${dateRange[1].format("DD-MM-YYYY")}
-          </div>
-          
-          ${tablesHtml}
-          
-          <div class="grand-totals">
-            <h3>Grand Totals (All Concerns)</h3>
-            <div class="totals-grid">
-              <div class="total-item">
-                <div class="total-label">Inward Kgs</div>
-                <div class="total-value">${data.grandTotals.inwardKgs?.toFixed(3) || "0.000"}</div>
-              </div>
-              <div class="total-item">
-                <div class="total-label">Process Kgs</div>
-                <div class="total-value">${data.grandTotals.processKgs?.toFixed(3) || "0.000"}</div>
-              </div>
-              <div class="total-item">
-                <div class="total-label">DC Kgs</div>
-                <div class="total-value">${data.grandTotals.dcKgs?.toFixed(3) || "0.000"}</div>
-              </div>
-              <div class="total-item">
-                <div class="total-label">Return Kgs</div>
-                <div class="total-value">${data.grandTotals.returnKgs?.toFixed(3) || "0.000"}</div>
-              </div>
-              <div class="total-item">
-                <div class="total-label">Balance Kgs</div>
-                <div class="total-value">${data.grandTotals.balanceKgs?.toFixed(3) || "0.000"}</div>
-              </div>
-            </div>
-          </div>
-
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.focus();
+    setIsPrinting(true);
+    const prevActiveKeys = activeKeys;
+    setActiveKeys(data.concerns.map(c => c.concernId.toString()));
 
     setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+      window.print();
+      setIsPrinting(false);
+      setActiveKeys(prevActiveKeys);
+    }, 500);
   };
 
   const handleCollapseChange = (keys) => {
@@ -477,9 +313,74 @@ const InwardSummaryMD = () => {
   };
 
   return (
-    <Card>
+    <Card className="inward-summary-card">
+      <style>{`
+        @media print {
+          @page { margin: 10mm; size: A4 landscape; }
+          .no-print { display: none !important; }
+          .ant-layout-sider, .ant-layout-header, .ant-layout-footer { display: none !important; }
+          body, #root, .ant-layout, .ant-layout-content, .ant-card, .ant-card-body {
+            margin: 0 !important;
+            padding: 0 !important;
+            float: none !important;
+            overflow: visible !important;
+            display: block !important;
+            height: auto !important;
+            min-height: auto !important;
+            width: 100% !important;
+          }
+          .ant-card { border: none !important; box-shadow: none !important; }
+          .ant-table-wrapper, .ant-table, .ant-table-container, .ant-table-content, table { 
+            display: block !important; 
+            overflow: visible !important;
+            clear: both !important;
+            page-break-inside: auto !important;
+          }
+          table { display: table !important; width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; page-break-inside: avoid !important; }
+          thead { display: table-header-group !important; }
+          tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+          .ant-table-thead > tr > th,
+          .ant-table-tbody > tr > td,
+          .ant-table-summary td {
+             font-size: 8pt !important;
+             padding: 2pt 4pt !important;
+             border: 0.5pt solid #888 !important;
+             word-break: break-word !important;
+          }
+          .ant-table-thead > tr > th { 
+            background-color: var(--primary-color) !important; 
+            color: white !important; 
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .ant-table-summary td { background-color: #fafafa !important; font-weight: bold !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .print-header { display: block !important; margin-bottom: 20px !important; }
+          .ant-pagination { display: none !important; }
+
+          /* For InwardSummaryMD Collapse borders */
+          .ant-collapse { border: none !important; background: transparent !important; }
+          .ant-collapse-item { border: none !important; page-break-inside: avoid !important; }
+          .ant-collapse-header { padding: 0 !important; background: transparent !important; margin-bottom: 5px !important; display: flex !important; }
+          .ant-collapse-content { border: none !important; padding: 0 !important; }
+          .ant-collapse-content-box { padding: 0 !important; }
+          .ant-collapse-expand-icon { display: none !important; }
+        }
+        .print-header { display: none; }
+        .inward-summary-card .ant-card-body { padding: 16px !important; }
+      `}</style>
+
+      {/* Print Header */}
+      <div className="print-header">
+        <div style={{ borderBottom: "1.5px solid #333", paddingBottom: "8px", margin: "0 0 20px 0", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+          <Title level={4} style={{ margin: 0 }}>Inward Summary Report - All Concerns</Title>
+          <div style={{ fontSize: "11px", fontWeight: 500, textAlign: "right" }}>
+            Period: {dateRange[0]?.format("DD-MM-YYYY")} to {dateRange[1]?.format("DD-MM-YYYY")}
+          </div>
+        </div>
+      </div>
+
       <div
-        className="page-header"
+        className="page-header no-print"
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -607,6 +508,7 @@ const InwardSummaryMD = () => {
                     {concern.concernName}
                   </span>
                   <div
+                    className="no-print"
                     style={{
                       display: "flex",
                       gap: "12px",
@@ -642,7 +544,8 @@ const InwardSummaryMD = () => {
               <InwardSummaryTable
                 data={concern.data}
                 loading={loading}
-                showPagination={true}
+                showPagination={!isPrinting}
+                scroll={isPrinting ? false : undefined}
                 tableId={concern.concernId}
               />
             </Panel>

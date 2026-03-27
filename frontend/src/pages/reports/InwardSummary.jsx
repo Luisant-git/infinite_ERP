@@ -46,6 +46,7 @@ const InwardSummary = () => {
     total: 0,
   });
   const [exceptBalanceZero, setExceptBalanceZero] = useState(true); // Default enabled
+  const [isPrinting, setIsPrinting] = useState(false);
 
   useEffect(() => {
     if (location?.state?.fromDate && location?.state?.toDate) {
@@ -239,180 +240,73 @@ const InwardSummary = () => {
   };
 
   const handlePrint = () => {
-    const printWindow = window.open("", "", "height=600,width=800");
-
-    // Use backend totals when available
-    const totalsToUse = totals || {
-      inwardKgs: 0,
-      processKgs: 0,
-      dcKgs: 0,
-      returnKgs: 0,
-      balanceKgs: 0,
-    };
-
-    const printContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Inward Summary Report</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              margin: 20px;
-            }
-            h2 {
-              text-align: center;
-              margin-bottom: 10px;
-            }
-            .date-range {
-              text-align: center;
-              margin-bottom: 20px;
-              font-size: 14px;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              font-size: 11px;
-            }
-            thead {
-              display: table-header-group;
-            }
-            tfoot {
-              display: table-footer-group;
-            }
-            th {
-              background-color: #4472c4;
-              color: white;
-              padding: 6px 4px;
-              text-align: left;
-              border: 1px solid #ddd;
-              font-size: 10px;
-            }
-            td {
-              padding: 4px;
-              border: 1px solid #ddd;
-              font-size: 10px;
-            }
-            tr {
-              page-break-inside: avoid;
-            }
-            tbody tr:nth-child(even) {
-              background-color: #f9f9f9;
-            }
-            .text-right {
-              text-align: right;
-            }
-            tfoot td {
-              font-weight: bold;
-              background-color: #f0f0f0;
-              padding: 6px 4px;
-            }
-            @media print {
-              body { 
-                margin: 10px;
-              }
-              thead {
-                display: table-header-group;
-              }
-              tfoot {
-                display: table-footer-group;
-              }
-              tr {
-                page-break-inside: avoid;
-              }
-              h2 {
-                page-break-after: avoid;
-              }
-              .date-range {
-                page-break-after: avoid;
-              }
-            }
-            @page {
-              size: A4 landscape;
-              margin: 10mm;
-            }
-          </style>
-        </head>
-        <body>
-          <h2>Inward Summary Report</h2>
-          <div class="date-range">
-            Period: ${dateRange[0].format("DD-MM-YYYY")} to ${dateRange[1].format("DD-MM-YYYY")}
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>S.No</th>
-                <th>Inward No</th>
-                <th>Inward Date</th>
-                <th>Party Name</th>
-                <th>PDC No</th>
-                <th>Order No</th>
-                <th>Fabric</th>
-                <th>Dia</th>
-                <th>Color</th>
-                <th class="text-right">Inward Kgs</th>
-                <th class="text-right">Process Kgs</th>
-                <th class="text-right">DC Kgs</th>
-                <th class="text-right">Return Kgs</th>
-                <th class="text-right">Balance Kgs</th>
-                <th>UOM</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${data
-                .map(
-                  (item, index) => `
-                <tr>
-                  <td>${index + 1}</td>
-                  <td>${item.inwardNo}</td>
-                  <td>${dayjs(item.inwardDate).format("DD-MM-YYYY")}</td>
-                  <td>${item.partyName}</td>
-                  <td>${item.pdcNo}</td>
-                  <td>${item.orderNo}</td>
-                  <td>${item.fabric}</td>
-                  <td>${item.dia}</td>
-                  <td>${item.color}</td>
-                  <td class="text-right">${Number(item.inwardKgs).toFixed(3)}</td>
-                  <td class="text-right">${Number(item.processKgs || 0).toFixed(3)}</td>
-                  <td class="text-right">${Number(item.dcKgs).toFixed(3)}</td>
-                  <td class="text-right">${Number(item.returnKgs).toFixed(3)}</td>
-                  <td class="text-right">${Number(item.balanceKgs).toFixed(3)}</td>
-                  <td>${item.uom}</td>
-                </tr>
-              `,
-                )
-                .join("")}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="9">Total</td>
-                <td class="text-right">${totals.inwardKgs.toFixed(3)}</td>
-                <td class="text-right">${totals.processKgs.toFixed(3)}</td>
-                <td class="text-right">${totals.dcKgs.toFixed(3)}</td>
-                <td class="text-right">${totals.returnKgs.toFixed(3)}</td>
-                <td class="text-right">${totals.balanceKgs.toFixed(3)}</td>
-                <td></td>
-              </tr>
-            </tfoot>
-          </table>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.focus();
-
+    setIsPrinting(true);
     setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+      window.print();
+      setIsPrinting(false);
+    }, 500);
   };
 
   return (
-    <Card>
+    <Card className="inward-summary-card">
+      <style>{`
+        @media print {
+          @page { margin: 10mm; size: A4 landscape; }
+          .no-print { display: none !important; }
+          .ant-layout-sider, .ant-layout-header, .ant-layout-footer { display: none !important; }
+          body, #root, .ant-layout, .ant-layout-content, .ant-card, .ant-card-body {
+            margin: 0 !important;
+            padding: 0 !important;
+            float: none !important;
+            overflow: visible !important;
+            display: block !important;
+            height: auto !important;
+            min-height: auto !important;
+            width: 100% !important;
+          }
+          .ant-card { border: none !important; box-shadow: none !important; }
+          .ant-table-wrapper, .ant-table, .ant-table-container, .ant-table-content, table { 
+            display: block !important; 
+            overflow: visible !important;
+            clear: both !important;
+          }
+          table { display: table !important; width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; }
+          thead { display: table-header-group !important; }
+          tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+          .ant-table-thead > tr > th,
+          .ant-table-tbody > tr > td,
+          .ant-table-summary td {
+             font-size: 8pt !important;
+             padding: 2pt 4pt !important;
+             border: 0.5pt solid #888 !important;
+             word-break: break-word !important;
+          }
+          .ant-table-thead > tr > th { 
+            background-color: var(--primary-color) !important; 
+            color: white !important; 
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .ant-table-summary td { background-color: #fafafa !important; font-weight: bold !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .print-header { display: block !important; margin-bottom: 20px !important; }
+          .ant-pagination { display: none !important; }
+        }
+        .print-header { display: none; }
+        .inward-summary-card .ant-card-body { padding: 16px !important; }
+      `}</style>
+
+      {/* Print Header */}
+      <div className="print-header">
+        <div style={{ borderBottom: "1.5px solid #333", paddingBottom: "8px", margin: "0 0 20px 0", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+          <Title level={4} style={{ margin: 0 }}>Inward Summary Report</Title>
+          <div style={{ fontSize: "11px", fontWeight: 500, textAlign: "right" }}>
+            Period: {dateRange[0]?.format("DD-MM-YYYY")} to {dateRange[1]?.format("DD-MM-YYYY")}
+          </div>
+        </div>
+      </div>
+
       <div
-        className="page-header"
+        className="page-header no-print"
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -471,7 +365,8 @@ const InwardSummary = () => {
         data={data}
         loading={loading}
         totals={totals}
-        showPagination={true}
+        showPagination={!isPrinting}
+        scroll={isPrinting ? false : { x: 1200 }}
         tableId="main"
       />
     </Card>

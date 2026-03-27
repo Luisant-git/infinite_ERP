@@ -9,6 +9,7 @@ const InwardSummaryTable = ({
   showPagination = true,
   tableId = "default",
   totals: totalsProp,
+  scroll = { x: 1200 },
 }) => {
   const [filteredInfo, setFilteredInfo] = useState({});
   const [searchText, setSearchText] = useState({});
@@ -566,8 +567,10 @@ const InwardSummaryTable = ({
       <style>{`
         .compact-table-${tableId} .ant-table-thead > tr > th {
           padding: 6px 8px !important;
-          font-size: 12px !important;
+          font-size: 11px !important;
           font-weight: 600 !important;
+          background-color: var(--primary-color) !important;
+          color: white !important;
         }
         .compact-table-${tableId} .ant-table-tbody > tr > td {
           padding: 4px 8px !important;
@@ -674,7 +677,7 @@ const InwardSummaryTable = ({
               }
             : false
         }
-        scroll={{ x: 1200 }}
+        scroll={scroll}
         summary={() => (
           <Table.Summary.Row
             style={{ backgroundColor: "#fafafa", fontWeight: 600 }}
