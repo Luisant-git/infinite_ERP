@@ -15,10 +15,10 @@ const PartyMaster = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingParty, setEditingParty] = useState(null);
   const [searchText, setSearchText] = useState('');
-  const [filteredParties, setFilteredParties] = useState([]);
   const [partyTypes, setPartyTypes] = useState([]);
   const [isRegistered, setIsRegistered] = useState(true);
   const [selectedPartyTypes, setSelectedPartyTypes] = useState([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // For forcing refreshes
   const { canAdd, canEdit, canDelete } = useMenuPermissions();
 
   // Sample data for the table
@@ -27,17 +27,20 @@ const PartyMaster = () => {
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
 
   useEffect(() => {
-    loadParties();
+    loadParties(pagination.current, pagination.pageSize, searchText);
+  }, [refreshTrigger]); // Reload whenever trigger changes
+
+  useEffect(() => {
     loadPartyTypes();
   }, []);
 
   const loadParties = async (page = 1, pageSize = 10, search = searchText) => {
     try {
+      console.log('Hitting GET API for parties...', { search, page, pageSize });
       const response = await getParties(search, page, pageSize);
       const partiesData = response.data || response;
       setParties(partiesData);
-      setFilteredParties(partiesData);
-      
+
       if (response.pagination) {
         setPagination({
           current: response.pagination.page,
@@ -61,18 +64,14 @@ const PartyMaster = () => {
 
   const handleSearch = async (value) => {
     setSearchText(value);
-    loadParties(1, pagination.pageSize, value);
+    setRefreshTrigger(prev => prev + 1); // Trigger refresh on search
   };
-
-  React.useEffect(() => {
-    setFilteredParties(parties);
-  }, [parties]);
 
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
       console.log('Form values:', values);
-      
+
       if (!editingParty) {
         const trimmedName = values.partyName?.trim();
         const duplicateName = parties.find(p => p.partyName.trim().toLowerCase() === trimmedName.toLowerCase());
@@ -97,33 +96,35 @@ const PartyMaster = () => {
           }
         }
       }
-      
+
       const formData = {
         ...values,
         active: values.active ? 1 : 0,
         creditDays: values.creditDays || 0,
-        isApproval: editingParty ? 
-          ((values.creditDays !== editingParty.creditDays || values.creditAmount !== editingParty.creditAmount) ? 0 : editingParty.isApproval) 
+        isApproval: editingParty ?
+          ((values.creditDays !== editingParty.creditDays || values.creditAmount !== editingParty.creditAmount) ? 0 : editingParty.isApproval)
           : 0,
         creditAmount: values.creditAmount || 0,
         registered: values.registered || 1,
         againstPayment: values.againstPayment ? 1 : 0
       };
-      
+
       console.log('Sending data:', formData);
-      
+
       if (editingParty) {
-        const updatedParty = await updateParty(editingParty.id, formData);
-        setParties(parties.map(party => 
-          party.id === editingParty.id ? updatedParty : party
-        ));
+        await updateParty(editingParty.id, formData);
+        message.success('Party updated successfully!');
       } else {
-        const newParty = await createParty(formData);
-        setParties([...parties, newParty]);
+        await createParty(formData);
+        message.success('Party created successfully!');
       }
+
+      console.log('Party saved successfully, triggering refresh...');
       setIsModalVisible(false);
       form.resetFields();
       setEditingParty(null);
+      setSearchText('');
+      setRefreshTrigger(prev => prev + 1); // This GUARANTEES an API hit
     } catch (error) {
       console.error('Error saving party:', error);
       console.error('Error response:', error.response);
@@ -174,9 +175,9 @@ const PartyMaster = () => {
           {record.contacts && record.contacts.length > 0 && (
             <div style={{ marginTop: 16 }}>
               <strong>Contacts:</strong>
-              <Table 
-                size="small" 
-                dataSource={record.contacts} 
+              <Table
+                size="small"
+                dataSource={record.contacts}
                 pagination={false}
                 columns={[
                   { title: 'Name', dataIndex: 'name', key: 'name' },
@@ -215,9 +216,11 @@ const PartyMaster = () => {
       onOk: async () => {
         try {
           await deleteParty(id);
-          setParties(parties.filter(party => party.id !== id));
+          message.success('Party deleted successfully!');
+          setRefreshTrigger(prev => prev + 1);
         } catch (error) {
           console.error('Error deleting party:', error);
+          message.error('Failed to delete party');
         }
       }
     });
@@ -353,17 +356,17 @@ const PartyMaster = () => {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={3} style={{ margin: 0 }}>Party Master</Title>
         <Space style={{ width: 'auto' }}>
-          <Input 
-            placeholder="Search by name, code, mobile, GST" 
+          <Input
+            placeholder="Search by name, code, mobile, GST"
             value={searchText}
             onChange={(e) => handleSearch(e.target.value)}
             style={{ width: 280, height: 32 }}
             size="small"
             allowClear
           />
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
             onClick={() => setIsModalVisible(true)}
             disabled={!canAdd('party_master')}
           >
@@ -372,9 +375,9 @@ const PartyMaster = () => {
         </Space>
       </div>
 
-      <Table 
-        columns={columns} 
-        dataSource={filteredParties} 
+      <Table
+        columns={columns}
+        dataSource={parties}
         rowKey="id"
         size="small"
         pagination={{
@@ -408,9 +411,9 @@ const PartyMaster = () => {
           <Button key="clear" onClick={() => form.resetFields()}>
             Clear
           </Button>,
-          <Button 
-            key="submit" 
-            type="primary" 
+          <Button
+            key="submit"
+            type="primary"
             loading={loading}
             onClick={() => form.submit()}
           >
@@ -470,9 +473,9 @@ const PartyMaster = () => {
                     name="partyTypeIds"
                     rules={[{ required: true, message: 'Please select at least one party type!' }]}
                   >
-                    <Select 
+                    <Select
                       mode="multiple"
-                      placeholder="Select party types" 
+                      placeholder="Select party types"
                       allowClear
                       showSearch
                       filterOption={(input, option) =>
@@ -510,7 +513,7 @@ const PartyMaster = () => {
                       ({ getFieldValue }) => ({
                         validator(_, value) {
                           const partyTypeIds = getFieldValue('partyTypeIds') || [];
-                          const isCustomer = partyTypes.some(pt => 
+                          const isCustomer = partyTypes.some(pt =>
                             partyTypeIds.includes(pt.id) && pt.partyTypeName.toLowerCase() === 'customer'
                           );
                           if (isCustomer && !value) {
@@ -557,7 +560,7 @@ const PartyMaster = () => {
                       ({ getFieldValue }) => ({
                         validator(_, value) {
                           const partyTypeIds = getFieldValue('partyTypeIds') || [];
-                          const isCustomer = partyTypes.some(pt => 
+                          const isCustomer = partyTypes.some(pt =>
                             partyTypeIds.includes(pt.id) && pt.partyTypeName.toLowerCase() === 'customer'
                           );
                           if (isCustomer && !value) {
@@ -591,7 +594,7 @@ const PartyMaster = () => {
                       ({ getFieldValue }) => ({
                         validator(_, value) {
                           const partyTypeIds = getFieldValue('partyTypeIds') || [];
-                          const isCustomer = partyTypes.some(pt => 
+                          const isCustomer = partyTypes.some(pt =>
                             partyTypeIds.includes(pt.id) && pt.partyTypeName.toLowerCase() === 'customer'
                           );
                           if (isCustomer && !value) {
@@ -614,7 +617,7 @@ const PartyMaster = () => {
                       ({ getFieldValue }) => ({
                         validator(_, value) {
                           const partyTypeIds = getFieldValue('partyTypeIds') || [];
-                          const isCustomer = partyTypes.some(pt => 
+                          const isCustomer = partyTypes.some(pt =>
                             partyTypeIds.includes(pt.id) && pt.partyTypeName.toLowerCase() === 'customer'
                           );
                           if (isCustomer && !value) {
@@ -681,7 +684,7 @@ const PartyMaster = () => {
                         validator(_, value) {
                           const partyTypeIds = getFieldValue('partyTypeIds') || [];
                           const registered = getFieldValue('registered');
-                          const isCustomer = partyTypes.some(pt => 
+                          const isCustomer = partyTypes.some(pt =>
                             partyTypeIds.includes(pt.id) && pt.partyTypeName.toLowerCase() === 'customer'
                           );
                           if (isCustomer && registered === 1 && !value) {
@@ -718,7 +721,7 @@ const PartyMaster = () => {
                 </Col>
               </Row>
             </TabPane>
-            
+
             <TabPane tab="Bank Details" key="2">
               <Row gutter={16}>
                 <Col span={12}>
@@ -756,7 +759,7 @@ const PartyMaster = () => {
                 </Col>
               </Row>
             </TabPane>
-            
+
             <TabPane tab="Contact Details" key="3">
               <Form.List name="contacts">
                 {(fields, { add, remove }) => (
@@ -814,10 +817,10 @@ const PartyMaster = () => {
                         </Col>
                         <Col span={1}>
                           <Form.Item label=" ">
-                            <Button 
-                              type="text" 
-                              danger 
-                              icon={<MinusCircleOutlined />} 
+                            <Button
+                              type="text"
+                              danger
+                              icon={<MinusCircleOutlined />}
                               onClick={() => remove(name)}
                             />
                           </Form.Item>
