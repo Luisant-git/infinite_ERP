@@ -207,6 +207,12 @@ export class InwardSummaryService {
       },
     });
 
+    // Get all parties for mapping names
+    const parties = await this.prisma.party.findMany({
+      select: { id: true, partyName: true },
+    });
+    const partyMap = new Map(parties.map((p) => [p.id, p.partyName]));
+
     // Calculate DC, Process & Return quantities for each inward detail
     const summaryData = await Promise.all(
       inwards.map(async (inward) => {
@@ -308,7 +314,7 @@ export class InwardSummaryService {
               id: detail.id,
               inwardNo: inward.grnNo,
               inwardDate: inward.grnDate,
-              partyName: '',
+              partyName: partyMap.get(inward.partyId as number) || '',
               pdcNo: inward.pdcNo || '',
               orderNo: inward.orderNo || '',
               fabric: detail.fabric?.masterName || '',
@@ -487,6 +493,12 @@ export class InwardSummaryService {
       },
     });
 
+    // Get all parties for mapping names
+    const parties = await this.prisma.party.findMany({
+      select: { id: true, partyName: true },
+    });
+    const partyMap = new Map(parties.map((p) => [p.id, p.partyName]));
+
     // Calculate DC and Return quantities for each inward detail
     const summaryData = await Promise.all(
       inwards.map(async (inward) => {
@@ -588,7 +600,7 @@ export class InwardSummaryService {
               id: detail.id,
               inwardNo: inward.grnNo,
               inwardDate: inward.grnDate,
-              partyName: '',
+              partyName: partyMap.get(inward.partyId as number) || '',
               pdcNo: inward.pdcNo || '',
               orderNo: inward.orderNo || '',
               fabric: detail.fabric?.masterName || '',

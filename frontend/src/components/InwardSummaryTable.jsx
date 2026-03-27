@@ -236,6 +236,30 @@ const InwardSummaryTable = ({
             alignItems: "center",
           }}
         >
+          Party Name
+          <span
+            onClick={() => handleColumnHide("partyName")}
+            style={{ cursor: "pointer", color: "#ff4d4f", marginLeft: 4 }}
+            title="Hide column"
+          >
+            ×
+          </span>
+        </div>
+      ),
+      dataIndex: "partyName",
+      key: "partyName",
+      width: 150,
+      ...getColumnSearchProps("partyName", "Party Name"),
+    },
+    {
+      title: (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           PDC No
           <span
             onClick={() => handleColumnHide("pdcNo")}
@@ -655,25 +679,25 @@ const InwardSummaryTable = ({
           <Table.Summary.Row
             style={{ backgroundColor: "#fafafa", fontWeight: 600 }}
           >
-            <Table.Summary.Cell index={0} colSpan={8}>
+            <Table.Summary.Cell index={0} colSpan={9}>
               <strong>Total</strong>
             </Table.Summary.Cell>
-            <Table.Summary.Cell index={8} align="right">
+            <Table.Summary.Cell index={9} align="right">
               <strong>{totals.inwardKgs.toFixed(3)}</strong>
             </Table.Summary.Cell>
-            <Table.Summary.Cell index={9} align="right">
+            <Table.Summary.Cell index={10} align="right">
               <strong>{totals.processKgs.toFixed(3)}</strong>
             </Table.Summary.Cell>
-            <Table.Summary.Cell index={10} align="right">
+            <Table.Summary.Cell index={11} align="right">
               <strong>{totals.dcKgs.toFixed(3)}</strong>
             </Table.Summary.Cell>
-            <Table.Summary.Cell index={11} align="right">
+            <Table.Summary.Cell index={12} align="right">
               <strong>{totals.returnKgs.toFixed(3)}</strong>
             </Table.Summary.Cell>
-            <Table.Summary.Cell index={12} align="right">
+            <Table.Summary.Cell index={13} align="right">
               <strong>{totals.balanceKgs.toFixed(3)}</strong>
             </Table.Summary.Cell>
-            <Table.Summary.Cell index={13} />
+            <Table.Summary.Cell index={14} />
           </Table.Summary.Row>
         )}
       />

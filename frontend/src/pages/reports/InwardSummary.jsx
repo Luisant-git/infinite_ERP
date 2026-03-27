@@ -156,6 +156,7 @@ const InwardSummary = () => {
       "S.No",
       "Inward No",
       "Inward Date",
+      "Party Name",
       "PDC No",
       "Order No",
       "Fabric",
@@ -173,6 +174,7 @@ const InwardSummary = () => {
       index + 1,
       item.inwardNo,
       dayjs(item.inwardDate).format("DD-MM-YYYY"),
+      item.partyName,
       item.pdcNo,
       item.orderNo,
       item.fabric,
@@ -197,6 +199,7 @@ const InwardSummary = () => {
 
     // Add totals row
     csvData.push([
+      "",
       "",
       "",
       "",
@@ -341,6 +344,7 @@ const InwardSummary = () => {
                 <th>S.No</th>
                 <th>Inward No</th>
                 <th>Inward Date</th>
+                <th>Party Name</th>
                 <th>PDC No</th>
                 <th>Order No</th>
                 <th>Fabric</th>
@@ -362,6 +366,7 @@ const InwardSummary = () => {
                   <td>${index + 1}</td>
                   <td>${item.inwardNo}</td>
                   <td>${dayjs(item.inwardDate).format("DD-MM-YYYY")}</td>
+                  <td>${item.partyName}</td>
                   <td>${item.pdcNo}</td>
                   <td>${item.orderNo}</td>
                   <td>${item.fabric}</td>
@@ -380,7 +385,7 @@ const InwardSummary = () => {
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="8">Total</td>
+                <td colspan="9">Total</td>
                 <td class="text-right">${totals.inwardKgs.toFixed(3)}</td>
                 <td class="text-right">${totals.processKgs.toFixed(3)}</td>
                 <td class="text-right">${totals.dcKgs.toFixed(3)}</td>

@@ -190,6 +190,7 @@ const InwardSummaryMD = () => {
       "S.No",
       "Inward No",
       "Inward Date",
+      "Party Name",
       "PDC No",
       "Order No",
       "Fabric",
@@ -212,6 +213,7 @@ const InwardSummaryMD = () => {
           index + 1,
           item.inwardNo,
           dayjs(item.inwardDate).format("DD-MM-YYYY"),
+          item.partyName || "",
           item.pdcNo,
           item.orderNo,
           item.fabric,
@@ -228,7 +230,8 @@ const InwardSummaryMD = () => {
 
       // Add concern totals
       csvData.push([
-        `${concern.concernName} Total`,
+        "",
+        "",
         "",
         "",
         "",
@@ -304,6 +307,7 @@ const InwardSummaryMD = () => {
                 <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">S.No</th>
                 <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Inward No</th>
                 <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Inward Date</th>
+                <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Party Name</th>
                 <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">PDC No</th>
                 <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Order No</th>
                 <th style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Fabric</th>
@@ -325,6 +329,7 @@ const InwardSummaryMD = () => {
                   <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${index + 1}</td>
                   <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.inwardNo}</td>
                   <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${dayjs(item.inwardDate).format("DD-MM-YYYY")}</td>
+                  <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.partyName || ""}</td>
                   <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.pdcNo}</td>
                   <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.orderNo}</td>
                   <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${item.fabric}</td>
@@ -343,7 +348,7 @@ const InwardSummaryMD = () => {
             </tbody>
             <tfoot>
               <tr style="background-color: #f0f0f0; font-weight: bold;">
-                <td colspan="8" style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Total</td>
+                <td colspan="9" style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px;">Total</td>
                 <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.inwardKgs.toFixed(3)}</td>
                 <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.processKgs.toFixed(3)}</td>
                 <td style="border: 1px solid #ddd; padding: 6px 4px; font-size: 10px; text-align: right;">${concern.totals.dcKgs.toFixed(3)}</td>
