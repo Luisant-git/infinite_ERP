@@ -20,7 +20,7 @@ const UnDcList = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const response = await getUnDcList({ tenantId: localStorage.getItem("selectedCompanyId") });
+      const response = await getUnDcList({ tenantId: localStorage.getItem("tenantId") });
       setData(response.data || []);
     } catch (error) {
       console.error("Error loading Un-DC list:", error);

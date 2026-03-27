@@ -423,7 +423,7 @@ export class InwardSummaryService {
   }
 
   async getInwardSummary(query: InwardSummaryQueryDto) {
-    const { fromDate, toDate, page = 1, limit = 10, search } = query;
+    const { fromDate, toDate, page = 1, limit = 10, search, tenantId } = query;
 
     // Ensure page and limit are numbers
     const pageNum = Number(page);
@@ -431,7 +431,12 @@ export class InwardSummaryService {
 
     const where: any = {
       isClosed: 0, // Only show open records
+      deleteFlg: 0,
     };
+
+    if (tenantId) {
+      where.tenantId = Number(tenantId);
+    }
 
     // Date range filter
     if (fromDate && toDate) {

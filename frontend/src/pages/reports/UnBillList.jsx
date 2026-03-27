@@ -19,7 +19,7 @@ const UnBillList = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const response = await getUnBillList({ tenantId: localStorage.getItem("selectedCompanyId") });
+      const response = await getUnBillList({ tenantId: localStorage.getItem("tenantId") });
       setData(response.data || []);
     } catch (error) {
       console.error("Error loading Un-Bill list:", error);
