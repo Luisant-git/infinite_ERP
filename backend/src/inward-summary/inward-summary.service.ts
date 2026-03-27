@@ -647,7 +647,7 @@ export class InwardSummaryService {
 
   async getUnDcList(query: InwardSummaryQueryDto) {
     const summary = await this.getInwardSummary({ ...query, page: 1, limit: 10000 });
-    const data = summary.data.filter((item) => Number(item.balanceKgs) > 0);
+    const data = summary.data;
     return {
       data,
       totals: this.calculateTotals(data),
