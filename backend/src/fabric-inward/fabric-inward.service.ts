@@ -93,31 +93,40 @@ export class FabricInwardService {
             header: {
               deleteFlg: 0  // Bill header not deleted
             }
-          },
-          include: {
-            header: true
           }
         });
 
-        // Debug logging
-        if (inward.grnNo) {
-          console.log(`Inward ${inward.grnNo} lock check:`, {
-            isUsedInDc: !!isUsedInDc,
-            isUsedInReturn: !!isUsedInReturn,
-            isUsedInBill: !!isUsedInBillWithHeader,
-            dcRecord: isUsedInDc ? { id: isUsedInDc.id, dcNo: isUsedInDc.dcNo, deleteFlg: isUsedInDc.deleteFlg } : null,
-            returnRecord: isUsedInReturn ? { id: isUsedInReturn.id, dcNo: isUsedInReturn.dcNo, deleteFlg: isUsedInReturn.deleteFlg } : null,
-            billRecord: isUsedInBillWithHeader ? { 
-              id: isUsedInBillWithHeader.id, 
-              inwardNo: isUsedInBillWithHeader.inwardNo, 
-              deleteFlg: isUsedInBillWithHeader.deleteFlg,
-              headerDeleteFlg: isUsedInBillWithHeader.header?.deleteFlg 
-            } : null
-          });
-        }
+        // Calculate Weights
+        const [dcTotals, returnTotals] = await Promise.all([
+          this.prisma.fabricDcDetail.aggregate({
+            where: {
+              deleteFlg: 0,
+              header: { inwardNo: inward.grnNo, deleteFlg: 0 }
+            },
+            _sum: { processWeight: true, dcWeight: true }
+          }),
+          this.prisma.fabricReturnDetail.aggregate({
+            where: {
+              deleteFlg: 0,
+              header: { inwardNo: inward.grnNo, deleteFlg: 0 }
+            },
+            _sum: { weight: true }
+          })
+        ]);
+
+        const inwardKgs = inward.details.reduce((sum, d) => sum + Number(d.weight || 0), 0);
+        const processKgs = Number(dcTotals._sum.processWeight || 0);
+        const dcKgs = Number(dcTotals._sum.dcWeight || 0);
+        const returnKgs = Number(returnTotals._sum.weight || 0);
+        const balanceKgs = inwardKgs - processKgs - returnKgs;
 
         return {
           ...inward,
+          inwardKgs: Number(inwardKgs.toFixed(3)),
+          processKgs: Number(processKgs.toFixed(3)),
+          dcKgs: Number(dcKgs.toFixed(3)),
+          returnKgs: Number(returnKgs.toFixed(3)),
+          balanceKgs: Number(balanceKgs.toFixed(3)),
           isLocked: !!(isUsedInDc || isUsedInReturn || isUsedInBillWithHeader)
         };
       })

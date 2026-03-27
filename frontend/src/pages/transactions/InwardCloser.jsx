@@ -87,23 +87,51 @@ const InwardCloser = () => {
     {
       title: "PDC No",
       dataIndex: "pdcNo",
-      width: 120,
+      width: 100,
     },
     {
-      title: "Total Qty",
-      dataIndex: "totalQty",
+      title: "Inward Kgs",
+      dataIndex: "inwardKgs",
       width: 100,
-      render: (val) => Number(val).toFixed(3),
+      align: "right",
+      render: (val) => Number(val || 0).toFixed(3),
     },
     {
-      title: "Total Rolls",
-      dataIndex: "totalRolls",
+      title: "Return Kgs",
+      dataIndex: "returnKgs",
       width: 100,
+      align: "right",
+      render: (val) => Number(val || 0).toFixed(3),
+    },
+    {
+      title: "Process Kgs",
+      dataIndex: "processKgs",
+      width: 100,
+      align: "right",
+      render: (val) => Number(val || 0).toFixed(3),
+    },
+    {
+      title: "Dc Kgs",
+      dataIndex: "dcKgs",
+      width: 100,
+      align: "right",
+      render: (val) => Number(val || 0).toFixed(3),
+    },
+    {
+      title: "Balance Kgs",
+      dataIndex: "balanceKgs",
+      width: 100,
+      align: "right",
+      render: (val) => (
+        <span style={{ fontWeight: 600, color: Number(val) > 0 ? "#ff4d4f" : "inherit" }}>
+          {Number(val || 0).toFixed(3)}
+        </span>
+      ),
     },
     {
       title: "Status",
       dataIndex: "isClosed",
-      width: 100,
+      width: 90,
       render: (isClosed, record) => (
         <Checkbox
           checked={isClosed === 1}
