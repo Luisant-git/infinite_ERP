@@ -31,7 +31,8 @@ export class DashboardService {
             some: {
               partyType: {
                 partyTypeName: {
-                  equals: 'Customer'
+                  equals: 'Customer',
+                  mode: 'insensitive' // Ensure consistency with frontend case-insensitive check
                 }
               }
             }
@@ -41,7 +42,8 @@ export class DashboardService {
       // Design Approvals Pending
       this.prisma.design.count({
         where: {
-          isApproval: 0
+          isApproval: 0,
+          isDeleted: false // Don't count deleted designs
         }
       }),
       // Bill Approvals Pending
