@@ -31,8 +31,7 @@ export class DashboardService {
             some: {
               partyType: {
                 partyTypeName: {
-                  equals: 'Customer',
-                  mode: 'insensitive' // Ensure consistency with frontend case-insensitive check
+                  in: ['Customer', 'customer', 'CUSTOMER'] // Catch all common case variations for cross-DB reliability
                 }
               }
             }
