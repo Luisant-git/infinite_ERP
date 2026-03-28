@@ -16,19 +16,19 @@ const PartyLedgerPrint = React.forwardRef(({ data, fromDate, toDate, companyDeta
     const finalBalance = totalDebit - totalCredit;
 
     return (
-        <div ref={ref} style={{ fontFamily: 'Arial, sans-serif' }} data-print-content>
+        <div ref={ref} style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }} data-print-content>
             <style>{`
                 @media print {
                     @page { 
-                        margin: 5mm; 
-                        size: A5; 
+                        margin: 0mm; 
+                        size: A4; 
                     }
+                    body { margin: 0; }
                 }
                 .ledger-wrapper {
                     border: 1px solid #000;
                     padding: 0;
                     background-color: white;
-                    min-height: 195mm; /* Approx A5 height */
                     display: flex;
                     flex-direction: column;
                 }
@@ -43,7 +43,7 @@ const PartyLedgerPrint = React.forwardRef(({ data, fromDate, toDate, companyDeta
                 }
                 .logo-container {
                     position: absolute;
-                    left: 10px;
+                    left: 50px;
                     top: 50%;
                     transform: translateY(-50%);
                 }
@@ -131,7 +131,8 @@ const PartyLedgerPrint = React.forwardRef(({ data, fromDate, toDate, companyDeta
                     <thead>
                         <tr>
                             <th style={{ width: '15%' }}>Date</th>
-                            <th style={{ width: '45%' }}>Particulars</th>
+                            <th style={{ width: '15%' }}>Ref No</th>
+                            <th style={{ width: '30%' }}>Particulars</th>
                             <th style={{ width: '20%' }} className="text-red">Debit</th>
                             <th style={{ width: '20%' }} className="text-green">Credit</th>
                         </tr>
@@ -139,6 +140,7 @@ const PartyLedgerPrint = React.forwardRef(({ data, fromDate, toDate, companyDeta
                     <tbody>
                         {/* Opening row */}
                         <tr>
+                            <td className="text-center">-</td>
                             <td className="text-center">-</td>
                             <td>Opening -</td>
                             <td className="val-debit">{Number(data.initialBalance) >= 0 ? parseFloat(data.initialBalance).toFixed(2) : ''}</td>
@@ -149,6 +151,7 @@ const PartyLedgerPrint = React.forwardRef(({ data, fromDate, toDate, companyDeta
                         {data.ledger?.map((l, index) => (
                             <tr key={index}>
                                 <td className="text-center">{dayjs(l.refDate).format('DD/MM/YYYY')}</td>
+                                <td className="text-center">{l.refNo}</td>
                                 <td>{l.particulars}</td>
                                 <td className="val-debit">{l.debit > 0 ? parseFloat(l.debit).toFixed(2) : ''}</td>
                                 <td className="val-credit">{l.credit > 0 ? parseFloat(l.credit).toFixed(2) : ''}</td>
@@ -157,12 +160,12 @@ const PartyLedgerPrint = React.forwardRef(({ data, fromDate, toDate, companyDeta
                     </tbody>
                     <tfoot>
                         <tr className="total-row">
-                            <td colSpan={2} className="text-center">Total</td>
+                            <td colSpan={3} className="text-center">Total</td>
                             <td className="val-debit">{totalDebit.toFixed(2)}</td>
                             <td className="val-credit">{totalCredit.toFixed(2)}</td>
                         </tr>
                         <tr className="balance-row">
-                            <td colSpan={2} className="text-center">Closing Balance</td>
+                            <td colSpan={3} className="text-center">Closing Balance</td>
                             <td className="text-right" colSpan={2}>
                                 {finalBalance >= 0 ? (
                                     <span className="text-red">{Math.abs(finalBalance).toFixed(2)}</span>

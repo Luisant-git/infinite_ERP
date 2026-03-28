@@ -219,7 +219,7 @@ const PartyLedger = () => {
     const doc = new jsPDF({
         orientation: 'p',
         unit: 'mm',
-        format: 'a5',
+        format: 'a4',
     });
 
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -238,7 +238,7 @@ const PartyLedger = () => {
             const logoBase64 = await getImageDataUrl(companyDetails.logo);
             if (logoBase64) {
                // Add logo on left side similar to print view
-               doc.addImage(logoBase64, 'PNG', 10, 8, 14, 14, '', 'FAST');
+               doc.addImage(logoBase64, 'PNG', 18, 8, 14, 14, '', 'FAST');
             }
         } catch (e) {}
     }
@@ -320,6 +320,7 @@ const PartyLedger = () => {
     const tableData = [];
     tableData.push([
         '-', 
+        '-',
         'Opening -', 
         Number(record.initialBalance) >= 0 ? parseFloat(record.initialBalance).toFixed(2) : '',
         Number(record.initialBalance) < 0 ? parseFloat(Math.abs(record.initialBalance)).toFixed(2) : ''
@@ -335,6 +336,7 @@ const PartyLedger = () => {
         totalCredit += c;
         tableData.push([
             dayjs(l.refDate).format('DD/MM/YYYY'),
+            l.refNo || '-',
             l.particulars,
             d > 0 ? parseFloat(d).toFixed(2) : '',
             c > 0 ? parseFloat(c).toFixed(2) : '',
@@ -346,7 +348,7 @@ const PartyLedger = () => {
     autoTable(doc, {
       startY: currentY,
       margin: { left: 5, right: 5, bottom: 15 },
-      head: [['Date', 'Particulars', 'Debit', 'Credit']],
+      head: [['Date', 'Ref No', 'Particulars', 'Debit', 'Credit']],
       body: tableData,
       theme: 'grid',
       styles: { fontSize: 8.5, cellPadding: 1.5, font: 'helvetica', lineColor: [0, 0, 0], lineWidth: 0.1 },
@@ -358,15 +360,16 @@ const PartyLedger = () => {
         lineWidth: 0.2
       },
       columnStyles: {
-        0: { cellWidth: 22, halign: 'center' },
-        1: { cellWidth: 'auto' },
-        2: { cellWidth: 24, halign: 'right', fontStyle: 'bold', textColor: [200, 0, 0] },
-        3: { cellWidth: 24, halign: 'right', fontStyle: 'bold', textColor: [0, 118, 0] },
+        0: { cellWidth: 20, halign: 'center' },
+        1: { cellWidth: 20, halign: 'center' },
+        2: { cellWidth: 'auto' },
+        3: { cellWidth: 22, halign: 'right', fontStyle: 'bold', textColor: [200, 0, 0] },
+        4: { cellWidth: 22, halign: 'right', fontStyle: 'bold', textColor: [0, 118, 0] },
       },
       didParseCell: (data) => {
         if (data.section === 'head') {
-            if (data.column.index === 2) data.cell.styles.textColor = [200, 0, 0];
-            if (data.column.index === 3) data.cell.styles.textColor = [0, 118, 0];
+            if (data.column.index === 3) data.cell.styles.textColor = [200, 0, 0];
+            if (data.column.index === 4) data.cell.styles.textColor = [0, 118, 0];
         }
       }
     });
@@ -378,13 +381,9 @@ const PartyLedger = () => {
     // We add some spacing then draw our custom footer rows
     let footerY = finalY;
 
-    // Check if we have enough space for the footer (approx 15mm needed)
-    // pageHeight is 210 for A5? No, A5 is 148x210. 
-    // Wait, with format: 'a5', pageWidth is 148, pageHeight is 210.
     if (footerY + 15 > pageHeight - 10) {
         doc.addPage();
-        footerY = 15; // Start at top of new page
-        // Redraw outer rect on new page
+        footerY = 15; 
         doc.setDrawColor(0);
         doc.setLineWidth(0.3);
         doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
@@ -396,19 +395,19 @@ const PartyLedger = () => {
     
     // Total Row
     doc.rect(5, footerY, pageWidth - 10, 7);
-    doc.text('Total', 60, footerY + 5, { align: 'center' });
+    doc.text('Total', 100, footerY + 5, { align: 'center' });
     doc.setTextColor(200, 0, 0);
-    doc.text(totalDebit.toFixed(2), pageWidth - 32, footerY + 5, { align: 'right' });
+    doc.text(totalDebit.toFixed(2), pageWidth - 30, footerY + 5, { align: 'right' });
     doc.setTextColor(0, 118, 0);
     doc.text(totalCredit.toFixed(2), pageWidth - 7, footerY + 5, { align: 'right' });
     
     // Closing Balance Row
     doc.setTextColor(0);
     doc.rect(5, footerY + 7, pageWidth - 10, 7);
-    doc.text('Closing Balance', 60, footerY + 12, { align: 'center' });
+    doc.text('Closing Balance', 100, footerY + 12, { align: 'center' });
     if (finalBalanceVal >= 0) {
       doc.setTextColor(200, 0, 0);
-      doc.text(Math.abs(finalBalanceVal).toFixed(2), pageWidth - 32, footerY + 12, { align: 'right' });
+      doc.text(Math.abs(finalBalanceVal).toFixed(2), pageWidth - 30, footerY + 12, { align: 'right' });
     } else {
       doc.setTextColor(0, 118, 0);
       doc.text(Math.abs(finalBalanceVal).toFixed(2), pageWidth - 7, footerY + 12, { align: 'right' });
