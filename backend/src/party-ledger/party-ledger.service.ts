@@ -89,16 +89,21 @@ export class PartyLedgerService {
 
         transactions.sort((a, b) => new Date(a.refDate).getTime() - new Date(b.refDate).getTime());
 
-        // 4. Calculate Running Balances starting at 0 for range (per user request)
-        let currentBalance = 0;
+        // 4. Calculate Running Balances starting with the opening balance
+        let currentBalance = openingBalanceVal;
         const ledger = transactions.map(t => {
-          currentBalance = currentBalance + t.debit - t.credit;
+          currentBalance = currentBalance + (t.debit || 0) - (t.credit || 0);
           return { ...t, runningBalance: currentBalance };
         });
 
         return {
           partyId,
           partyName: partyInfo?.partyName || 'Unknown',
+          mobileNo: partyInfo?.mobileNo || '',
+          phoneNo: partyInfo?.phoneNo || '',
+          email: partyInfo?.email || '',
+          address: `${partyInfo?.address1 || ''} ${partyInfo?.address2 || ''} ${partyInfo?.address3 || ''} ${partyInfo?.address4 || ''}`.trim(),
+          gstNo: partyInfo?.gstNo || '',
           initialBalance: openingBalanceVal,
           finalBalance: currentBalance,
           ledger
