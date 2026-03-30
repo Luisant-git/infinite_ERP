@@ -7,16 +7,51 @@ import {
   UserOutlined,
   TeamOutlined,
   ShopOutlined,
-  FileTextOutlined,
-  CloseOutlined,
   BarChartOutlined,
   SettingOutlined,
   DatabaseOutlined,
   FileProtectOutlined,
-  CloudUploadOutlined,
-  AccountBookOutlined,
+  UsergroupAddOutlined,
+  ContactsOutlined,
+  ClusterOutlined,
+  FormatPainterOutlined,
+  NodeIndexOutlined,
+  PercentageOutlined,
+  DollarOutlined,
+  InteractionOutlined,
+  SolutionOutlined,
+  LoginOutlined,
+  LogoutOutlined,
+  RollbackOutlined,
+  CloseCircleOutlined,
+  FileDoneOutlined,
+  FileAddOutlined,
+  CloudServerOutlined,
+  AuditOutlined,
+  HighlightOutlined,
+  FileExclamationOutlined,
+  ReconciliationOutlined,
+  VerifiedOutlined,
+  BankOutlined,
+  FolderOpenOutlined,
+  WalletOutlined,
+  BookOutlined,
+  ProfileOutlined,
+  FieldTimeOutlined,
+  HistoryOutlined,
+  ControlOutlined,
+  SafetyCertificateOutlined,
+  FolderOutlined,
+  FolderAddOutlined,
+  IdcardOutlined,
+  TagsOutlined,
+  FileImageOutlined,
+  FileTextOutlined,
+  FileSearchOutlined,
+  ProjectOutlined,
+  DiffOutlined,
+  UserAddOutlined,
 } from "@ant-design/icons";
-import { LuSettings2 } from "react-icons/lu";
 import { usePermissions } from "../hooks/usePermissions";
 import { useMenuPermissions } from "../hooks/useMenuPermissions";
 import { ROUTES } from "../constants/permissions";
@@ -42,7 +77,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
       : []),
     {
       key: "masters",
-      icon: <TeamOutlined />,
+      icon: <FolderOutlined />,
       label: "Masters",
       children: [
         ...(user?.adminUser === true
@@ -51,7 +86,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
                 ? [
                     {
                       key: ROUTES.USER_MASTER,
-                      icon: <UserOutlined />,
+                      icon: <UserAddOutlined />,
                       label: "Login Creation",
                     },
                   ]
@@ -71,7 +106,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           ? [
               {
                 key: ROUTES.PARTY_MASTER,
-                icon: <TeamOutlined />,
+                icon: <IdcardOutlined />,
                 label: "Party Master",
               },
             ]
@@ -80,7 +115,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           ? [
               {
                 key: ROUTES.PARTY_TYPE_MASTER,
-                icon: <TeamOutlined />,
+                icon: <TagsOutlined />,
                 label: "Party Type",
               },
             ]
@@ -89,7 +124,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           ? [
               {
                 key: ROUTES.DESIGN_MASTER,
-                icon: <FileTextOutlined />,
+                icon: <FileImageOutlined />,
                 label: "Design Master",
               },
             ]
@@ -98,7 +133,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           ? [
               {
                 key: ROUTES.PROCESS_MASTER,
-                icon: <LuSettings2 size={16} />,
+                icon: <NodeIndexOutlined />,
                 label: "Process Master",
               },
             ]
@@ -107,7 +142,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           ? [
               {
                 key: ROUTES.PARTY_PROCESS_RATE,
-                icon: <SettingOutlined />,
+                icon: <PercentageOutlined />,
                 label: "Party Process Rate",
               },
             ]
@@ -116,7 +151,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           ? [
               {
                 key: ROUTES.PARTY_SCREEN_RATE,
-                icon: <SettingOutlined />,
+                icon: <DollarOutlined />,
                 label: "Screen Rate Fixing",
               },
             ]
@@ -134,7 +169,7 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           ? [
               {
                 key: ROUTES.GST_MASTER,
-                icon: <FileTextOutlined />,
+                icon: <FileProtectOutlined />,
                 label: "GST Master",
               },
             ]
@@ -143,17 +178,17 @@ const AppSidebar = ({ collapsed, isMobile }) => {
     },
     {
       key: "transactions",
-      icon: <FileTextOutlined />,
+      icon: <FolderAddOutlined />,
       label: "Transactions",
       children: [
         {
           key: ROUTES.RATE_QUOTATION,
-          icon: <FileTextOutlined />,
+          icon: <FileSearchOutlined />,
           label: "Rate Quotation",
         },
         {
           key: ROUTES.FABRIC_INWARD,
-          icon: <FileTextOutlined />,
+          icon: <FileAddOutlined />,
           label: "Fabric Inward",
         },
         {
@@ -163,71 +198,61 @@ const AppSidebar = ({ collapsed, isMobile }) => {
         },
         {
           key: ROUTES.FABRIC_RETURN,
-          icon: <FileTextOutlined />,
+          icon: <RollbackOutlined />,
           label: "Fabric Return",
         },
         {
           key: ROUTES.INWARD_CLOSER,
-          icon: <CloseOutlined />,
+          icon: <CloseCircleOutlined />,
           label: "Inward Closer",
         },
         {
           key: ROUTES.FABRIC_BILL,
-          icon: <FileTextOutlined />,
+          icon: <FileDoneOutlined />,
           label: "Fabric Bill",
         },
         {
           key: ROUTES.DIRECT_BILL,
-          icon: <FileTextOutlined />,
+          icon: <FileAddOutlined />,
           label: "Direct Bill",
         },
         {
           key: ROUTES.BILL_EINVOICE,
-          icon: <FileProtectOutlined />,
+          icon: <CloudServerOutlined />,
           label: "Bill E-invoice",
         },
-        // {
-        //   key: ROUTES.DC_ENTRY,
-        //   icon: <FileTextOutlined />,
-        //   label: 'DC Entry'
-        // },
-        // ...(canDCClose() ? [{
-        //   key: ROUTES.DC_CLOSE,
-        //   icon: <CloseOutlined />,
-        //   label: 'DC Close'
-        // }] : [])
       ],
     },
     ...(isMD === 1
       ? [
           {
             key: "approval",
-            icon: <FileTextOutlined />,
+            icon: <AuditOutlined />,
             label: "Approval",
             children: [
               {
                 key: ROUTES.PARTY_APPROVAL,
-                icon: <TeamOutlined />,
+                icon: <UsergroupAddOutlined />,
                 label: "Party Approval",
               },
               {
                 key: ROUTES.DESIGN_APPROVAL,
-                icon: <FileTextOutlined />,
+                icon: <HighlightOutlined />,
                 label: "Design Approval",
               },
               {
                 key: ROUTES.STRIKEOFF_APPROVAL,
-                icon: <FileTextOutlined />,
+                icon: <FileExclamationOutlined />,
                 label: "Strike Off Approval",
               },
               {
                 key: ROUTES.RATE_QUOTATION_APPROVAL,
-                icon: <FileTextOutlined />,
+                icon: <ReconciliationOutlined />,
                 label: "Rate Quotation Approval",
               },
               {
                 key: ROUTES.BILL_APPROVAL,
-                icon: <FileTextOutlined />,
+                icon: <VerifiedOutlined />,
                 label: "Bill Approval",
               },
             ],
@@ -236,44 +261,44 @@ const AppSidebar = ({ collapsed, isMobile }) => {
       : []),
     {
       key: "accounts",
-      icon: <AccountBookOutlined />,
+      icon: <FolderOpenOutlined />,
       label: "Accounts",
       children: [
         {
           key: ROUTES.PARTY_OPENING,
-          icon: <FileTextOutlined />,
+          icon: <DiffOutlined />,
           label: "Party Opening",
         },
         {
           key: ROUTES.COLLECTION,
-          icon: <AccountBookOutlined />,
+          icon: <WalletOutlined />,
           label: "Collection",
         },
         {
           key: ROUTES.PARTY_LEDGER,
-          icon: <BarChartOutlined />,
+          icon: <BookOutlined />,
           label: "Party Ledger",
         },
       ],
     },
     {
       key: "reports",
-      icon: <BarChartOutlined />,
+      icon: <ProjectOutlined />,
       label: "Reports",
       children: [
         {
           key: ROUTES.INWARD_SUMMARY,
-          icon: <FileTextOutlined />,
+          icon: <ProfileOutlined />,
           label: "Inward Summary",
         },
         {
           key: ROUTES.UN_DC_LIST,
-          icon: <FileTextOutlined />,
+          icon: <FieldTimeOutlined />,
           label: "Un-DC List",
         },
         {
           key: ROUTES.UN_BILL_LIST,
-          icon: <FileTextOutlined />,
+          icon: <HistoryOutlined />,
           label: "Un-Bill List",
         },
       ],
@@ -287,12 +312,12 @@ const AppSidebar = ({ collapsed, isMobile }) => {
             children: [
               {
                 key: ROUTES.SETTINGS,
-                icon: <SettingOutlined />,
+                icon: <ControlOutlined />,
                 label: "General Settings",
               },
               {
                 key: ROUTES.EINVOICE_SETTINGS,
-                icon: <FileProtectOutlined />,
+                icon: <SafetyCertificateOutlined />,
                 label: "E-invoice Settings",
               },
             ],
