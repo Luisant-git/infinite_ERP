@@ -15,6 +15,7 @@ import {
   message,
   Space,
   Checkbox,
+  Dropdown,
 } from "antd";
 import {
   PlusOutlined,
@@ -42,6 +43,7 @@ import { getMastersByType } from "../../api/fabricInward";
 import { getPartyProcessRates } from "../../api/partyProcessRate";
 import { getPartyScreenRateByParty } from "../../api/partyScreenRate";
 import { getProcesses } from "../../api/process";
+import { getLatestQuotationRates } from "../../api/rateQuotation";
 import { getSettings } from "../../api/settings";
 import { getEinvoiceStatus } from "../../api/billEinvoice";
 import { useMenuPermissions } from "../../hooks/useMenuPermissions";
@@ -80,6 +82,7 @@ const FabricBill = () => {
   const [selectedParty, setSelectedParty] = useState(null);
   const [dcSearchText, setDcSearchText] = useState("");
   const [partyProcessRates, setPartyProcessRates] = useState([]);
+  const [latestQuotationRates, setLatestQuotationRates] = useState([]);
   const [processes, setProcesses] = useState([]);
   const [concernData, setConcernData] = useState(null);
   const { selectedYear } = useSelector((state) => state.auth);
@@ -95,6 +98,7 @@ const FabricBill = () => {
   const [printPartyData, setPrintPartyData] = useState(null);
   const [printInvoiceToData, setPrintInvoiceToData] = useState(null);
   const [printEinvoiceData, setPrintEinvoiceData] = useState(null);
+  const [printType, setPrintType] = useState("Invoice");
 
   useEffect(() => {
     loadData();
@@ -204,12 +208,20 @@ const FabricBill = () => {
       // Find the process by name to get its ID
       const process = processes.find((p) => p.processName === processName);
       if (process) {
-        // Find the rate for this process
-        const processRate = partyProcessRates.find(
+        // Find rate in quotation first
+        const quotRate = latestQuotationRates.find(
           (rate) => rate.processId === process.id,
         );
-        if (processRate) {
-          totalRate += Number(processRate.ratePerKg) || 0;
+        if (quotRate && Number(quotRate.confirmRate) > 0) {
+          totalRate += Number(quotRate.confirmRate);
+        } else {
+          // Find the rate for this process
+          const processRate = partyProcessRates.find(
+            (rate) => rate.processId === process.id,
+          );
+          if (processRate) {
+            totalRate += Number(processRate.ratePerKg) || 0;
+          }
         }
       }
     });
@@ -239,6 +251,15 @@ const FabricBill = () => {
         setPartyProcessRates([]);
       }
 
+      // Load quotation rates
+      try {
+        const quotRates = await getLatestQuotationRates(partyId);
+        setLatestQuotationRates(Array.isArray(quotRates) ? quotRates : []);
+      } catch (error) {
+        console.error("Error loading quotation rates:", error);
+        setLatestQuotationRates([]);
+      }
+
       // Load party screen rate
       try {
         const screenRateData = await getPartyScreenRateByParty(partyId);
@@ -263,6 +284,7 @@ const FabricBill = () => {
       }
     } else {
       setPartyProcessRates([]);
+      setLatestQuotationRates([]);
       form.setFieldsValue({
         screenRate: 0,
       });
@@ -356,6 +378,11 @@ const FabricBill = () => {
             processText = detail.processes;
             processListText = detail.processes;
           }
+        } else if (dc.processes && Array.isArray(dc.processes) && dc.processes.length > 0) {
+          // Fallback to Header-level processes if Item-wise is disabled
+          processArray = dc.processes.map(p => p.processName);
+          processText = processArray.join(", ");
+          processListText = processArray.join(" / ");
         }
 
         const weightToUse = settings?.enableProcessWeightBill
@@ -503,9 +530,6 @@ const FabricBill = () => {
 
     setSelectedParty(record.partyId);
     setIsFormVisible(true);
-
-    // Recalculate totals after loading data
-    setTimeout(calculateTotals, 200);
   };
 
   const handleView = (record) => {
@@ -569,8 +593,6 @@ const FabricBill = () => {
     setTaxes(loadedTaxes);
     setSelectedParty(record.partyId);
     setIsFormVisible(true);
-
-    setTimeout(calculateTotals, 200);
   };
 
   const handleDelete = (id) => {
@@ -788,8 +810,9 @@ const FabricBill = () => {
     contentRef: printRef,
   });
 
-  const handlePrintBill = async (record) => {
+  const handlePrintBill = async (record, type = "Invoice") => {
     try {
+      setPrintType(type);
       // Get party data
       const party = parties.find(p => p.id === record.partyId);
       const invoiceToParty = parties.find(p => p.id === record.invoiceTo);
@@ -1173,14 +1196,25 @@ const FabricBill = () => {
               onClick={() => handleDelete(r.id)}
             />
           )}
-          <Button
-            type="link"
-            size="small"
-            icon={<PrinterOutlined />}
-            onClick={() => handlePrintBill(r)}
-            style={{ color: r.isApproval === 1 ? "#722ed1" : "#d9d9d9" }}
-            disabled={r.isApproval !== 1}
-          />
+          <Dropdown
+            menu={{
+              items: [
+                { key: "Invoice", label: "Invoice Print" },
+                { key: "DC", label: "DC Print" },
+                { key: "Quotation", label: "Quotation Print" },
+              ],
+              onClick: (e) => handlePrintBill(r, e.key),
+            }}
+            trigger={["click"]}
+          >
+            <Button
+              type="link"
+              size="small"
+              icon={<PrinterOutlined />}
+              style={{ color: r.isApproval === 1 ? "#722ed1" : "#d9d9d9" }}
+              disabled={r.isApproval !== 1}
+            />
+          </Dropdown>
         </Space>
       ),
     },
@@ -1280,7 +1314,7 @@ const FabricBill = () => {
         )}
       </div>
 
-      {!isFormVisible ? (
+      <div style={{ display: !isFormVisible ? 'block' : 'none' }}>
         <Table
           columns={listColumns}
           dataSource={filteredBills}
@@ -1289,7 +1323,8 @@ const FabricBill = () => {
           className="compact-table"
           scroll={{ x: 1000 }}
         />
-      ) : (
+      </div>
+      <div style={{ display: isFormVisible ? 'block' : 'none' }}>
         <Form form={form} layout="vertical" size="small">
           <Row gutter={8}>
             <Col span={4}>
@@ -1634,7 +1669,7 @@ const FabricBill = () => {
             </Space>
           </div>
         </Form>
-      )}
+      </div>
 
       {/* DC Selection Modal */}
       <Modal
@@ -1732,6 +1767,38 @@ const FabricBill = () => {
               width: 120,
             },
             {
+              title: "Process",
+              width: 150,
+              render: (_, record) => {
+                let procNames = [];
+                if (record.processes && record.processes.length > 0) {
+                  procNames = record.processes.map((p) => p.processName);
+                } else if (record.details) {
+                  const itemProcs = new Set();
+                  record.details.forEach((d) => {
+                    if (d.processes) {
+                      try {
+                        const parsed = typeof d.processes === 'string' ? JSON.parse(d.processes) : d.processes;
+                        if (Array.isArray(parsed)) {
+                          parsed.forEach(p => itemProcs.add(p));
+                        } else {
+                          itemProcs.add(parsed);
+                        }
+                      } catch (e) {
+                        itemProcs.add(d.processes);
+                      }
+                    }
+                  });
+                  procNames = Array.from(itemProcs);
+                }
+                return (
+                  <div style={{ maxHeight: "40px", overflowY: "auto" }}>
+                    {procNames.join(", ") || "-"}
+                  </div>
+                );
+              },
+            },
+            {
               title: settings?.enableProcessWeightBill ? "Total Process Weight" : "Total Qty",
               dataIndex: "totalQty",
               width: 100,
@@ -1786,6 +1853,7 @@ const FabricBill = () => {
             invoiceToData={printInvoiceToData}
             einvoiceData={printEinvoiceData}
             gstMasters={gstMasters}
+            printType={printType}
           />
         )}
       </div>

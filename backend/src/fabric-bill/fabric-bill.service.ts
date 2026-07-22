@@ -104,6 +104,9 @@ export class FabricBillService {
       include: {
         details: {
           where: { deleteFlg: 0 }
+        },
+        processes: {
+          where: { deleteFlg: 0 }
         }
       },
       orderBy: { createdDate: 'desc' }

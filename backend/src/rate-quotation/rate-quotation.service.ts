@@ -42,6 +42,27 @@ export class RateQuotationService {
     return { quotNo: nextQuotNo.substring(0, 10) }; // Truncate to 10 chars
   }
 
+  async getLatestRates(partyId: number, tenantId: number) {
+    const latestQuot = await this.prisma.rateQuotationHeader.findFirst({
+      where: {
+        partyId,
+        tenantId,
+        isApproval: 1, // Only approved
+        deleteFlg: 0
+      },
+      orderBy: { quotDate: 'desc' },
+      include: { 
+        details: {
+          where: { deleteFlg: 0 }
+        }
+      }
+    });
+
+    if (!latestQuot) return [];
+    
+    return latestQuot.details;
+  }
+
   async findAll(tenantId: number | null, search?: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     
