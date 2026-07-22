@@ -40,4 +40,22 @@ export class PartyLedgerController {
       toDate,
     );
   }
+
+  @Get('ageing/report')
+  @ApiOperation({ summary: 'Get party balance ageing' })
+  async getPartyAgeing(
+    @Query('partyIds') partyIds: string,
+    @Query('toDate') toDate: string,
+    @Query('partyType') partyType: string,
+    @Headers('tenant-id') tenantId: string,
+  ) {
+    const ids = partyIds ? partyIds.split(',').map(id => parseInt(id)).filter(id => !isNaN(id)) : [];
+    
+    return this.service.getPartyAgeing(
+      ids,
+      parseInt(tenantId),
+      toDate,
+      partyType
+    );
+  }
 }

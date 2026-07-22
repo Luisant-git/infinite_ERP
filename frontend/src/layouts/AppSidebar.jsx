@@ -274,10 +274,15 @@ const AppSidebar = ({ collapsed, isMobile }) => {
           icon: <WalletOutlined />,
           label: "Collection",
         },
+        // {
+        //   key: ROUTES.PARTY_LEDGER,
+        //   icon: <BookOutlined />,
+        //   label: "Party Ledger",
+        // },
         {
-          key: ROUTES.PARTY_LEDGER,
-          icon: <BookOutlined />,
-          label: "Party Ledger",
+          key: ROUTES.PARTY_BALANCE,
+          icon: <BarChartOutlined />,
+          label: "Customer Balance",
         },
       ],
     },

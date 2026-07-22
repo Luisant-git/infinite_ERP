@@ -62,15 +62,23 @@ const AppHeader = () => {
             background: '#f5f5f5',
             border: '1px solid #d9d9d9',
             borderRadius: '6px',
-            padding: '8px 12px',
+            padding: '6px 12px',
             marginRight: '16px',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            gap: '8px',
+            maxWidth: '300px'
           }}>
-            <UserOutlined style={{ color: '#1890ff', fontSize: '14px' }} />
-            <Text className="company-text" style={{ color: '#262626', fontSize: '13px', fontWeight: '500' }}>
-              Company : {selectedCompany} | FY : {selectedYear}
+            <UserOutlined style={{ color: '#1890ff', fontSize: '14px', flexShrink: 0 }} />
+            <Text className="company-text" style={{ 
+              color: '#262626', 
+              fontSize: '13px', 
+              fontWeight: '500', 
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              {selectedCompany} | {selectedYear}
             </Text>
           </div>
         )}

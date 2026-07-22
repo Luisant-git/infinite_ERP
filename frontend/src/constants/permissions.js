@@ -21,6 +21,7 @@ export const ROUTES = {
   PARTY_OPENING: '/accounts/party-opening',
   COLLECTION: '/accounts/collection',
   PARTY_LEDGER: '/accounts/party-ledger',
+  PARTY_BALANCE: '/accounts/party-balance',
   PARTY_APPROVAL: '/masters/party-approval',
   PARTY_TYPE_MASTER: '/masters/party-types',
   PROCESS_MASTER: '/masters/processes',

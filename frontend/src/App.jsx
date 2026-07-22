@@ -14,6 +14,7 @@ import PartyMaster from './pages/masters/PartyMaster';
 import PartyOpening from './pages/accounts/PartyOpening';
 import Collection from './pages/accounts/Collection';
 import PartyLedger from './pages/accounts/PartyLedger';
+import PartyBalance from './pages/accounts/PartyBalance';
 
 import PartyApproval from './pages/masters/PartyApproval';
 import PartyTypeMaster from './pages/masters/PartyTypeMaster';
@@ -69,6 +70,7 @@ function App() {
                     <Route path={ROUTES.PARTY_OPENING} element={<PartyOpening />} />
                     <Route path={ROUTES.COLLECTION} element={<Collection />} />
                     <Route path={ROUTES.PARTY_LEDGER} element={<PartyLedger />} />
+                    <Route path={ROUTES.PARTY_BALANCE} element={<PartyBalance />} />
 
                     <Route path={ROUTES.PARTY_APPROVAL} element={<MDRoute><PartyApproval /></MDRoute>} />
                     <Route path={ROUTES.PARTY_TYPE_MASTER} element={<PartyTypeMaster />} />

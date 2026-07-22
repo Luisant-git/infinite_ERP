@@ -15,7 +15,7 @@ const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
-const PartyLedger = () => {
+const PartyLedger = ({ isEmbedded, embeddedParties, embeddedDateRange, triggerSearch }) => {
   const [loading, setLoading] = useState(false);
   const [parties, setParties] = useState([]);
   const [selectedParties, setSelectedParties] = useState([]);
@@ -41,6 +41,16 @@ const PartyLedger = () => {
     loadInitialData();
     fetchCompanyDetails();
   }, []);
+
+  useEffect(() => {
+    if (isEmbedded && triggerSearch > 0 && parties.length > 0) {
+      const partiesToFetch = embeddedParties || [];
+      const rangeToFetch = embeddedDateRange || [dayjs().startOf('year'), dayjs()];
+      setSelectedParties(partiesToFetch);
+      setDateRange(rangeToFetch);
+      fetchLedger(partiesToFetch, rangeToFetch);
+    }
+  }, [triggerSearch]);
 
   const fetchCompanyDetails = async () => {
     try {
@@ -72,11 +82,21 @@ const PartyLedger = () => {
       setParties(customerParties);
       
       const customerIds = customerParties.map(p => p.id);
-      // Fetch ledger for ONLY customer parties by default
-      if (customerIds.length > 0) {
-        await fetchLedger(customerIds, dateRange);
+      
+      if (!isEmbedded) {
+        if (customerIds.length > 0) {
+          await fetchLedger(customerIds, dateRange, customerParties);
+        } else {
+          setPartyLedgers([]);
+        }
       } else {
-        setPartyLedgers([]);
+        if (triggerSearch > 0) {
+          const partiesToFetch = embeddedParties && embeddedParties.length > 0 ? embeddedParties : customerIds;
+          const rangeToFetch = embeddedDateRange || [dayjs().startOf('year'), dayjs()];
+          setSelectedParties(partiesToFetch);
+          setDateRange(rangeToFetch);
+          await fetchLedger(partiesToFetch, rangeToFetch, customerParties);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -85,14 +105,14 @@ const PartyLedger = () => {
     }
   };
 
-  const fetchLedger = async (partyIds, range) => {
+  const fetchLedger = async (partyIds, range, fallbackParties = parties) => {
     setLoading(true);
     try {
       const from = range[0].format('YYYY-MM-DD');
       const to = range[1].format('YYYY-MM-DD');
       
       // If partyIds is empty, fetch only Customers by default
-      const idsToFetch = partyIds && partyIds.length > 0 ? partyIds : parties.map(p => p.id);
+      const idsToFetch = partyIds && partyIds.length > 0 ? partyIds : fallbackParties.map(p => p.id);
       
       if (idsToFetch.length === 0) {
         setPartyLedgers([]);
@@ -514,32 +534,34 @@ const PartyLedger = () => {
         }
       `}</style>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, alignItems: 'center' }} className="no-print">
-        <Title level={4} style={{ margin: 0 }}>Party Ledger</Title>
-        <Space size="middle">
-          <Select
-            mode="multiple"
-            showSearch
-            placeholder="Search and Select Parties"
-            style={{ minWidth: 250, maxWidth: 400 }}
-            onChange={handlePartyChange}
-            value={selectedParties}
-            optionFilterProp="children"
-            filterOption={(input, option) =>
-              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-            }
-          >
-            {parties.map(p => (
-              <Option key={p.id} value={p.id}>{p.partyName}</Option>
-            ))}
-          </Select>
-          <RangePicker 
-            value={dateRange} 
-            onChange={handleDateChange} 
-            format="DD/MM/YYYY" 
-          />
-        </Space>
-      </div>
+      {!isEmbedded && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, alignItems: 'center' }} className="no-print">
+          <Title level={4} style={{ margin: 0 }}>Party Ledger</Title>
+          <Space size="middle">
+            <Select
+              mode="multiple"
+              showSearch
+              placeholder="Search and Select Parties"
+              style={{ minWidth: 250, maxWidth: 400 }}
+              onChange={handlePartyChange}
+              value={selectedParties}
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              {parties.map(p => (
+                <Option key={p.id} value={p.id}>{p.partyName}</Option>
+              ))}
+            </Select>
+            <RangePicker 
+              value={dateRange} 
+              onChange={handleDateChange} 
+              format="DD/MM/YYYY" 
+            />
+          </Space>
+        </div>
+      )}
 
       <Spin spinning={loading} tip="Loading Party Ledgers...">
         <div className="no-print" style={{ marginBottom: 24 }}>
