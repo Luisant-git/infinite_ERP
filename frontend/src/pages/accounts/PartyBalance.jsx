@@ -86,7 +86,7 @@ const PartyBalance = () => {
       setReportType(values.reportType);
       setSearchTrigger(prev => prev + 1);
 
-      if (values.reportType === "Party Ledger") {
+      if (values.reportType === "Party Summary") {
         setLoading(false);
         return; // Handled by embedded PartyLedger component
       }
@@ -555,7 +555,7 @@ const PartyBalance = () => {
               <Select>
                 <Option value="Party with Ageing">Party with Ageing</Option>
                 <Option value="Bill Wise Ageing">Bill Wise Ageing</Option>
-                <Option value="Party Ledger">Party Ledger</Option>
+                <Option value="Party Summary">Party Summary</Option>
               </Select>
             </Form.Item>
           </Col>
@@ -575,7 +575,7 @@ const PartyBalance = () => {
         </Row>
       </Form>
 
-      {reportType === "Party Ledger" ? (
+      {reportType === "Party Summary" ? (
         <div style={{ marginTop: 20 }}>
           <PartyLedger 
             isEmbedded={true} 
