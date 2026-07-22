@@ -400,7 +400,14 @@ const FabricDc = () => {
                   (d.processWeight || 0)) *
                 100
               : 0,
-          processes: d.processes ? JSON.parse(d.processes) : [],
+          processes: (() => {
+            try {
+              return d.processes ? JSON.parse(d.processes) : [];
+            } catch (e) {
+              console.error("Invalid processes JSON:", d.processes);
+              return [];
+            }
+          })(),
         };
       }) || [],
     );
@@ -483,7 +490,14 @@ const FabricDc = () => {
                   (d.processWeight || 0)) *
                 100
               : 0,
-          processes: d.processes ? JSON.parse(d.processes) : [],
+          processes: (() => {
+            try {
+              return d.processes ? JSON.parse(d.processes) : [];
+            } catch (e) {
+              console.error("Invalid processes JSON:", d.processes);
+              return [];
+            }
+          })(),
         };
       }) || [],
     );
@@ -899,7 +913,14 @@ const FabricDc = () => {
           const processWt = remainingWeight > 0 ? remainingWeight : 0;
           const dcWt = remainingWeight > 0 ? remainingWeight : 0;
           const rolls = remainingRolls > 0 ? remainingRolls : 0;
-          const allProcesses = d.processes ? JSON.parse(d.processes) : [];
+          const allProcesses = (() => {
+            try {
+              return d.processes ? JSON.parse(d.processes) : [];
+            } catch (e) {
+              console.error("Invalid processes JSON:", d.processes);
+              return [];
+            }
+          })();
 
           const weightLoss = processWt - dcWt;
           const lossPercentage =
