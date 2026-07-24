@@ -124,7 +124,7 @@ const PartyBalance = () => {
         "Net Amount"
       ];
       
-      const filteredData = reportData.filter(d => d.netAmount > 0);
+      const filteredData = reportData;
       excelData = filteredData.map((row, index) => [
         index + 1,
         row.partyName || '',
@@ -148,19 +148,30 @@ const PartyBalance = () => {
         "Age (Days)"
       ];
       
-      const filteredData = reportData.filter(d => d.unpaidBills && d.unpaidBills.length > 0);
+      const filteredData = reportData;
       let sNo = 1;
       filteredData.forEach((party) => {
-        party.unpaidBills.forEach((bill) => {
+        if (party.unpaidBills && party.unpaidBills.length > 0) {
+          party.unpaidBills.forEach((bill) => {
+            excelData.push([
+              sNo++,
+              party.partyName || '',
+              bill.refNo || '',
+              dayjs(bill.date).format("DD-MM-YYYY"),
+              Number(bill.amount || 0),
+              bill.ageDays || 0
+            ]);
+          });
+        } else {
           excelData.push([
             sNo++,
             party.partyName || '',
-            bill.refNo || '',
-            dayjs(bill.date).format("DD-MM-YYYY"),
-            Number(bill.amount || 0),
-            bill.ageDays || 0
+            '-',
+            '-',
+            0,
+            0
           ]);
-        });
+        }
       });
     }
 
@@ -261,7 +272,7 @@ const PartyBalance = () => {
       if (reportType === "Party with Ageing") {
         head = [["S.No", "Customer", "Mobile No", "Advance", "0-30", "31-60", "61-90", ">90", "Net Amount"]];
         
-        const filteredData = reportData.filter(d => d.netAmount > 0);
+        const filteredData = reportData;
         
         body = filteredData.map((row, index) => {
           return [
@@ -279,21 +290,32 @@ const PartyBalance = () => {
 
       } else {
         head = [["S.No", "Customer", "Bill No", "Bill Date", "Bill Amount", "Age (Days)"]];
-        const filteredData = reportData.filter(d => d.unpaidBills && d.unpaidBills.length > 0);
+        const filteredData = reportData;
         let sNo = 1;
         let totAmt = 0;
         filteredData.forEach((party) => {
-          party.unpaidBills.forEach((bill) => {
-            totAmt += Number(bill.amount || 0);
+          if (party.unpaidBills && party.unpaidBills.length > 0) {
+            party.unpaidBills.forEach((bill) => {
+              totAmt += Number(bill.amount || 0);
+              body.push([
+                sNo++,
+                party.partyName || '',
+                bill.refNo || '',
+                dayjs(bill.date).format("DD-MM-YYYY"),
+                Number(bill.amount || 0).toFixed(2),
+                bill.ageDays || 0
+              ]);
+            });
+          } else {
             body.push([
               sNo++,
               party.partyName || '',
-              bill.refNo || '',
-              dayjs(bill.date).format("DD-MM-YYYY"),
-              Number(bill.amount || 0).toFixed(2),
-              bill.ageDays || 0
+              '-',
+              '-',
+              '0.00',
+              0
             ]);
-          });
+          }
         });
 
         body.push([
@@ -696,7 +718,7 @@ const PartyBalance = () => {
                   <tbody>
                     {reportType === "Party with Ageing" 
                       ? (() => {
-                          const filteredData = reportData.filter(d => d.netAmount > 0);
+                          const filteredData = reportData;
                           const rows = filteredData.map((row, index) => {
                             return (
                               <tr key={index}>
@@ -715,26 +737,39 @@ const PartyBalance = () => {
                           return rows;
                         })()
                       : (() => {
-                          const filteredData = reportData.filter(d => d.unpaidBills && d.unpaidBills.length > 0);
+                          const filteredData = reportData;
                           let sNo = 1;
                           let totAmt = 0;
                           const rows = [];
                           filteredData.forEach((party) => {
-                            party.unpaidBills.forEach((bill) => {
-                              totAmt += Number(bill.amount || 0);
-                              const val = bill.ageDays || 0;
-                              const ageColor = val > 60 ? "#f5222d" : val > 30 ? "#faad14" : "inherit";
+                            if (party.unpaidBills && party.unpaidBills.length > 0) {
+                              party.unpaidBills.forEach((bill) => {
+                                totAmt += Number(bill.amount || 0);
+                                const val = bill.ageDays || 0;
+                                const ageColor = val > 60 ? "#f5222d" : val > 30 ? "#faad14" : "inherit";
+                                rows.push(
+                                  <tr key={`${party.partyId}-${bill.refNo}`}>
+                                    <td className="text-center">{sNo++}</td>
+                                    <td>{party.partyName}</td>
+                                    <td className="text-center">{bill.refNo}</td>
+                                    <td className="text-center">{dayjs(bill.date).format("DD-MM-YYYY")}</td>
+                                    <td className="text-right">{Number(bill.amount || 0).toFixed(2)}</td>
+                                    <td className="text-center" style={{ color: ageColor, fontWeight: val > 30 ? 'bold' : 'normal' }}>{val}</td>
+                                  </tr>
+                                );
+                              });
+                            } else {
                               rows.push(
-                                <tr key={`${party.partyId}-${bill.refNo}`}>
+                                <tr key={`empty-${party.partyId}`}>
                                   <td className="text-center">{sNo++}</td>
                                   <td>{party.partyName}</td>
-                                  <td className="text-center">{bill.refNo}</td>
-                                  <td className="text-center">{dayjs(bill.date).format("DD-MM-YYYY")}</td>
-                                  <td className="text-right">{Number(bill.amount || 0).toFixed(2)}</td>
-                                  <td className="text-center" style={{ color: ageColor, fontWeight: val > 30 ? 'bold' : 'normal' }}>{val}</td>
+                                  <td className="text-center">-</td>
+                                  <td className="text-center">-</td>
+                                  <td className="text-right">0.00</td>
+                                  <td className="text-center">0</td>
                                 </tr>
                               );
-                            });
+                            }
                           });
                           rows.push(
                             <tr key="total" style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
@@ -756,9 +791,7 @@ const PartyBalance = () => {
           <div className="web-view" style={{ overflowX: 'auto' }}>
             <Table
               columns={reportType === "Party with Ageing" ? partyColumns : billWiseColumns}
-              dataSource={reportData.filter(d => 
-                  reportType === "Party with Ageing" ? d.netAmount > 0 : (d.unpaidBills && d.unpaidBills.length > 0)
-              )}
+              dataSource={reportData}
               rowKey="partyId"
               loading={loading}
               size="small"
