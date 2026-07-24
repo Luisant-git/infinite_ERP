@@ -69,7 +69,11 @@ const PartyBalance = () => {
   const loadParties = async () => {
     try {
       const response = await getParties("", 1, 1000);
-      setParties(response.data || []);
+      const allParties = response.data || [];
+      const customers = allParties.filter(p => 
+        p.partyTypes && p.partyTypes.some(pt => pt.partyType?.partyTypeName?.toLowerCase().trim() === 'customer')
+      );
+      setParties(customers);
     } catch (error) {
       console.error("Error loading parties:", error);
     }
@@ -80,7 +84,11 @@ const PartyBalance = () => {
       const values = await form.validateFields();
       setLoading(true);
 
-      const partyIds = values.partyId ? values.partyId.join(",") : "";
+      let partyIds = values.partyId ? values.partyId.join(",") : "";
+      if (!partyIds && parties && parties.length > 0) {
+        partyIds = parties.map(p => p.id).join(",");
+      }
+      
       const toDate = values.toDate ? values.toDate.toISOString() : new Date().toISOString();
       const partyType = values.partyType || "Customer Only";
       setReportType(values.reportType);
