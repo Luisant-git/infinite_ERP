@@ -84,10 +84,7 @@ const PartyBalance = () => {
       const values = await form.validateFields();
       setLoading(true);
 
-      let partyIds = values.partyId ? values.partyId.join(",") : "";
-      if (!partyIds && parties && parties.length > 0) {
-        partyIds = parties.map(p => p.id).join(",");
-      }
+      const partyIds = values.partyId ? values.partyId.join(",") : "";
       
       const toDate = values.toDate ? values.toDate.toISOString() : new Date().toISOString();
       const partyType = values.partyType || "Customer Only";
