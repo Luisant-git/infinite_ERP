@@ -106,19 +106,45 @@ const FabricBillPrint = forwardRef(
       return words + " Only";
     };
 
-    const itemsPerPageDC = 8;
-    const itemsDC = data?.details || [];
-    const pagesDC = [];
-    
-    for (let i = 0; i < itemsDC.length; i += itemsPerPageDC) {
-      const pageItems = itemsDC.slice(i, i + itemsPerPageDC);
-      const emptyRows = Array(itemsPerPageDC - pageItems.length).fill(null);
-      pagesDC.push({ items: pageItems, emptyRows });
+    const inwardGroups = {};
+    const items = data?.details || [];
+    items.forEach(item => {
+      const inward = item.inwardNo || 'General';
+      if (!inwardGroups[inward]) inwardGroups[inward] = [];
+      inwardGroups[inward].push(item);
+    });
+
+    if (Object.keys(inwardGroups).length === 0) {
+      inwardGroups['General'] = [];
     }
 
+    const itemsPerPageDC = 8;
+    const pagesDC = [];
+    Object.entries(inwardGroups).forEach(([inwNo, inwItems]) => {
+      for (let i = 0; i < inwItems.length; i += itemsPerPageDC) {
+        const pageItems = inwItems.slice(i, i + itemsPerPageDC);
+        const emptyRows = Array(itemsPerPageDC - pageItems.length).fill(null);
+        pagesDC.push({ inwardNo: inwNo, items: pageItems, emptyRows });
+      }
+    });
+
     const totalRowsQuot = 5;
-    const emptyRowsCountQuot = totalRowsQuot - (data?.details?.length || 0);
-    const emptyRowsQuot = Array(emptyRowsCountQuot > 0 ? emptyRowsCountQuot : 0).fill(null);
+    const pagesQuot = [];
+    Object.entries(inwardGroups).forEach(([inwNo, inwItems]) => {
+      for (let i = 0; i < inwItems.length; i += totalRowsQuot) {
+        const pageItems = inwItems.slice(i, i + totalRowsQuot);
+        const emptyRowsCountQuot = totalRowsQuot - pageItems.length;
+        const emptyRowsQuot = Array(emptyRowsCountQuot > 0 ? emptyRowsCountQuot : 0).fill(null);
+        pagesQuot.push({ inwardNo: inwNo, items: pageItems, emptyRowsQuot });
+      }
+    });
+
+    const pagesInvoice = [];
+    Object.entries(inwardGroups).forEach(([inwNo, inwItems]) => {
+      const emptyRowsCount = 12 - inwItems.length;
+      const emptyRowsInvoice = Array(Math.max(0, emptyRowsCount)).fill(null);
+      pagesInvoice.push({ inwardNo: inwNo, items: inwItems, emptyRowsInvoice });
+    });
 
     return (
       <div ref={ref}>
@@ -187,6 +213,7 @@ const FabricBillPrint = forwardRef(
                       <div className="dc-details">
                         <div className="doc-info-row"><strong>DC No</strong> : {data?.billNo || ''}</div>
                         <div className="doc-info-row"><strong>DC Date</strong> : {data?.billDate ? dayjs(data.billDate).format('DD-MMM-YYYY') : ''}</div>
+                        <div className="doc-info-row"><strong>Inward No</strong> : {page.inwardNo}</div>
                       </div>
                     </div>
                   </div>
@@ -300,6 +327,8 @@ const FabricBillPrint = forwardRef(
                 @page { margin: 0; }
               }
               @page { size: auto; margin: 0mm; }
+              .page-container { page-break-after: always; margin-bottom: 20px; }
+              .page-container:last-child { page-break-after: auto; }
               .print-title { text-align: center; font-size: 14px; font-weight: bold; margin-bottom: 5px; }
               .print-container { width: 100%; border: 2px solid #000; }
               .company-section { text-align: center; padding: 10px; border-bottom: 2px solid #000; }
@@ -323,92 +352,96 @@ const FabricBillPrint = forwardRef(
               .footer-col { flex: 1; text-align: center; font-size: 10px; padding: 10px; border-right: 1px solid #000; display: flex; align-items: flex-end; justify-content: center; }
               .footer-col:last-child { border-right: none; }
             `}</style>
-            <div className="print-title">QUOTATION</div>
-            <div className="print-container">
-              <div className="company-section">
-                <div className="company-name">{concernData?.partyName || ''}</div>
-                <div className="company-details">
-                  {concernData?.address1 && concernData?.address2 && <>{concernData.address1}, {concernData.address2}<br /></>}
-                  {!concernData?.address2 && concernData?.address1 && <>{concernData.address1}<br /></>}
-                  {concernData?.address2 && !concernData?.address1 && <>{concernData.address2}<br /></>}
-                  {[concernData?.address3, concernData?.address4, concernData?.district].filter(Boolean).join(', ')}{[concernData?.address3, concernData?.address4, concernData?.district].filter(Boolean).length > 0 && <br />}
-                  {concernData?.phoneNo && <>Phone No: {concernData.phoneNo}</>}{concernData?.phoneNo && (concernData?.mobileNo || concernData?.email) && <>, </>}
-                  {concernData?.mobileNo && <>Mobile No: {concernData.mobileNo}</>}{concernData?.mobileNo && concernData?.email && <>, </>}
-                  {concernData?.email && <>Mail Id: {concernData.email}</>}
-                  {(concernData?.phoneNo || concernData?.mobileNo || concernData?.email) && <br />}
-                  {concernData?.gstNo && <><strong>GST No.: {concernData.gstNo}</strong></>}
-                </div>
-              </div>
-
-              <div className="party-section">
-                <div className="party-left">
-                  <div className="party-label">To M/s.</div>
-                  <div className="party-details">
-                    <strong>{partyData?.partyName || ''}</strong><br />
-                    {partyData?.address1 && partyData?.address2 && <>{partyData.address1}, {partyData.address2}<br /></>}
-                    {!partyData?.address2 && partyData?.address1 && <>{partyData.address1}<br /></>}
-                    {partyData?.address2 && !partyData?.address1 && <>{partyData.address2}<br /></>}
-                    {[partyData?.address3, partyData?.address4, partyData?.district].filter(Boolean).join(', ')}{[partyData?.address3, partyData?.address4, partyData?.district].filter(Boolean).length > 0 && <br />}
-                    {partyData?.phoneNo && <>Phone No: {partyData.phoneNo}</>}{partyData?.phoneNo && (partyData?.mobileNo || partyData?.email) && <>, </>}
-                    {partyData?.mobileNo && <>Mobile No: {partyData.mobileNo}</>}{partyData?.mobileNo && partyData?.email && <>, </>}
-                    {partyData?.email && <>Mail Id: {partyData.email}</>}
-                    {(partyData?.phoneNo || partyData?.mobileNo || partyData?.email) && <br />}
-                    {partyData?.gstNo && <><strong>GST No.: {partyData.gstNo}</strong></>}
+            
+            {pagesQuot.map((page, pageIndex) => (
+              <div key={pageIndex} className="page-container">
+                <div className="print-title">QUOTATION</div>
+                <div className="print-container">
+                  <div className="company-section">
+                    <div className="company-name">{concernData?.partyName || ''}</div>
+                    <div className="company-details">
+                      {concernData?.address1 && concernData?.address2 && <>{concernData.address1}, {concernData.address2}<br /></>}
+                      {!concernData?.address2 && concernData?.address1 && <>{concernData.address1}<br /></>}
+                      {concernData?.address2 && !concernData?.address1 && <>{concernData.address2}<br /></>}
+                      {[concernData?.address3, concernData?.address4, concernData?.district].filter(Boolean).join(', ')}{[concernData?.address3, concernData?.address4, concernData?.district].filter(Boolean).length > 0 && <br />}
+                      {concernData?.phoneNo && <>Phone No: {concernData.phoneNo}</>}{concernData?.phoneNo && (concernData?.mobileNo || concernData?.email) && <>, </>}
+                      {concernData?.mobileNo && <>Mobile No: {concernData.mobileNo}</>}{concernData?.mobileNo && concernData?.email && <>, </>}
+                      {concernData?.email && <>Mail Id: {concernData.email}</>}
+                      {(concernData?.phoneNo || concernData?.mobileNo || concernData?.email) && <br />}
+                      {concernData?.gstNo && <><strong>GST No.: {concernData.gstNo}</strong></>}
+                    </div>
                   </div>
-                </div>
-                <div className="party-right">
-                  <div className="party-details">
-                    <strong>Quot No :</strong> {data?.billNo || ''}<br /><br />
-                    <strong>Quot Date :</strong> {data?.billDate ? dayjs(data.billDate).format('DD/MM/YYYY') : ''}
+
+                  <div className="party-section">
+                    <div className="party-left">
+                      <div className="party-label">To M/s.</div>
+                      <div className="party-details">
+                        <strong>{partyData?.partyName || ''}</strong><br />
+                        {partyData?.address1 && partyData?.address2 && <>{partyData.address1}, {partyData.address2}<br /></>}
+                        {!partyData?.address2 && partyData?.address1 && <>{partyData.address1}<br /></>}
+                        {partyData?.address2 && !partyData?.address1 && <>{partyData.address2}<br /></>}
+                        {[partyData?.address3, partyData?.address4, partyData?.district].filter(Boolean).join(', ')}{[partyData?.address3, partyData?.address4, partyData?.district].filter(Boolean).length > 0 && <br />}
+                        {partyData?.phoneNo && <>Phone No: {partyData.phoneNo}</>}{partyData?.phoneNo && (partyData?.mobileNo || partyData?.email) && <>, </>}
+                        {partyData?.mobileNo && <>Mobile No: {partyData.mobileNo}</>}{partyData?.mobileNo && partyData?.email && <>, </>}
+                        {partyData?.email && <>Mail Id: {partyData.email}</>}
+                        {(partyData?.phoneNo || partyData?.mobileNo || partyData?.email) && <br />}
+                        {partyData?.gstNo && <><strong>GST No.: {partyData.gstNo}</strong></>}
+                      </div>
+                    </div>
+                    <div className="party-right">
+                      <div className="party-details">
+                        <strong>Quot No :</strong> {data?.billNo || ''}<br /><br />
+                        <strong>Quot Date :</strong> {data?.billDate ? dayjs(data.billDate).format('DD/MM/YYYY') : ''}<br /><br />
+                        <strong>Inward No :</strong> {page.inwardNo}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              <table className="details-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: '40px' }}>S.No</th>
-                    <th>Dc Date</th>
-                    <th>Dc No</th>
-                    <th>Process</th>
-                    <th>Roll</th>
-                    <th>Qty</th>
-                    <th>Rate</th>
-                    <th>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data?.details?.map((detail, index) => (
-                    <tr key={index}>
-                      <td>{index + 1}</td>
-                      <td>{detail.dcDate ? dayjs(detail.dcDate).format('DD/MM/YYYY') : ''}</td>
-                      <td>{detail.dcNo || ''}</td>
-                      <td className="text-left">{detail.process || detail.processList || 'Fabric Delivery'}</td>
-                      <td>{detail.rolls || 0}</td>
-                      <td>{Number(detail.weight || 0).toFixed(3)}</td>
-                      <td>{Number(detail.rate || 0).toFixed(2)}</td>
-                      <td>{Number(detail.amount || 0).toFixed(2)}</td>
-                    </tr>
-                  ))}
-                  {emptyRowsQuot.map((_, index) => (
-                    <tr key={`empty-${index}`} className="empty-row">
-                      <td>&nbsp;</td>
-                      <td>&nbsp;</td>
-                      <td>&nbsp;</td>
-                      <td>&nbsp;</td>
-                      <td>&nbsp;</td>
-                      <td>&nbsp;</td>
-                      <td>&nbsp;</td>
-                      <td>&nbsp;</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                  <table className="details-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '40px' }}>S.No</th>
+                        <th>Dc Date</th>
+                        <th>Dc No</th>
+                        <th>Process</th>
+                        <th>Roll</th>
+                        <th>Qty</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {page.items.map((detail, index) => (
+                        <tr key={index}>
+                          <td>{index + 1}</td>
+                          <td>{detail.dcDate ? dayjs(detail.dcDate).format('DD/MM/YYYY') : ''}</td>
+                          <td>{detail.dcNo || ''}</td>
+                          <td className="text-left">{detail.process || detail.processList || 'Fabric Delivery'}</td>
+                          <td>{detail.rolls || 0}</td>
+                          <td>{Number(detail.weight || 0).toFixed(3)}</td>
+                          <td>{Number(detail.rate || 0).toFixed(2)}</td>
+                          <td>{Number(detail.amount || 0).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                      {page.emptyRowsQuot.map((_, index) => (
+                        <tr key={`empty-${index}`} className="empty-row">
+                          <td>&nbsp;</td>
+                          <td>&nbsp;</td>
+                          <td>&nbsp;</td>
+                          <td>&nbsp;</td>
+                          <td>&nbsp;</td>
+                          <td>&nbsp;</td>
+                          <td>&nbsp;</td>
+                          <td>&nbsp;</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
 
-              <div className="payment-section">
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div style={{ width: '60%' }}>
-                    <strong>Amount in Words:</strong><br />
+                  <div className="payment-section">
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <div style={{ width: '60%' }}>
+                        <strong>Amount in Words:</strong><br />
                     {numberToWords(Number(data?.netAmount || 0))}
                   </div>
                   <div style={{ width: '40%' }}>
@@ -463,6 +496,8 @@ const FabricBillPrint = forwardRef(
               </div>
             </div>
           </div>
+            ))}
+          </div>
         )}
 
         {(printType !== "DC" && printType !== "Quotation") && (
@@ -481,9 +516,12 @@ const FabricBillPrint = forwardRef(
           }
         }
         @page { size: A4; margin: 10mm 10mm; }
+        .page-container { page-break-after: always; margin-bottom: 20px; }
+        .page-container:last-child { page-break-after: auto; }
       `}</style>
 
-        <div style={{ padding: "20px", fontSize: "14px", lineHeight: "1.2", minHeight: "calc(100vh - 40px)", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
+        {pagesInvoice.map((page, pageIndex) => (
+        <div key={pageIndex} className="page-container" style={{ padding: "20px", fontSize: "14px", lineHeight: "1.2", minHeight: "calc(100vh - 40px)", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
           {/* Title Section - Always Visible */}
           <div
             style={{
@@ -498,6 +536,10 @@ const FabricBillPrint = forwardRef(
             <span style={{ position: "absolute", right: 0, bottom: 0, fontSize: "14px", fontWeight: "bold" }}>
               (ORIGINAL)
             </span>
+          </div>
+
+          <div style={{ textAlign: "center", fontSize: "14px", fontWeight: "bold", marginBottom: "10px" }}>
+            Inward No: {page.inwardNo}
           </div>
 
           {/* E-invoice Section - Only show if E-invoice is generated */}
@@ -944,7 +986,7 @@ const FabricBillPrint = forwardRef(
               </tr>
             </thead>
             <tbody>
-              {data?.details?.map((detail, index) => (
+              {page.items.map((detail, index) => (
                 <tr key={index}>
                   <td
                     style={{
@@ -1044,12 +1086,10 @@ const FabricBillPrint = forwardRef(
                     {Number(detail.amount || 0).toFixed(2)}
                   </td>
                 </tr>
-              )) || []}
+              ))}
 
               {/* Pad with empty rows to maintain minimum height */}
-              {Array.from({
-                length: Math.max(0, 12 - (data?.details?.length || 0)),
-              }).map((_, emptyIndex) => (
+              {page.emptyRowsInvoice.map((_, emptyIndex) => (
                 <tr key={`empty-${emptyIndex}`}>
                   <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "11px" }}>&nbsp;</td>
                   <td style={{ border: "1px solid black", borderTop: "none", borderBottom: "none", padding: "4px", fontSize: "11px" }}>&nbsp;</td>
@@ -1097,7 +1137,7 @@ const FabricBillPrint = forwardRef(
                     fontWeight: "bold",
                   }}
                 >
-                  {data?.details?.reduce(
+                  {page.items.reduce(
                     (sum, d) => sum + (Number(d.rolls) || 0),
                     0,
                   ) || 0}
@@ -1111,7 +1151,10 @@ const FabricBillPrint = forwardRef(
                     fontWeight: "bold",
                   }}
                 >
-                  {Number(data?.totalQty || 0).toFixed(3)}
+                  {page.items.reduce(
+                    (sum, d) => sum + (Number(d.weight) || 0),
+                    0,
+                  ).toFixed(3)}
                 </td>
                 <td
                   style={{
@@ -1129,7 +1172,10 @@ const FabricBillPrint = forwardRef(
                     fontWeight: "bold",
                   }}
                 >
-                  {Number(data?.totalAmount || 0).toFixed(2)}
+                  {page.items.reduce(
+                    (sum, d) => sum + (Number(d.amount) || 0),
+                    0,
+                  ).toFixed(2)}
                 </td>
               </tr>
               <tr>
@@ -1334,12 +1380,12 @@ const FabricBillPrint = forwardRef(
             </tr>
           </table>
         </div>
+        ))}
       </div>
-        )}
-      </div>
-    );
-  },
+    )}
+  </div>
 );
+});
 
 FabricBillPrint.displayName = "FabricBillPrint";
 
