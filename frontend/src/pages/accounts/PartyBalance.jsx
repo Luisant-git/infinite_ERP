@@ -102,7 +102,13 @@ const PartyBalance = () => {
       const response = await getPartyAgeing(partyIds, toDate, partyType);
       
       if (response && response.ageingData) {
-        setReportData(response.ageingData);
+        let filtered = response.ageingData;
+        if (values.reportType === "Bill Wise Ageing") {
+          filtered = filtered.filter(party => party.unpaidBills && party.unpaidBills.length > 0);
+        } else {
+          filtered = filtered.filter(party => Math.abs(party.netAmount) > 0.001 || party.advance > 0.001);
+        }
+        setReportData(filtered);
       } else {
         setReportData([]);
       }
@@ -504,6 +510,7 @@ const PartyBalance = () => {
 
     return (
       <Table
+        className="compact-table inner-compact-table"
         columns={columns}
         dataSource={record.unpaidBills || []}
         pagination={false}
@@ -517,10 +524,10 @@ const PartyBalance = () => {
           return (
             <Table.Summary.Row>
               <Table.Summary.Cell index={0} colSpan={3} align="right">
-                <strong style={{ color: "#8c8c8c" }}>{record.partyName} Total Outstanding:</strong>
+                <strong style={{ color: "#8c8c8c", fontSize: '14px' }}>{record.partyName} Total Outstanding:</strong>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={1} align="right">
-                <strong>₹ {totalAmt.toFixed(2)}</strong>
+                <strong style={{ fontSize: '15px', color: '#cf1322' }}>₹ {totalAmt.toFixed(2)}</strong>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={2} />
             </Table.Summary.Row>
@@ -536,9 +543,9 @@ const PartyBalance = () => {
       dataIndex: "partyName",
       key: "partyName",
       render: (text, record) => (
-        <strong>
-          <span style={{ marginRight: 8 }}>👤</span>
-          {text} ({record.unpaidBills?.length || 0} bills)
+        <strong style={{ fontSize: '15px' }}>
+          <span style={{ marginRight: 8, fontSize: '16px' }}>👤</span>
+          <span style={{ color: '#1e3f73' }}>{text}</span> <span style={{ color: '#8c8c8c', fontSize: '13px' }}>({record.unpaidBills?.length || 0} bills)</span>
         </strong>
       ),
     },
@@ -546,9 +553,38 @@ const PartyBalance = () => {
 
   return (
     <Card
-      title={<Title level={4} style={{ margin: 0 }}>Customer Balance</Title>}
       className="party-balance-card"
     >
+      <style>{`
+        .compact-table .ant-table-thead > tr > th {
+          background-color: var(--primary-color) !important;
+          color: white !important;
+          padding: 4px 6px !important;
+          font-size: 11px !important;
+          font-weight: 600 !important;
+          line-height: 1.2 !important;
+          border: 1px solid #1e3f73 !important;
+        }
+        .compact-table .ant-table-tbody > tr > td {
+          padding: 8px 8px !important;
+          font-size: 11px !important;
+          line-height: 1.2 !important;
+          border: 1px solid #f0f0f0 !important;
+        }
+        .inner-compact-table .ant-table-thead > tr > th {
+          padding: 6px 8px !important;
+          font-size: 13px !important;
+          line-height: 1.4 !important;
+        }
+        .inner-compact-table .ant-table-tbody > tr > td {
+          padding: 4px 6px !important;
+          font-size: 13px !important;
+          line-height: 1.4 !important;
+        }
+      `}</style>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, alignItems: 'center' }} className="no-print">
+        <Title level={5} style={{ margin: 0 }}>Customer Balance</Title>
+      </div>
       <Form form={form} layout="vertical" className="filter-form" style={{ marginBottom: 20 }}>
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={4} lg={3}>
@@ -589,7 +625,7 @@ const PartyBalance = () => {
               </Select>
             </Form.Item>
           </Col>
-          <Col xs={24} sm={24} md={2} lg={4}>
+          <Col xs={24} sm={24} md={3} lg={3}>
             <Form.Item label=" ">
               <Button
                 type="primary"
@@ -602,6 +638,32 @@ const PartyBalance = () => {
               </Button>
             </Form.Item>
           </Col>
+          {reportType !== "Party Summary" && (
+            <Col xs={24} sm={24} md={4} lg={5}>
+              <Form.Item label=" ">
+                <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                  <Button 
+                    style={{ flex: 1, borderColor: '#52c41a' }} 
+                    icon={<FileExcelOutlined style={{ color: '#52c41a' }} />} 
+                    onClick={handleExportExcel}
+                    title="Export to Excel"
+                  />
+                  <Button 
+                    style={{ flex: 1, borderColor: '#f5222d' }} 
+                    icon={<FilePdfOutlined style={{ color: '#f5222d' }} />} 
+                    onClick={handleExportPDF}
+                    title="Export to PDF"
+                  />
+                  <Button 
+                    style={{ flex: 1, borderColor: '#722ed1' }} 
+                    icon={<PrinterOutlined style={{ color: '#722ed1' }} />} 
+                    onClick={() => handlePrint()}
+                    title="Print"
+                  />
+                </div>
+              </Form.Item>
+            </Col>
+          )}
         </Row>
       </Form>
 
@@ -616,32 +678,6 @@ const PartyBalance = () => {
         </div>
       ) : (
         <>
-          <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between" }}>
-            <div style={{ width: '300px' }}>
-              {/* internal search */}
-            </div>
-            <Space>
-              <Button 
-                icon={<FileExcelOutlined style={{ color: '#52c41a' }} />} 
-                style={{ borderColor: '#52c41a' }} 
-                onClick={handleExportExcel}
-                title="Export to Excel"
-              />
-              <Button 
-                icon={<FilePdfOutlined style={{ color: '#f5222d' }} />} 
-                style={{ borderColor: '#f5222d' }} 
-                onClick={handleExportPDF}
-                title="Export to PDF"
-              />
-              <Button 
-                icon={<PrinterOutlined style={{ color: '#722ed1' }} />} 
-                style={{ borderColor: '#722ed1' }}
-                onClick={() => handlePrint()}
-                title="Print"
-              />
-            </Space>
-          </div>
-
           {/* Print View (Hidden on web) */}
           <div style={{ display: 'none' }}>
             <div ref={printRef} className="print-wrapper">
@@ -798,6 +834,7 @@ const PartyBalance = () => {
           {/* Web View */}
           <div className="web-view" style={{ overflowX: 'auto' }}>
             <Table
+              className="compact-table"
               columns={reportType === "Party with Ageing" ? partyColumns : billWiseColumns}
               dataSource={reportData}
               rowKey="partyId"
