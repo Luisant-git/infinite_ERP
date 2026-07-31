@@ -106,41 +106,45 @@ const FabricBillPrint = forwardRef(
       return words + " Only";
     };
 
-    const inwardGroups = {};
+    const dcGroups = {};
+    const generalGroup = { 'General': [] };
     const items = data?.details || [];
+    
     items.forEach(item => {
-      const inward = item.inwardNo || 'General';
-      if (!inwardGroups[inward]) inwardGroups[inward] = [];
-      inwardGroups[inward].push(item);
+      const dc = item.dcNo || 'General';
+      if (!dcGroups[dc]) dcGroups[dc] = [];
+      dcGroups[dc].push(item);
+      
+      generalGroup['General'].push(item);
     });
 
-    if (Object.keys(inwardGroups).length === 0) {
-      inwardGroups['General'] = [];
+    if (Object.keys(dcGroups).length === 0) {
+      dcGroups['General'] = [];
     }
 
     const itemsPerPageDC = 8;
     const pagesDC = [];
-    Object.entries(inwardGroups).forEach(([inwNo, inwItems]) => {
+    Object.entries(dcGroups).forEach(([dcNo, inwItems]) => {
       for (let i = 0; i < inwItems.length; i += itemsPerPageDC) {
         const pageItems = inwItems.slice(i, i + itemsPerPageDC);
         const emptyRows = Array(itemsPerPageDC - pageItems.length).fill(null);
-        pagesDC.push({ inwardNo: inwNo, items: pageItems, emptyRows });
+        pagesDC.push({ dcNo: dcNo, items: pageItems, emptyRows });
       }
     });
 
     const totalRowsQuot = 5;
     const pagesQuot = [];
-    Object.entries(inwardGroups).forEach(([inwNo, inwItems]) => {
+    Object.entries(dcGroups).forEach(([dcNo, inwItems]) => {
       for (let i = 0; i < inwItems.length; i += totalRowsQuot) {
         const pageItems = inwItems.slice(i, i + totalRowsQuot);
         const emptyRowsCountQuot = totalRowsQuot - pageItems.length;
         const emptyRowsQuot = Array(emptyRowsCountQuot > 0 ? emptyRowsCountQuot : 0).fill(null);
-        pagesQuot.push({ inwardNo: inwNo, items: pageItems, emptyRowsQuot });
+        pagesQuot.push({ dcNo: dcNo, items: pageItems, emptyRowsQuot });
       }
     });
 
     const pagesInvoice = [];
-    Object.entries(inwardGroups).forEach(([inwNo, inwItems]) => {
+    Object.entries(generalGroup).forEach(([inwNo, inwItems]) => {
       const emptyRowsCount = 12 - inwItems.length;
       const emptyRowsInvoice = Array(Math.max(0, emptyRowsCount)).fill(null);
       pagesInvoice.push({ inwardNo: inwNo, items: inwItems, emptyRowsInvoice });
@@ -211,9 +215,9 @@ const FabricBillPrint = forwardRef(
                     <div className="header-right">
                       <div className="delivery-note-title">DELIVERY CHALLAN</div>
                       <div className="dc-details">
-                        <div className="doc-info-row"><strong>DC No</strong> : {data?.billNo || ''}</div>
-                        <div className="doc-info-row"><strong>DC Date</strong> : {data?.billDate ? dayjs(data.billDate).format('DD-MMM-YYYY') : ''}</div>
-                        <div className="doc-info-row"><strong>Inward No</strong> : {page.inwardNo}</div>
+                        <div className="doc-info-row"><strong>DC No</strong> : {page.dcNo !== 'General' ? page.dcNo : (data?.billNo || '')}</div>
+                        <div className="doc-info-row"><strong>DC Date</strong> : {page.items[0]?.dcDate ? dayjs(page.items[0].dcDate).format('DD-MMM-YYYY') : (data?.billDate ? dayjs(data.billDate).format('DD-MMM-YYYY') : '')}</div>
+                        <div className="doc-info-row"><strong>Bill No</strong> : {data?.billNo || ''}</div>
                       </div>
                     </div>
                   </div>
@@ -392,7 +396,7 @@ const FabricBillPrint = forwardRef(
                       <div className="party-details">
                         <strong>Quot No :</strong> {data?.billNo || ''}<br /><br />
                         <strong>Quot Date :</strong> {data?.billDate ? dayjs(data.billDate).format('DD/MM/YYYY') : ''}<br /><br />
-                        <strong>Inward No :</strong> {page.inwardNo}
+                        <strong>DC No :</strong> {page.dcNo !== 'General' ? page.dcNo : ''}
                       </div>
                     </div>
                   </div>
@@ -401,33 +405,24 @@ const FabricBillPrint = forwardRef(
                     <thead>
                       <tr>
                         <th style={{ width: '40px' }}>S.No</th>
-                        <th>Dc Date</th>
-                        <th>Dc No</th>
                         <th>Process</th>
                         <th>Roll</th>
                         <th>Qty</th>
                         <th>Rate</th>
-                        <th>Amount</th>
                       </tr>
                     </thead>
                     <tbody>
                       {page.items.map((detail, index) => (
                         <tr key={index}>
                           <td>{index + 1}</td>
-                          <td>{detail.dcDate ? dayjs(detail.dcDate).format('DD/MM/YYYY') : ''}</td>
-                          <td>{detail.dcNo || ''}</td>
                           <td className="text-left">{detail.process || detail.processList || 'Fabric Delivery'}</td>
                           <td>{detail.rolls || 0}</td>
                           <td>{Number(detail.weight || 0).toFixed(3)}</td>
                           <td>{Number(detail.rate || 0).toFixed(2)}</td>
-                          <td>{Number(detail.amount || 0).toFixed(2)}</td>
                         </tr>
                       ))}
                       {page.emptyRowsQuot.map((_, index) => (
                         <tr key={`empty-${index}`} className="empty-row">
-                          <td>&nbsp;</td>
-                          <td>&nbsp;</td>
-                          <td>&nbsp;</td>
                           <td>&nbsp;</td>
                           <td>&nbsp;</td>
                           <td>&nbsp;</td>
@@ -439,63 +434,26 @@ const FabricBillPrint = forwardRef(
                   </table>
 
                   <div className="payment-section">
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <div style={{ width: '60%' }}>
-                        <strong>Amount in Words:</strong><br />
-                    {numberToWords(Number(data?.netAmount || 0))}
+                    <strong>PAYMENT TERMS:</strong><br />
+                    {data?.paymentTerms || ''}
                   </div>
-                  <div style={{ width: '40%' }}>
-                    <table style={{ width: '100%', fontSize: '10px', borderCollapse: 'collapse' }}>
-                      <tbody>
-                        <tr>
-                          <td style={{ textAlign: 'right', paddingRight: '10px', paddingBottom: '3px' }}>Total Amount :</td>
-                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{Number(data?.totalAmount || 0).toFixed(2)}</td>
-                        </tr>
-                        {(Number(data?.noOfScreen || 0) > 0 || Number(data?.screenAmount || 0) > 0) && (
-                          <tr>
-                            <td style={{ textAlign: 'right', paddingRight: '10px', paddingBottom: '3px' }}>Screen Amount :</td>
-                            <td style={{ textAlign: 'right' }}>{Number(data?.screenAmount || 0).toFixed(2)}</td>
-                          </tr>
-                        )}
-                        {data?.taxes?.map((tax, index) => {
-                          const taxName = gstMasters?.find((g) => g.id === tax.taxName)?.taxName || tax.taxName;
-                          return (
-                            <tr key={index}>
-                              <td style={{ textAlign: 'right', paddingRight: '10px', paddingBottom: '3px' }}>{taxName} :</td>
-                              <td style={{ textAlign: 'right' }}>{Number(tax.taxAmount || 0).toFixed(2)}</td>
-                            </tr>
-                          );
-                        })}
-                        <tr>
-                          <td style={{ textAlign: 'right', paddingRight: '10px', paddingBottom: '3px' }}>Round Off :</td>
-                          <td style={{ textAlign: 'right' }}>{Number(data?.roundOff || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ textAlign: 'right', paddingRight: '10px', paddingTop: '5px', borderTop: '1px solid black', fontWeight: 'bold', fontSize: '11px' }}>Net Amount :</td>
-                          <td style={{ textAlign: 'right', paddingTop: '5px', borderTop: '1px solid black', fontWeight: 'bold', fontSize: '11px' }}>{Number(data?.netAmount || 0).toFixed(2)}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
 
-              <div className="footer-section">
-                <div className="footer-col">
-                  <div><strong>Receiver's Signatory</strong></div>
-                </div>
-                <div className="footer-col">
-                  <div><strong>Prepared By</strong></div>
-                </div>
-                <div className="footer-col">
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                    <strong>For {concernData?.partyName || ''}</strong>
-                    <strong>Authorised Signatory</strong>
+                  <div className="footer-section">
+                    <div className="footer-col">
+                      <div><strong>Receiver's Signatory</strong></div>
+                    </div>
+                    <div className="footer-col">
+                      <div><strong>Prepared By</strong></div>
+                    </div>
+                    <div className="footer-col">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                        <strong>For {concernData?.partyName || ''}</strong>
+                        <strong>Authorised Signatory</strong>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
             ))}
           </div>
         )}
