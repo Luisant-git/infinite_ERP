@@ -83,6 +83,7 @@ const FabricBill = () => {
   const [dcSearchText, setDcSearchText] = useState("");
   const [partyProcessRates, setPartyProcessRates] = useState([]);
   const [latestQuotationRates, setLatestQuotationRates] = useState([]);
+  const [latestQuotationHeader, setLatestQuotationHeader] = useState(null);
   const [processes, setProcesses] = useState([]);
   const [concernData, setConcernData] = useState(null);
   const { selectedYear } = useSelector((state) => state.auth);
@@ -825,6 +826,12 @@ const FabricBill = () => {
         } catch (error) {
           console.log('No E-invoice data found');
         }
+      }
+
+      if (type === "Quotation") {
+        const quotResponse = await getLatestQuotationRates(record.partyId);
+        setLatestQuotationRates(quotResponse ? (Array.isArray(quotResponse.details) ? quotResponse.details : Array.isArray(quotResponse) ? quotResponse : []) : []);
+        setLatestQuotationHeader(quotResponse || null);
       }
       
       // Set print data
@@ -1854,6 +1861,9 @@ const FabricBill = () => {
             einvoiceData={printEinvoiceData}
             gstMasters={gstMasters}
             printType={printType}
+            quotationRates={latestQuotationRates}
+            quotationHeader={latestQuotationHeader}
+            processes={processes}
           />
         )}
       </div>

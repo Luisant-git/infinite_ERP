@@ -58,9 +58,9 @@ export class RateQuotationService {
       }
     });
 
-    if (!latestQuot) return [];
+    if (!latestQuot) return null;
     
-    return latestQuot.details;
+    return latestQuot;
   }
 
   async findAll(tenantId: number | null, search?: string, page: number = 1, limit: number = 10) {

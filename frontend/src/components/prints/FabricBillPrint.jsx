@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 
 const FabricBillPrint = forwardRef(
   (
-    { data, concernData, partyData, invoiceToData, einvoiceData, gstMasters, printType = "Invoice" },
+    { data, concernData, partyData, invoiceToData, einvoiceData, gstMasters, printType = "Invoice", quotationRates = [], quotationHeader = null, processes = [] },
     ref,
   ) => {
     // Return null if no data is provided
@@ -134,14 +134,32 @@ const FabricBillPrint = forwardRef(
 
     const totalRowsQuot = 5;
     const pagesQuot = [];
-    Object.entries(dcGroups).forEach(([dcNo, inwItems]) => {
-      for (let i = 0; i < inwItems.length; i += totalRowsQuot) {
-        const pageItems = inwItems.slice(i, i + totalRowsQuot);
-        const emptyRowsCountQuot = totalRowsQuot - pageItems.length;
-        const emptyRowsQuot = Array(emptyRowsCountQuot > 0 ? emptyRowsCountQuot : 0).fill(null);
-        pagesQuot.push({ dcNo: dcNo, items: pageItems, emptyRowsQuot });
-      }
+    const uniqueProcesses = [];
+    const seenProcessNames = new Set();
+    
+    generalGroup['General'].forEach(item => {
+      const pNames = (item.process || item.processList || processes.find(p => p.id === item.processId)?.processName || 'Fabric Delivery')
+        .split(/[,/]/)
+        .map(s => s.trim())
+        .filter(Boolean);
+        
+      pNames.forEach(pName => {
+        const lowerPName = pName.toLowerCase();
+        if (!seenProcessNames.has(lowerPName)) {
+          seenProcessNames.add(lowerPName);
+          uniqueProcesses.push({ ...item, _splitProcessName: pName });
+        }
+      });
     });
+    
+    uniqueProcesses.forEach(item => {
+      const emptyRowsQuot = Array(totalRowsQuot - 1).fill(null);
+      pagesQuot.push({ items: [item], emptyRowsQuot });
+    });
+
+    if (pagesQuot.length === 0) {
+      pagesQuot.push({ items: [], emptyRowsQuot: Array(totalRowsQuot).fill(null) });
+    }
 
     const pagesInvoice = [];
     Object.entries(generalGroup).forEach(([inwNo, inwItems]) => {
@@ -359,7 +377,7 @@ const FabricBillPrint = forwardRef(
             
             {pagesQuot.map((page, pageIndex) => (
               <div key={pageIndex} className="page-container">
-                <div className="print-title">QUOTATION</div>
+                <div className="print-title">RATE QUOTATION</div>
                 <div className="print-container">
                   <div className="company-section">
                     <div className="company-name">{concernData?.partyName || ''}</div>
@@ -394,9 +412,8 @@ const FabricBillPrint = forwardRef(
                     </div>
                     <div className="party-right">
                       <div className="party-details">
-                        <strong>Quot No :</strong> {data?.billNo || ''}<br /><br />
-                        <strong>Quot Date :</strong> {data?.billDate ? dayjs(data.billDate).format('DD/MM/YYYY') : ''}<br /><br />
-                        <strong>DC No :</strong> {page.dcNo !== 'General' ? page.dcNo : ''}
+                        <strong>Quot No :</strong> {quotationHeader?.quotNo || data?.billNo || ''}<br /><br />
+                        <strong>Quot Date :</strong> {(quotationHeader?.quotDate || data?.billDate) ? dayjs(quotationHeader?.quotDate || data?.billDate).format('DD/MM/YYYY') : ''}
                       </div>
                     </div>
                   </div>
@@ -404,23 +421,30 @@ const FabricBillPrint = forwardRef(
                   <table className="details-table">
                     <thead>
                       <tr>
-                        <th style={{ width: '40px' }}>S.No</th>
+                        <th style={{ width: '60px' }}>S.No</th>
                         <th>Process</th>
-                        <th>Roll</th>
-                        <th>Qty</th>
-                        <th>Rate</th>
+                        <th style={{ width: '100px' }}>Rate/Kgs</th>
+                        <th style={{ width: '120px' }}>Sample Rate</th>
+                        <th style={{ width: '150px' }}>Remarks</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {page.items.map((detail, index) => (
-                        <tr key={index}>
-                          <td>{index + 1}</td>
-                          <td className="text-left">{detail.process || detail.processList || 'Fabric Delivery'}</td>
-                          <td>{detail.rolls || 0}</td>
-                          <td>{Number(detail.weight || 0).toFixed(3)}</td>
-                          <td>{Number(detail.rate || 0).toFixed(2)}</td>
-                        </tr>
-                      ))}
+                      {page.items.map((detail, index) => {
+                        const processName = (detail._splitProcessName || detail.process || detail.processList || processes.find(p => p.id === detail.processId)?.processName || '-').trim();
+                        const quotItem = quotationRates.find(q => {
+                          const qName = processes.find(p => p.id === q.processId)?.processName?.trim();
+                          return (qName && processName && qName.toLowerCase() === processName.toLowerCase()) || q.processId === detail.processId;
+                        });
+                        return (
+                          <tr key={index}>
+                            <td>{index + 1}</td>
+                            <td className="text-left">{processName}</td>
+                            <td>{Number(quotItem?.rate || detail.rate || 0).toFixed(2)}</td>
+                            <td>{Number(quotItem?.confirmRate || detail.confirmRate || 0).toFixed(2)}</td>
+                            <td className="text-left">{quotItem?.remarks || ''}</td>
+                          </tr>
+                        );
+                      })}
                       {page.emptyRowsQuot.map((_, index) => (
                         <tr key={`empty-${index}`} className="empty-row">
                           <td>&nbsp;</td>
@@ -435,7 +459,7 @@ const FabricBillPrint = forwardRef(
 
                   <div className="payment-section">
                     <strong>PAYMENT TERMS:</strong><br />
-                    {data?.paymentTerms || ''}
+                    {quotationHeader?.paymentTerms || data?.paymentTerms || ''}
                   </div>
 
                   <div className="footer-section">
