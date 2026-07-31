@@ -43,7 +43,7 @@ export class RateQuotationService {
   }
 
   async getLatestRates(partyId: number, tenantId: number) {
-    const latestQuot = await this.prisma.rateQuotationHeader.findFirst({
+    const allQuots = await this.prisma.rateQuotationHeader.findMany({
       where: {
         partyId,
         tenantId,
@@ -54,11 +54,29 @@ export class RateQuotationService {
       include: { 
         details: {
           where: { deleteFlg: 0 }
-        }
+        } 
       }
     });
 
-    if (!latestQuot) return null;
+    if (!allQuots || allQuots.length === 0) return null;
+    
+    // The most recent quotation becomes our base header
+    const latestQuot = allQuots[0];
+    
+    // Merge details from all historical quotations for this party
+    // Since allQuots is ordered by quotDate desc, newer rates will be added first
+    const mergedDetailsMap = new Map();
+    
+    for (const quot of allQuots) {
+      for (const detail of quot.details) {
+        if (!mergedDetailsMap.has(detail.processId)) {
+          mergedDetailsMap.set(detail.processId, detail);
+        }
+      }
+    }
+    
+    // Replace the details array in latestQuot with the comprehensive merged list
+    latestQuot.details = Array.from(mergedDetailsMap.values());
     
     return latestQuot;
   }
