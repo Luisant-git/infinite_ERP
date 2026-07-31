@@ -152,10 +152,11 @@ const FabricBillPrint = forwardRef(
       });
     });
     
-    uniqueProcesses.forEach(item => {
-      const emptyRowsQuot = Array(totalRowsQuot - 1).fill(null);
-      pagesQuot.push({ items: [item], emptyRowsQuot });
-    });
+    for (let i = 0; i < uniqueProcesses.length; i += totalRowsQuot) {
+      const pageItems = uniqueProcesses.slice(i, i + totalRowsQuot);
+      const emptyRowsQuot = Array(totalRowsQuot - pageItems.length).fill(null);
+      pagesQuot.push({ items: pageItems, emptyRowsQuot });
+    }
 
     if (pagesQuot.length === 0) {
       pagesQuot.push({ items: [], emptyRowsQuot: Array(totalRowsQuot).fill(null) });
