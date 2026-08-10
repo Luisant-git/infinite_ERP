@@ -145,11 +145,9 @@ const FabricBillPrint = forwardRef(
       if (quotDetails.length === 0) {
         pagesQuot.push({ quotation: quot, items: [], emptyRowsQuot: Array(totalRowsQuot).fill(null) });
       } else {
-        for (let i = 0; i < quotDetails.length; i += totalRowsQuot) {
-          const pageItems = quotDetails.slice(i, i + totalRowsQuot);
-          const emptyRowsQuot = Array(totalRowsQuot - pageItems.length).fill(null);
-          pagesQuot.push({ quotation: quot, items: pageItems, emptyRowsQuot });
-        }
+        const emptyRowsCount = totalRowsQuot - quotDetails.length;
+        const emptyRowsQuot = Array(emptyRowsCount > 0 ? emptyRowsCount : 0).fill(null);
+        pagesQuot.push({ quotation: quot, items: quotDetails, emptyRowsQuot });
       }
     });
 
