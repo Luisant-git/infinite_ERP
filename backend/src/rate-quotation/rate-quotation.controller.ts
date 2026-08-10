@@ -29,6 +29,14 @@ export class RateQuotationController {
     return this.rateQuotationService.getLatestRates(parseInt(partyId), parseInt(tenantId));
   }
 
+  @Get('party/:partyId/all')
+  async getAllForParty(
+    @Param('partyId') partyId: string,
+    @Headers('tenant-id') tenantId: string
+  ) {
+    return this.rateQuotationService.getAllForParty(parseInt(partyId), parseInt(tenantId));
+  }
+
   @Get()
   async findAll(
     @Headers('tenant-id') tenantId: string,

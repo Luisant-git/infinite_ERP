@@ -1807,6 +1807,7 @@ const DirectBill = () => {
             invoiceToData={printInvoiceToData}
             einvoiceData={printEinvoiceData}
             gstMasters={gstMasters}
+            masters={masters}
           />
         )}
       </div>

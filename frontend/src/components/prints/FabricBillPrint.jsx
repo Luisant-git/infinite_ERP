@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 
 const FabricBillPrint = forwardRef(
   (
-    { data, concernData, partyData, invoiceToData, einvoiceData, gstMasters, printType = "Invoice", quotationRates = [], quotationHeader = null, processes = [] },
+    { data, concernData, partyData, invoiceToData, einvoiceData, gstMasters, printType = "Invoice", quotationRates = [], quotationHeader = null, processes = [], masters = [] },
     ref,
   ) => {
     // Return null if no data is provided
@@ -106,6 +106,10 @@ const FabricBillPrint = forwardRef(
       return words + " Only";
     };
 
+    const getMasterName = (id, type) => {
+      return masters?.find(m => m.id === id && m.masterType === type)?.masterName || '';
+    };
+
     const dcGroups = {};
     const generalGroup = { 'General': [] };
     const items = data?.details || [];
@@ -122,7 +126,7 @@ const FabricBillPrint = forwardRef(
       dcGroups['General'] = [];
     }
 
-    const itemsPerPageDC = 8;
+    const itemsPerPageDC = 5;
     const pagesDC = [];
     Object.entries(dcGroups).forEach(([dcNo, inwItems]) => {
       for (let i = 0; i < inwItems.length; i += itemsPerPageDC) {
@@ -134,28 +138,23 @@ const FabricBillPrint = forwardRef(
 
     const totalRowsQuot = 5;
     const pagesQuot = [];
-    const uniqueProcesses = [];
-    const seenProcessNames = new Set();
+    const allQuotations = quotationRates || [];
     
-    generalGroup['General'].forEach(item => {
-      const pNames = (item.process || item.processList || processes.find(p => p.id === item.processId)?.processName || 'Fabric Delivery')
-        .split(/[,/]/)
-        .map(s => s.trim())
-        .filter(Boolean);
-        
-      pNames.forEach(pName => {
-        const lowerPName = pName.toLowerCase();
-        if (!seenProcessNames.has(lowerPName)) {
-          seenProcessNames.add(lowerPName);
-          uniqueProcesses.push({ ...item, _splitProcessName: pName });
+    allQuotations.forEach(quot => {
+      const quotDetails = quot.details || [];
+      if (quotDetails.length === 0) {
+        pagesQuot.push({ quotation: quot, items: [], emptyRowsQuot: Array(totalRowsQuot).fill(null) });
+      } else {
+        for (let i = 0; i < quotDetails.length; i += totalRowsQuot) {
+          const pageItems = quotDetails.slice(i, i + totalRowsQuot);
+          const emptyRowsQuot = Array(totalRowsQuot - pageItems.length).fill(null);
+          pagesQuot.push({ quotation: quot, items: pageItems, emptyRowsQuot });
         }
-      });
+      }
     });
-    
-    for (let i = 0; i < uniqueProcesses.length; i += totalRowsQuot) {
-      const pageItems = uniqueProcesses.slice(i, i + totalRowsQuot);
-      const emptyRowsQuot = Array(totalRowsQuot - pageItems.length).fill(null);
-      pagesQuot.push({ items: pageItems, emptyRowsQuot });
+
+    if (allQuotations.length === 0) {
+      pagesQuot.push({ quotation: null, items: [], emptyRowsQuot: Array(totalRowsQuot).fill(null) });
     }
 
     if (pagesQuot.length === 0) {
@@ -175,9 +174,16 @@ const FabricBillPrint = forwardRef(
           <div style={{ fontFamily: 'Arial, sans-serif' }} data-print-content>
             <style>{`
               @media print {
-                @page { margin: 10mm; size: A5; }
-                body { margin: 0; }
-                nav, .ant-layout-header, .page-header { display: none !important; }
+                @page { 
+                  margin: 10mm; 
+                  size: A5; 
+                }
+                body { 
+                  margin: 0; 
+                }
+                nav, .ant-layout-header, .page-header {
+                  display: none !important;
+                }
               }
               @page { size: auto; margin: 0mm; }
               .page-container { padding: 10px; page-break-after: always; }
@@ -198,6 +204,10 @@ const FabricBillPrint = forwardRef(
               .party-right { width: 250px; padding: 6px; }
               .party-label { font-size: 9px; font-weight: bold; margin-bottom: 2px; }
               .party-details { font-size: 9px; line-height: 1.2; }
+              .order-section { display: flex; padding: 4px 6px; font-size: 9px; }
+              .order-left { flex: 1; }
+              .order-center { flex: 1; text-align: center; }
+              .order-right { flex: 1; text-align: right; }
               .details-table { width: 100%; border-collapse: collapse; }
               .details-table th, .details-table td { border: 1px solid #000; padding: 2px 3px; font-size: 9px; line-height: 1.1; }
               .details-table th { font-weight: bold; text-align: center; }
@@ -208,6 +218,9 @@ const FabricBillPrint = forwardRef(
               .details-table tbody tr:last-child td { border-bottom: 1px solid #000; }
               .text-left { text-align: left !important; }
               .total-row { font-weight: bold; }
+              .process-section { display: flex; border-top: 2px solid #000; padding: 4px 6px; font-size: 9px; }
+              .process-left { flex: 1; }
+              .process-right { flex: 1; text-align: right; }
               .footer-section { display: flex; border-top: 2px solid #000; min-height: 50px; }
               .footer-col { flex: 1; text-align: center; font-size: 9px; padding: 6px; display: flex; align-items: flex-end; justify-content: center; }
             `}</style>
@@ -232,11 +245,10 @@ const FabricBillPrint = forwardRef(
                       </div>
                     </div>
                     <div className="header-right">
-                      <div className="delivery-note-title">DELIVERY CHALLAN</div>
+                      <div className="delivery-note-title">DELIVERY NOTE</div>
                       <div className="dc-details">
                         <div className="doc-info-row"><strong>DC No</strong> : {page.dcNo !== 'General' ? page.dcNo : (data?.billNo || '')}</div>
                         <div className="doc-info-row"><strong>DC Date</strong> : {page.items[0]?.dcDate ? dayjs(page.items[0].dcDate).format('DD-MMM-YYYY') : (data?.billDate ? dayjs(data.billDate).format('DD-MMM-YYYY') : '')}</div>
-                        <div className="doc-info-row"><strong>Bill No</strong> : {data?.billNo || ''}</div>
                       </div>
                     </div>
                   </div>
@@ -258,39 +270,70 @@ const FabricBillPrint = forwardRef(
                       </div>
                     </div>
                     <div className="party-right">
-                      <div className="party-label">Invoice To</div>
                       <div className="party-details">
-                        <strong>{invoiceToData?.partyName || ''}</strong><br />
-                        {invoiceToData?.address1 && invoiceToData?.address2 && <>{invoiceToData.address1}, {invoiceToData.address2}<br /></>}
-                        {!invoiceToData?.address2 && invoiceToData?.address1 && <>{invoiceToData.address1}<br /></>}
-                        {invoiceToData?.address2 && !invoiceToData?.address1 && <>{invoiceToData.address2}<br /></>}
-                        {[invoiceToData?.address3, invoiceToData?.address4, invoiceToData?.district].filter(Boolean).join(', ')}{[invoiceToData?.address3, invoiceToData?.address4, invoiceToData?.district].filter(Boolean).length > 0 && <br />}
+                        <div className="doc-info-row"><strong>Received From</strong> : {data?.dyeParty || '-'}</div>
+                        <div className="doc-info-row"><strong>DC No</strong> : {data?.dyeDcNo || ''}</div>
+                        <div className="doc-info-row"><strong>Party DC No</strong> : {page.items[0]?.pdcNo || ''}</div>
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="order-section">
+                    <div className="order-left">
+                      <strong>Order No</strong> : {page.items[0]?.orderNo || data?.orderNo || ''}
+                    </div>
+                    <div className="order-center">
+                      <strong>Job No</strong> : {page.items[0]?.jobNo || data?.jobNo || ''}
+                    </div>
+                    <div className="order-right">
+                      <strong>Rec Weight</strong> : {page.items[0]?.recWeight || data?.recWeight || ''}
                     </div>
                   </div>
 
                   <table className="details-table">
                     <thead>
                       <tr>
-                        <th style={{ width: '15%' }}>Dc Date</th>
-                        <th style={{ width: '20%' }}>Dc No</th>
-                        <th style={{ width: '20%' }}>PDC No</th>
-                        <th style={{ width: '25%' }}>Process</th>
-                        <th style={{ width: '10%' }}>Roll</th>
-                        <th style={{ width: '10%' }}>Qty</th>
+                        <th style={{ width: '30%' }}>Fabric</th>
+                        <th style={{ width: '15%' }}>Color</th>
+                        <th style={{ width: '10%' }}>Dia</th>
+                        <th style={{ width: '10%' }}>Rolls</th>
+                        <th style={{ width: '12%' }}>Dc Wt</th>
+                        <th style={{ width: '23%' }}>Previous Dc List</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {page.items.map((item, index) => (
+                      {page.items.map((item, index) => {
+                        return (
                         <tr key={index}>
-                          <td>{item.dcDate ? dayjs(item.dcDate).format('DD/MM/YYYY') : ''}</td>
-                          <td>{item.dcNo || ''}</td>
-                          <td>{item.pdcNo || ''}</td>
-                          <td className="text-left">{item.process || item.processList || 'Fabric Delivery'}</td>
-                          <td>{item.rolls || 0}</td>
-                          <td>{Number(item.weight || 0).toFixed(3)}</td>
+                          <td className="text-left">
+                            {item.fabric || item.fabricName || getMasterName(item.fabricId, 'Fabric') || '-'} {item.designName ? `/ ${item.designName}` : ''}
+                            {data?.enableItemWiseProcess && item.processes && (
+                              <><br /><span style={{ fontSize: '7px', fontStyle: 'italic' }}>{typeof item.processes === 'string' ? JSON.parse(item.processes).join(' / ') : item.processes.join(' / ')}</span></>
+                            )}
+                          </td>
+                          <td className="text-left">{item.color || item.colorName || getMasterName(item.colorId, 'Color') || '-'}</td>
+                          <td>{item.dia || item.diaName || getMasterName(item.diaId, 'Dia') || '-'}</td>
+                          <td>{item.rolls || ''}</td>
+                          <td>{item.weight || ''}</td>
+                          {index === 0 && (
+                            <td rowSpan={itemsPerPageDC} style={{ verticalAlign: 'top', padding: 0 }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px' }}>
+                                <tbody>
+                                  {(page.items[0]?.previousList || data?.previousList)?.map((prev, i) => (
+                                    <tr key={i}>
+                                      <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{prev.dcNo}</td>
+                                      <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{dayjs(prev.dcDate).format('DD/MM/YY')}</td>
+                                      <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{prev.totalRolls}</td>
+                                      <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{Number(prev.totalQty).toFixed(3)}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </td>
+                          )}
                         </tr>
-                      ))}
+                        );
+                      })}
                       {page.emptyRows.map((_, index) => (
                         <tr key={`empty-${index}`}>
                           <td>&nbsp;</td>
@@ -298,7 +341,22 @@ const FabricBillPrint = forwardRef(
                           <td>&nbsp;</td>
                           <td>&nbsp;</td>
                           <td>&nbsp;</td>
-                          <td>&nbsp;</td>
+                          {page.items.length === 0 && index === 0 && (
+                            <td rowSpan={itemsPerPageDC} style={{ verticalAlign: 'top', padding: 0 }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px' }}>
+                                <tbody>
+                                  {(page.items[0]?.previousList || data?.previousList)?.map((prev, i) => (
+                                    <tr key={i}>
+                                      <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{prev.dcNo}</td>
+                                      <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{dayjs(prev.dcDate).format('DD/MM/YY')}</td>
+                                      <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{prev.totalRolls}</td>
+                                      <td style={{ border: 'none', padding: '2px', textAlign: 'center' }}>{Number(prev.totalQty).toFixed(3)}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -307,22 +365,32 @@ const FabricBillPrint = forwardRef(
                   <table className="details-table" style={{ borderTop: 'none' }}>
                     <tbody>
                       <tr className="total-row">
-                        <td style={{ width: '80%', border: 'none', borderLeft: '1px solid #000', textAlign: 'right', paddingRight: '10px', fontSize: '9px' }}>Total</td>
-                        <td style={{ width: '10%', textAlign: 'center', borderLeft: '1px solid #000', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>
-                          {page.items.reduce((sum, item) => sum + (parseFloat(item.rolls) || 0), 0)}
-                        </td>
-                        <td style={{ width: '10%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000', borderRight: '1px solid #000' }}>
-                          {Number(page.items.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0)).toFixed(3)}
-                        </td>
+                        <td colSpan={2} style={{ width: '45%', border: 'none', borderLeft: '1px solid #000', textAlign: 'left', paddingLeft: '4px', fontWeight: 'normal', fontSize: '9px' }}>Remarks : {page.items[0]?.remarks || data?.remarks || ''}</td>
+                        <td style={{ width: '10%', textAlign: 'center', borderLeft: '1px solid #000', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>Total</td>
+                        <td style={{ width: '10%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.rolls) || 0), 0)}</td>
+                        <td style={{ width: '12%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000', borderRight: '1px solid #000' }}>{Number(page.items.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0)).toFixed(3)}</td>
+                        <td style={{ width: '23%', border: 'none', borderRight: '1px solid #000' }}>&nbsp;</td>
                       </tr>
                     </tbody>
                   </table>
 
+                  {!(page.items[0]?.enableItemWiseProcess || data?.enableItemWiseProcess) && (
+                    <div className="process-section">
+                      <div className="process-left">
+                        <strong>Process</strong> &nbsp;&nbsp; {page.items[0]?.process || data?.process || ''}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="footer-section">
                     <div className="footer-col">
                       <div>
+                        {data?.receivedName && <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>{data.receivedName}</div>}
                         <strong>Received By</strong>
                       </div>
+                    </div>
+                    <div className="footer-col">
+                      <div><div style={{ fontWeight: 'bold', marginBottom: '2px' }}>{data?.vehicleNo || ''}</div><strong>Vehicle No</strong></div>
                     </div>
                     <div className="footer-col">
                       <div><strong>Prepared By</strong></div>
@@ -376,7 +444,9 @@ const FabricBillPrint = forwardRef(
               .footer-col:last-child { border-right: none; }
             `}</style>
             
-            {pagesQuot.map((page, pageIndex) => (
+            {pagesQuot.map((page, pageIndex) => {
+              const currentQuot = page.quotation || {};
+              return (
               <div key={pageIndex} className="page-container">
                 <div className="print-title">RATE QUOTATION</div>
                 <div className="print-container">
@@ -413,8 +483,8 @@ const FabricBillPrint = forwardRef(
                     </div>
                     <div className="party-right">
                       <div className="party-details">
-                        <strong>Quot No :</strong> {quotationHeader?.quotNo || data?.billNo || ''}<br /><br />
-                        <strong>Quot Date :</strong> {(quotationHeader?.quotDate || data?.billDate) ? dayjs(quotationHeader?.quotDate || data?.billDate).format('DD/MM/YYYY') : ''}
+                        <strong>Quot No :</strong> {currentQuot.quotNo || data?.billNo || ''}<br /><br />
+                        <strong>Quot Date :</strong> {(currentQuot.quotDate || data?.billDate) ? dayjs(currentQuot.quotDate || data?.billDate).format('DD/MM/YYYY') : ''}
                       </div>
                     </div>
                   </div>
@@ -431,18 +501,14 @@ const FabricBillPrint = forwardRef(
                     </thead>
                     <tbody>
                       {page.items.map((detail, index) => {
-                        const processName = (detail._splitProcessName || detail.process || detail.processList || processes.find(p => p.id === detail.processId)?.processName || '-').trim();
-                        const quotItem = quotationRates.find(q => {
-                          const qName = processes.find(p => p.id === q.processId)?.processName?.trim();
-                          return (qName && processName && qName.toLowerCase() === processName.toLowerCase()) || q.processId === detail.processId;
-                        });
+                        const processName = processes.find(p => p.id === detail.processId)?.processName || '-';
                         return (
                           <tr key={index}>
                             <td>{index + 1}</td>
                             <td className="text-left">{processName}</td>
-                            <td>{Number(quotItem?.rate || detail.rate || 0).toFixed(2)}</td>
-                            <td>{Number(quotItem?.confirmRate || detail.confirmRate || 0).toFixed(2)}</td>
-                            <td className="text-left">{quotItem?.remarks || ''}</td>
+                            <td>{Number(detail.rate || 0).toFixed(2)}</td>
+                            <td>{Number(detail.confirmRate || 0).toFixed(2)}</td>
+                            <td className="text-left">{detail.remarks || ''}</td>
                           </tr>
                         );
                       })}
@@ -460,7 +526,7 @@ const FabricBillPrint = forwardRef(
 
                   <div className="payment-section">
                     <strong>PAYMENT TERMS:</strong><br />
-                    {quotationHeader?.paymentTerms || data?.paymentTerms || ''}
+                    {currentQuot.paymentTerms || data?.paymentTerms || ''}
                   </div>
 
                   <div className="footer-section">
@@ -479,7 +545,8 @@ const FabricBillPrint = forwardRef(
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

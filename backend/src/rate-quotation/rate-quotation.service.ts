@@ -81,6 +81,24 @@ export class RateQuotationService {
     return latestQuot;
   }
 
+  async getAllForParty(partyId: number, tenantId: number) {
+    const allQuots = await this.prisma.rateQuotationHeader.findMany({
+      where: {
+        partyId,
+        tenantId,
+        isApproval: 1, // Only approved
+        deleteFlg: 0
+      },
+      orderBy: { quotDate: 'asc' }, // Or whatever order is appropriate
+      include: { 
+        details: {
+          where: { deleteFlg: 0 }
+        } 
+      }
+    });
+    return allQuots;
+  }
+
   async findAll(tenantId: number | null, search?: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     

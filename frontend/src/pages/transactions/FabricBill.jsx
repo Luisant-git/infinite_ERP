@@ -43,7 +43,7 @@ import { getMastersByType } from "../../api/fabricInward";
 import { getPartyProcessRates } from "../../api/partyProcessRate";
 import { getPartyScreenRateByParty } from "../../api/partyScreenRate";
 import { getProcesses } from "../../api/process";
-import { getLatestQuotationRates } from "../../api/rateQuotation";
+import { getLatestQuotationRates, getAllQuotationRatesForParty } from "../../api/rateQuotation";
 import { getSettings } from "../../api/settings";
 import { getEinvoiceStatus } from "../../api/billEinvoice";
 import { useMenuPermissions } from "../../hooks/useMenuPermissions";
@@ -829,9 +829,9 @@ const FabricBill = () => {
       }
 
       if (type === "Quotation") {
-        const quotResponse = await getLatestQuotationRates(record.partyId);
-        setLatestQuotationRates(quotResponse ? (Array.isArray(quotResponse.details) ? quotResponse.details : Array.isArray(quotResponse) ? quotResponse : []) : []);
-        setLatestQuotationHeader(quotResponse || null);
+        const quotResponse = await getAllQuotationRatesForParty(record.partyId);
+        setLatestQuotationRates(quotResponse || []);
+        setLatestQuotationHeader(null);
       }
       
       // Set print data
@@ -1864,6 +1864,7 @@ const FabricBill = () => {
             quotationRates={latestQuotationRates}
             quotationHeader={latestQuotationHeader}
             processes={processes}
+            masters={masters}
           />
         )}
       </div>
