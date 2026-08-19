@@ -39,7 +39,8 @@ import {
 } from "../../api/fabricBill";
 import { getParties } from "../../api/party";
 import { getGstMasters } from "../../api/gstMaster";
-import { getMastersByType } from "../../api/fabricInward";
+import { getMastersByType, getFabricInwards } from "../../api/fabricInward";
+import { getFabricDcs } from "../../api/fabricDc";
 import { getPartyProcessRates } from "../../api/partyProcessRate";
 import { getPartyScreenRateByParty } from "../../api/partyScreenRate";
 import { getProcesses } from "../../api/process";
@@ -834,9 +835,39 @@ const FabricBill = () => {
         setLatestQuotationHeader(null);
       }
       
+      // Fetch DC data for orderNo and jobNo
+      let orderNo = "";
+      let jobNo = "";
+      let recWeight = "";
+      if (record.details && record.details.length > 0 && record.details[0].dcId) {
+        try {
+          const dcResponse = await getFabricDcs("", 1, 1000);
+          const allDcs = dcResponse.data || [];
+          const matchedDc = allDcs.find(dc => dc.id === record.details[0].dcId);
+          if (matchedDc) {
+            orderNo = matchedDc.orderNo || "";
+            jobNo = matchedDc.inwardNo || "";
+            
+            if (jobNo) {
+              const inwardResponse = await getFabricInwards("", 1, 1000);
+              const allInwards = inwardResponse.data || [];
+              const matchedInward = allInwards.find(i => i.grnNo === jobNo);
+              if (matchedInward) {
+                recWeight = Number(matchedInward.totalQty || 0).toFixed(3);
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Error fetching DC/Inward for print:", e);
+        }
+      }
+
       // Set print data
       const processedRecord = {
         ...record,
+        orderNo,
+        jobNo,
+        recWeight,
         enableItemWiseProcess: settings?.enableItemWiseProcess,
         details: record.details?.map(d => {
           let procArray = [];
