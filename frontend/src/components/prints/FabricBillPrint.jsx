@@ -366,7 +366,7 @@ const FabricBillPrint = forwardRef(
                         <td colSpan={2} style={{ width: '45%', border: 'none', borderLeft: '1px solid #000', textAlign: 'left', paddingLeft: '4px', fontWeight: 'normal', fontSize: '9px' }}>Remarks : {page.items[0]?.remarks || data?.remarks || ''}</td>
                         <td style={{ width: '10%', textAlign: 'center', borderLeft: '1px solid #000', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>Total</td>
                         <td style={{ width: '10%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.rolls) || 0), 0)}</td>
-                        <td style={{ width: '12%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000', borderRight: '1px solid #000' }}>{Number(page.items.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0)).toFixed(3)}</td>
+                        <td style={{ width: '12%', textAlign: 'center', borderTop: '1px solid #000', borderBottom: '1px solid #000', borderRight: '1px solid #000' }}>{page.items.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0)}</td>
                         <td style={{ width: '23%', border: 'none', borderRight: '1px solid #000' }}>&nbsp;</td>
                       </tr>
                     </tbody>

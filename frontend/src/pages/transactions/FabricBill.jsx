@@ -835,7 +835,27 @@ const FabricBill = () => {
       }
       
       // Set print data
-      setPrintData(record);
+      const processedRecord = {
+        ...record,
+        enableItemWiseProcess: settings?.enableItemWiseProcess,
+        details: record.details?.map(d => {
+          let procArray = [];
+          if (d.processes) {
+            try {
+              procArray = typeof d.processes === 'string' ? JSON.parse(d.processes) : d.processes;
+            } catch(e) {}
+          } else if (d.process) {
+            procArray = d.process.toString().split(/[\/,]\s*/).map((s) => s.trim()).filter(Boolean);
+          }
+          return {
+            ...d,
+            processes: procArray,
+            weight: Number(d.weight || 0).toFixed(3)
+          };
+        })
+      };
+
+      setPrintData(processedRecord);
       setPrintPartyData(party);
       setPrintInvoiceToData(invoiceToParty || party);
       setPrintEinvoiceData(einvoiceData);
